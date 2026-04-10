@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Motion | Your workspace, simplified.</title>
+  <meta name="description" content="Motion brings your notes, databases, and tasks together into a single, serene workspace designed for deep focus and effortless organization." />
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link href="../css/styles.css" rel="stylesheet" />
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-primary-fixed": "#403f3f", "on-tertiary": "#f4faff", "on-primary-fixed-variant": "#5c5b5b",
+            "on-error": "#fff7f6", "surface": "#f9f9f8", "surface-variant": "#dde4e3",
+            "surface-container-high": "#e4e9e8", "on-primary-container": "#525151", "error-dim": "#4e0309",
+            "on-secondary-fixed": "#3f3f3f", "tertiary-container": "#d0ecff", "tertiary-fixed": "#d0ecff",
+            "background": "#f9f9f8", "on-error-container": "#752121", "secondary": "#5f5f5f",
+            "error-container": "#fe8983", "surface-container-lowest": "#ffffff",
+            "on-secondary-container": "#515252", "on-surface": "#2d3433",
+            "on-tertiary-fixed-variant": "#486272", "on-secondary-fixed-variant": "#5b5b5b",
+            "primary-dim": "#535252", "primary": "#5f5e5e", "surface-tint": "#5f5e5e",
+            "surface-container-low": "#f2f4f3", "on-secondary": "#faf8f8", "on-primary": "#faf7f6",
+            "inverse-surface": "#0c0f0e", "surface-bright": "#f9f9f8", "secondary-fixed": "#e3e2e2",
+            "outline": "#757c7b", "tertiary-fixed-dim": "#c2def0", "on-surface-variant": "#5a6060",
+            "secondary-fixed-dim": "#d5d4d4", "secondary-dim": "#535353", "inverse-on-surface": "#9c9d9c",
+            "outline-variant": "#adb3b2", "tertiary-dim": "#3c5666", "surface-dim": "#d4dcda",
+            "tertiary": "#486272", "surface-container-highest": "#dde4e3",
+            "primary-container": "#e5e2e1", "primary-fixed": "#e5e2e1", "error": "#9f403d",
+            "on-tertiary-fixed": "#2c4655", "secondary-container": "#e3e2e2",
+            "primary-fixed-dim": "#d6d4d3", "inverse-primary": "#ffffff",
+            "on-tertiary-container": "#3e5868", "surface-container": "#ebeeed", "on-background": "#2d3433"
+          },
+          borderRadius: { DEFAULT: "0.5rem", lg: "0.75rem", xl: "1rem", full: "9999px" },
+          fontFamily: { headline: ["Inter"], body: ["Inter"], label: ["Inter"] }
+        },
+      },
+    }
+  </script>
+  <style>
+    .shadow-soft { box-shadow: 0 10px 30px -10px rgba(45, 52, 51, 0.05); }
+  </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-tertiary-container">
+
+  <!-- Top Navigation -->
+  <nav class="sticky top-0 w-full z-40 bg-[#f9f9f8]/70 backdrop-blur-xl transition-opacity duration-200">
+    <div class="flex justify-between items-center px-6 h-14 w-full max-w-7xl mx-auto">
+      <div class="flex items-center gap-8">
+        <span class="text-xl font-bold tracking-tighter text-[#2d3433]">Motion</span>
+        <div class="hidden md:flex gap-6">
+          <a class="text-sm font-medium text-[#5a6060] hover:text-[#2d3433] transition-colors" href="#">Product</a>
+          <a class="text-sm font-medium text-[#5a6060] hover:text-[#2d3433] transition-colors" href="#">Resources</a>
+          <a class="text-sm font-medium text-[#5a6060] hover:text-[#2d3433] transition-colors" href="#">Pricing</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="login.html" class="text-sm font-medium text-[#5a6060] hover:text-[#2d3433]">Log in</a>
+        <a href="login.html" class="bg-[#5f5e5e] text-white px-4 py-1.5 rounded-lg text-sm font-semibold shadow-sm hover:opacity-90 transition-all active:scale-95">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="relative pt-20 pb-32 overflow-hidden px-6">
+      <div class="max-w-7xl mx-auto text-center">
+        <div class="inline-flex items-center gap-2 bg-surface-container px-3 py-1 rounded-full mb-8">
+          <span class="text-[10px] font-bold tracking-widest uppercase text-on-surface-variant">Now in Beta</span>
+        </div>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-on-surface mb-6 max-w-4xl mx-auto leading-[1.1]">
+          Your workspace, <span class="text-primary-dim italic font-medium">simplified.</span>
+        </h1>
+        <p class="text-lg md:text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
+          Motion brings your notes, databases, and tasks together into a single, serene workspace designed for deep focus and effortless organization.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mb-20">
+          <a href="login.html" class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-lg shadow-soft hover:bg-primary-dim transition-all text-center">Get Started for free</a>
+          <button class="bg-surface-container-low text-on-surface px-8 py-4 rounded-xl font-bold text-lg hover:bg-surface-container transition-all">Request a demo</button>
+        </div>
+        <!-- App Interface Preview -->
+        <div class="relative max-w-6xl mx-auto">
+          <div class="bg-surface-container-lowest rounded-2xl shadow-2xl p-4 overflow-hidden border border-outline-variant/10">
+            <div class="w-full h-64 md:h-96 bg-surface-container rounded-lg flex items-center justify-center">
+              <div class="text-center">
+                <span class="material-symbols-outlined text-6xl text-on-surface-variant/20">dashboard</span>
+                <p class="text-on-surface-variant/40 mt-2 text-sm">App Preview</p>
+              </div>
+            </div>
+          </div>
+          <div class="absolute -top-10 -right-10 w-40 h-40 bg-tertiary-container/20 rounded-full blur-3xl -z-10"></div>
+          <div class="absolute -bottom-10 -left-10 w-60 h-60 bg-primary-container/30 rounded-full blur-3xl -z-10"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Bento Grid -->
+    <section class="py-32 px-6 bg-surface">
+      <div class="max-w-7xl mx-auto">
+        <div class="mb-20">
+          <h2 class="text-3xl font-extrabold tracking-tight text-on-surface mb-4">Master your workflow.</h2>
+          <p class="text-on-surface-variant max-w-md">Replace your disparate tools with one integrated engine for creativity and execution.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
+          <!-- Notes Card -->
+          <div class="md:col-span-8 bg-surface-container-lowest rounded-3xl p-8 flex flex-col justify-between overflow-hidden relative shadow-soft group hover:translate-y-[-4px] transition-all">
+            <div>
+              <span class="material-symbols-outlined text-primary mb-4">description</span>
+              <h3 class="text-2xl font-bold mb-2">Beautiful Notes</h3>
+              <p class="text-on-surface-variant max-w-sm">Capture ideas instantly with a distraction-free writing environment and rich media support.</p>
+            </div>
+            <div class="mt-8 rounded-xl overflow-hidden border border-outline-variant/10 bg-surface-container h-48 flex items-center justify-center">
+              <span class="material-symbols-outlined text-4xl text-on-surface-variant/20">edit_note</span>
+            </div>
+          </div>
+          <!-- Database Card -->
+          <div class="md:col-span-4 bg-surface-container-low rounded-3xl p-8 flex flex-col justify-between shadow-soft hover:translate-y-[-4px] transition-all">
+            <div>
+              <span class="material-symbols-outlined text-tertiary mb-4">database</span>
+              <h3 class="text-2xl font-bold mb-2">Databases</h3>
+              <p class="text-on-surface-variant">Powerful relational data management without the complexity of spreadsheets.</p>
+            </div>
+            <div class="bg-surface p-4 rounded-xl mt-6 border border-outline-variant/10">
+              <div class="space-y-3">
+                <div class="h-2 w-full bg-surface-container rounded-full"></div>
+                <div class="h-2 w-2/3 bg-surface-container rounded-full"></div>
+                <div class="h-2 w-3/4 bg-surface-container rounded-full"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Kanban Card -->
+          <div class="md:col-span-5 bg-surface-container rounded-3xl p-8 flex flex-col justify-between shadow-soft hover:translate-y-[-4px] transition-all">
+            <div>
+              <span class="material-symbols-outlined text-on-surface mb-4">view_kanban</span>
+              <h3 class="text-2xl font-bold mb-2">Kanban Boards</h3>
+              <p class="text-on-surface-variant">Visualize progress and keep aligned with customizable drag-and-drop boards.</p>
+            </div>
+            <div class="flex gap-3 mt-6">
+              <div class="w-1/3 h-24 bg-surface-container-lowest rounded-lg border border-outline-variant/5"></div>
+              <div class="w-1/3 h-24 bg-surface-container-lowest rounded-lg border border-outline-variant/5"></div>
+              <div class="w-1/3 h-24 bg-surface-container-lowest rounded-lg border border-outline-variant/5"></div>
+            </div>
+          </div>
+          <!-- Smart Workflows Card -->
+          <div class="md:col-span-7 bg-on-surface rounded-3xl p-8 text-on-primary flex flex-col justify-center items-start relative overflow-hidden group shadow-soft hover:translate-y-[-4px] transition-all">
+            <div class="z-10">
+              <h3 class="text-3xl font-bold mb-4">Smart Workflows</h3>
+              <p class="text-outline-variant max-w-sm mb-6">Automate repetitive tasks, organize your workspace dynamically, and find information instantly.</p>
+              <a href="login.html" class="bg-primary-container text-on-primary-container px-6 py-2 rounded-lg font-bold text-sm">Try it Free</a>
+            </div>
+            <div class="absolute right-[-10%] top-[-10%] w-80 h-80 bg-tertiary rounded-full blur-[100px] opacity-20 group-hover:opacity-40 transition-opacity"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-32 px-6">
+      <div class="max-w-4xl mx-auto bg-surface-container-low rounded-[40px] p-12 md:p-24 text-center relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/50 to-transparent"></div>
+        <div class="relative z-10">
+          <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-8">Ready to clear the clutter?</h2>
+          <p class="text-lg text-on-surface-variant mb-12 max-w-xl mx-auto">Start building your streamlined workspace with Motion today.</p>
+          <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="login.html" class="bg-primary text-on-primary px-10 py-4 rounded-2xl font-bold text-xl shadow-lg hover:scale-[1.02] transition-all text-center">Get Started for free</a>
+            <button class="bg-surface-container-lowest text-on-surface px-10 py-4 rounded-2xl font-bold text-xl border border-outline-variant/10 hover:bg-white transition-all">View Pricing</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-surface-container-low/50 py-20 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-12 mb-20">
+        <div class="col-span-2">
+          <span class="text-2xl font-bold tracking-tighter text-[#2d3433] mb-6 block">Motion</span>
+          <p class="text-on-surface-variant max-w-xs leading-relaxed">
+            The minimalist workspace for modern thinkers and doers. Build your second brain today.
+          </p>
+        </div>
+        <div>
+          <h4 class="text-sm font-bold tracking-widest uppercase text-on-surface mb-6">Product</h4>
+          <ul class="space-y-4 text-sm text-on-surface-variant">
+            <li><a class="hover:text-primary transition-colors" href="#">Overview</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Features</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Solutions</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Releases</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-bold tracking-widest uppercase text-on-surface mb-6">Company</h4>
+          <ul class="space-y-4 text-sm text-on-surface-variant">
+            <li><a class="hover:text-primary transition-colors" href="#">About Us</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Blog</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-sm font-bold tracking-widest uppercase text-on-surface mb-6">Legal</h4>
+          <ul class="space-y-4 text-sm text-on-surface-variant">
+            <li><a class="hover:text-primary transition-colors" href="#">Privacy</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Terms</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Security</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="flex flex-col md:flex-row justify-between items-center pt-10 border-t border-outline-variant/10">
+        <p class="text-xs text-on-surface-variant/60">© 2025 Motion Inc. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

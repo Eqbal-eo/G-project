@@ -1,0 +1,10 @@
+# Dependency directories
+node_modules/
+
+# Environment and Config files
+.env
+js/config.js
+
+# OS generated files
+.DS_Store
+Thumbs.db
