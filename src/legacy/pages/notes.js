@@ -1,33 +1,32 @@
 // ============================================
-// MOTION — Notes Page Module
+// MOTION — Notes Page Module (Legacy)
 // ============================================
 
-import { AppState, setBreadcrumb, showToast } from '../js/app.js';
-import { getPages, getPage, updatePage, timeAgo } from '../js/queries.js';
+import { AppState, setBreadcrumb, showToast } from '../app.js';
+import { getPages, getPage, createPage, updatePage, timeAgo } from '../../lib/queries.js';
 
 export async function renderNotes(container) {
   setBreadcrumb('Notes');
 
-  // Get all pages from the user's workspace
   const workspaceId = AppState.workspace?.id;
   if (!workspaceId) {
-    container.innerHTML = `<div class="empty-state" style="min-height:60vh;"><span class="material-symbols-outlined">folder_off</span><h3>No workspace found</h3><p>Please create a workspace first.</p></div>`;
+    container.innerHTML =
+      `<div class="empty-state" style="min-height:60vh;"><span class="material-symbols-outlined">folder_off</span><h3>No workspace found</h3><p>Please create a workspace first.</p></div>`;
     return;
   }
 
   const { data: pages, error } = await getPages(workspaceId);
   if (error) {
-    container.innerHTML = `<div class="error-state m-8"><span class="material-symbols-outlined">error</span><h3>Failed to load pages</h3><p>${error.message}</p></div>`;
+    container.innerHTML =
+      `<div class="error-state m-8"><span class="material-symbols-outlined">error</span><h3>Failed to load pages</h3><p>${error.message}</p></div>`;
     return;
   }
 
-  // If there are pages, show the first one as the active note; otherwise show the page list
-  const activePage = pages.length > 0 ? pages[0] : null;
+  let currentPage = pages.length > 0 ? pages[0] : null;
   const userName = AppState.profile?.name || 'You';
 
   container.innerHTML = `
     <div class="flex flex-1 min-h-0">
-      <!-- Notes Sidebar (Page List) -->
       <div class="w-64 bg-surface-container-low/50 border-r border-outline-variant/10 flex flex-col overflow-hidden">
         <div class="p-4 flex items-center justify-between">
           <h3 class="font-bold text-sm text-on-surface">All Notes</h3>
@@ -36,10 +35,17 @@ export async function renderNotes(container) {
           </button>
         </div>
         <div class="flex-1 overflow-y-auto px-2 pb-4 space-y-1" id="notes-page-list">
-          ${pages.length === 0 ? `
-            <div class="text-center py-8 text-on-surface-variant/40 text-xs px-4">No pages yet. Create one to start writing.</div>
-          ` : pages.map((page, i) => `
-            <button class="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${i === 0 ? 'bg-white shadow-sm font-semibold text-on-surface' : 'text-on-surface-variant hover:bg-surface-container-low'}" data-page-id="${page.id}">
+          ${
+            pages.length === 0
+              ? `<div class="text-center py-8 text-on-surface-variant/40 text-xs px-4">No pages yet. Create one to start writing.</div>`
+              : pages
+                  .map(
+                    (page, i) => `
+            <button class="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
+              i === 0
+                ? 'bg-white shadow-sm font-semibold text-on-surface'
+                : 'text-on-surface-variant hover:bg-surface-container-low'
+            }" data-page-id="${page.id}">
               <div class="flex items-center gap-2">
                 <span class="text-base">${page.icon || '📄'}</span>
                 <div class="min-w-0">
@@ -48,23 +54,22 @@ export async function renderNotes(container) {
                 </div>
               </div>
             </button>
-          `).join('')}
+          `
+                  )
+                  .join('')
+          }
         </div>
       </div>
 
-      <!-- Editor Area -->
       <div class="flex-1 overflow-y-auto">
-        ${activePage ? renderNoteEditor(activePage, userName) : `
-          <div class="empty-state" style="min-height:60vh;">
-            <span class="material-symbols-outlined">edit_note</span>
-            <h3>Select or create a note</h3>
-            <p>Choose a page from the sidebar to start editing.</p>
-          </div>
-        `}
+        ${
+          currentPage
+            ? renderNoteEditor(currentPage, userName)
+            : `<div class="empty-state" style="min-height:60vh;"><span class="material-symbols-outlined">edit_note</span><h3>Select or create a note</h3><p>Choose a page from the sidebar to start editing.</p></div>`
+        }
       </div>
     </div>
 
-    <!-- Contextual Command Palette (Floating) -->
     <div class="fixed bottom-8 left-1/2 -translate-x-1/2 glass-panel border border-outline-variant/20 rounded-full px-6 py-3 flex items-center gap-6 shadow-2xl z-50">
       <button class="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors">
         <span class="material-symbols-outlined">text_fields</span>
@@ -86,32 +91,50 @@ export async function renderNotes(container) {
     </div>
   `;
 
-  // Bind save on content change (debounced)
-  const editorEl = container.querySelector('#note-content');
-  const titleEl = container.querySelector('#note-title');
   let saveTimeout;
+  function bindEditorAutosave(page) {
+    const editorEl = container.querySelector('#note-content');
+    const titleEl = container.querySelector('#note-title');
+    if (!editorEl || !titleEl || !page?.id) return;
 
-  function debouncedSave() {
-    if (!activePage) return;
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(async () => {
-      const content = { html: editorEl?.innerHTML || '' };
-      const title = titleEl?.textContent || 'Untitled';
-      await updatePage(activePage.id, { title, content });
-    }, 1500);
+    function debouncedSave() {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(async () => {
+        const content = { html: editorEl.innerHTML || '' };
+        const title = titleEl.textContent || 'Untitled';
+        const { error } = await updatePage(page.id, { title, content });
+        if (error) showToast('Failed to save: ' + error.message, 'error');
+      }, 1500);
+    }
+
+    editorEl.addEventListener('input', debouncedSave);
+    titleEl.addEventListener('input', debouncedSave);
   }
 
-  if (editorEl) editorEl.addEventListener('input', debouncedSave);
-  if (titleEl) titleEl.addEventListener('input', debouncedSave);
+  if (currentPage) bindEditorAutosave(currentPage);
 
-  // Bind page list clicks
-  container.querySelectorAll('[data-page-id]').forEach(btn => {
+  container.querySelector('#btn-new-note-page')?.addEventListener('click', async () => {
+    const title = prompt('Note title:') || 'Untitled';
+    const { error } = await createPage(workspaceId, title, 'note');
+    if (error) {
+      showToast('Failed to create note: ' + error.message, 'error');
+      return;
+    }
+    showToast('Note created!', 'success');
+    renderNotes(container);
+  });
+
+  container.querySelectorAll('[data-page-id]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const pageId = btn.dataset.pageId;
       const { data: page } = await getPage(pageId);
       if (page) {
+        currentPage = page;
         const editorArea = container.querySelector('.flex-1.overflow-y-auto');
-        if (editorArea) editorArea.innerHTML = renderNoteEditor(page, userName);
+        if (editorArea) {
+          editorArea.innerHTML = renderNoteEditor(page, userName);
+          bindEditorAutosave(page);
+        }
       }
     });
   });
@@ -123,7 +146,6 @@ function renderNoteEditor(page, userName) {
   return `
     <section class="flex-1 overflow-y-auto px-6 py-12 bg-surface">
       <article class="max-w-[800px] mx-auto animate-fade-in">
-        <!-- Page Header -->
         <header class="mb-12 group">
           <div class="mb-6 opacity-80 hover:opacity-100 transition-opacity cursor-pointer inline-block">
             <span class="text-5xl">${page.icon || '📄'}</span>
@@ -143,7 +165,6 @@ function renderNoteEditor(page, userName) {
           </div>
         </header>
 
-        <!-- Content -->
         <div id="note-content" class="space-y-8 text-on-surface leading-relaxed text-lg outline-none" contenteditable="true">
           ${contentHtml}
         </div>

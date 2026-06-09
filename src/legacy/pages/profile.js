@@ -1,9 +1,9 @@
 // ============================================
-// MOTION — Profile Page Module
+// MOTION — Profile Page Module (Legacy)
 // ============================================
 
-import { AppState, setBreadcrumb, showToast } from '../js/app.js';
-import { getUserProfile, getRecentPages, getTaskCounts, timeAgo } from '../js/queries.js';
+import { AppState, setBreadcrumb } from '../app.js';
+import { getUserProfile, getRecentPages, getTaskCounts, timeAgo } from '../../lib/queries.js';
 
 export async function renderProfile(container) {
   setBreadcrumb('Profile');
@@ -11,7 +11,6 @@ export async function renderProfile(container) {
   const userId = AppState.user?.id;
   if (!userId) return;
 
-  // Fetch data in parallel
   const [profileResult, pagesResult, countsResult] = await Promise.all([
     getUserProfile(userId),
     getRecentPages(3),
@@ -24,19 +23,22 @@ export async function renderProfile(container) {
   const completionPct = counts.total > 0 ? Math.round((counts.done / counts.total) * 100) : 0;
 
   const initials = (profile.name || profile.email || 'U')
-    .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   container.innerHTML = `
     <div class="max-w-5xl mx-auto px-12 pt-16 pb-12">
-      <!-- Profile Hero -->
       <div class="flex flex-col md:flex-row items-end md:items-center justify-between gap-8 mb-16">
         <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
-          <!-- Avatar -->
           <div class="relative group">
             <div class="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden shadow-2xl rotate-3 transition-transform group-hover:rotate-0 duration-500 flex items-center justify-center bg-surface-container-high">
-              ${profile.avatar_url
-                ? `<img class="w-full h-full object-cover" src="${profile.avatar_url}" alt="Profile" />`
-                : `<span class="text-5xl font-bold text-on-surface-variant">${initials}</span>`
+              ${
+                profile.avatar_url
+                  ? `<img class="w-full h-full object-cover" src="${profile.avatar_url}" alt="Profile" />`
+                  : `<span class="text-5xl font-bold text-on-surface-variant">${initials}</span>`
               }
             </div>
             <div class="absolute -bottom-2 -right-2 bg-surface-container-lowest p-2 rounded-xl shadow-lg">
@@ -44,15 +46,14 @@ export async function renderProfile(container) {
             </div>
           </div>
 
-          <!-- Info -->
           <div class="text-center md:text-left space-y-4">
             <div>
               <h1 class="text-4xl font-extrabold tracking-tighter text-on-surface mb-1">${profile.name || 'Your Name'}</h1>
-              <p class="text-on-surface-variant font-medium tracking-wide">@${(profile.name || profile.email || 'user').toLowerCase().replace(/\s+/g, '_')}</p>
+              <p class="text-on-surface-variant font-medium tracking-wide">@${(profile.name || profile.email || 'user')
+                .toLowerCase()
+                .replace(/\s+/g, '_')}</p>
             </div>
-            <p class="text-on-surface-variant leading-relaxed max-w-md">
-              ${profile.email || 'No email set'}
-            </p>
+            <p class="text-on-surface-variant leading-relaxed max-w-md">${profile.email || 'No email set'}</p>
             <div class="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
               <div class="flex items-center gap-1.5 px-3 py-1 bg-surface-container-low rounded-full text-xs font-medium text-on-surface-variant">
                 <span class="material-symbols-outlined text-sm">description</span>
@@ -66,7 +67,6 @@ export async function renderProfile(container) {
           </div>
         </div>
 
-        <!-- Actions -->
         <div class="flex flex-col gap-3">
           <button class="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-on-primary rounded-lg font-semibold text-sm hover:opacity-90 transition-all active:scale-95 shadow-sm" onclick="window.location.hash='settings'">
             <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">edit</span>
@@ -75,31 +75,33 @@ export async function renderProfile(container) {
         </div>
       </div>
 
-      <!-- Bento Content Grid -->
       <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <!-- My Pages -->
         <div class="md:col-span-8 space-y-6">
           <div class="flex items-center justify-between px-2">
             <h2 class="text-xl font-bold tracking-tight">My Pages</h2>
             <button class="text-sm font-semibold text-primary hover:underline" onclick="window.location.hash='notes'">View all</button>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="profile-pages">
-            ${pages.length === 0 ? `
+            ${
+              pages.length === 0
+                ? `
               <div class="col-span-2 empty-state">
                 <span class="material-symbols-outlined">description</span>
                 <h3>No pages yet</h3>
                 <p>Create your first page to see it here.</p>
               </div>
-            ` : pages.map(page => {
-              const icons = ['auto_stories', 'architecture', 'folder_open'];
-              const bgColors = ['bg-tertiary-container', 'bg-primary-container', 'bg-secondary-container'];
-              const textColors = ['text-on-tertiary-container', 'text-on-primary-container', 'text-on-secondary-container'];
-              const idx = pages.indexOf(page) % 3;
-              return `
-                <div class="group bg-surface-container-lowest p-6 rounded-xl transition-all hover:bg-white hover:shadow-xl hover:shadow-on-surface/5 flex flex-col justify-between h-48 cursor-pointer" onclick="window.location.hash='editor'">
+            `
+                : pages
+                    .map((page, idx) => {
+                      const icons = ['auto_stories', 'architecture', 'folder_open'];
+                      const bgColors = ['bg-tertiary-container', 'bg-primary-container', 'bg-secondary-container'];
+                      const textColors = ['text-on-tertiary-container', 'text-on-primary-container', 'text-on-secondary-container'];
+                      const i = idx % 3;
+                      return `
+                <div class="group bg-surface-container-lowest p-6 rounded-xl transition-all hover:bg-white hover:shadow-xl hover:shadow-on-surface/5 flex flex-col justify-between h-48 cursor-pointer" onclick="window.location.hash='editor/${page.id}'">
                   <div class="flex justify-between items-start">
-                    <div class="w-10 h-10 ${bgColors[idx]} rounded-lg flex items-center justify-center ${textColors[idx]}">
-                      <span class="material-symbols-outlined">${icons[idx]}</span>
+                    <div class="w-10 h-10 ${bgColors[i]} rounded-lg flex items-center justify-center ${textColors[i]}">
+                      <span class="material-symbols-outlined">${icons[i]}</span>
                     </div>
                     <span class="material-symbols-outlined text-outline-variant opacity-0 group-hover:opacity-100 transition-opacity">north_east</span>
                   </div>
@@ -109,8 +111,9 @@ export async function renderProfile(container) {
                   </div>
                 </div>
               `;
-            }).join('')}
-            <!-- Create New -->
+                    })
+                    .join('')
+            }
             <div class="group border-2 border-dashed border-outline-variant/30 p-6 rounded-xl transition-all hover:border-primary-dim/40 flex flex-col items-center justify-center h-48 cursor-pointer" onclick="document.getElementById('btn-new-page')?.click()">
               <span class="material-symbols-outlined text-outline-variant mb-2">add_circle</span>
               <span class="text-sm font-semibold text-on-surface-variant">Create New Page</span>
@@ -118,15 +121,18 @@ export async function renderProfile(container) {
           </div>
         </div>
 
-        <!-- Stats Sidebar -->
         <div class="md:col-span-4 space-y-6">
           <div class="flex items-center justify-between px-2">
             <h2 class="text-xl font-bold tracking-tight">Activity</h2>
           </div>
 
-          <!-- Activity Feed (empty state) -->
           <div class="bg-surface-container-low rounded-xl p-6">
-            ${pages.length > 0 ? pages.slice(0, 3).map(page => `
+            ${
+              pages.length > 0
+                ? pages
+                    .slice(0, 3)
+                    .map(
+                      (page) => `
               <div class="flex gap-4 mb-6 last:mb-0">
                 <div class="relative flex-shrink-0">
                   <div class="w-2 h-2 rounded-full bg-primary-dim absolute -left-[1.25rem] top-1.5"></div>
@@ -135,16 +141,17 @@ export async function renderProfile(container) {
                   </div>
                 </div>
                 <div>
-                  <p class="text-sm font-semibold mb-1">Edited "${page.title}"</p>
+                  <p class="text-sm font-semibold mb-1">Edited \"${page.title}\"</p>
                   <p class="text-xs text-on-surface-variant">${timeAgo(page.updated_at)}</p>
                 </div>
               </div>
-            `).join('') : `
-              <div class="text-center py-4 text-on-surface-variant/40 text-xs">No recent activity</div>
-            `}
+            `
+                    )
+                    .join('')
+                : `<div class="text-center py-4 text-on-surface-variant/40 text-xs">No recent activity</div>`
+            }
           </div>
 
-          <!-- Usage Stats -->
           <div class="bg-[#2d3433] text-white p-6 rounded-xl overflow-hidden relative">
             <div class="relative z-10">
               <h4 class="text-xs uppercase tracking-widest text-outline-variant mb-4 font-bold">Productivity</h4>

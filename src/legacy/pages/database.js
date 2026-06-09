@@ -1,9 +1,9 @@
 // ============================================
-// MOTION — Database Table Page Module
+// MOTION — Database Table Page Module (Legacy)
 // ============================================
 
-import { AppState, setBreadcrumb, showToast } from '../js/app.js';
-import { getPages, createPage, deletePage, timeAgo } from '../js/queries.js';
+import { AppState, setBreadcrumb, showToast } from '../app.js';
+import { getPages, createPage, deletePage, timeAgo } from '../../lib/queries.js';
 
 export async function renderDatabase(container) {
   setBreadcrumb('Database');
@@ -21,11 +21,15 @@ export async function renderDatabase(container) {
   }
 
   const userName = AppState.profile?.name || 'You';
-  const userInitials = userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const userInitials = userName
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   container.innerHTML = `
     <div class="flex-1 p-8 max-w-7xl mx-auto w-full">
-      <!-- Page Header -->
       <div class="mb-8">
         <div class="flex justify-between items-end mb-6">
           <div>
@@ -37,7 +41,6 @@ export async function renderDatabase(container) {
             New Row
           </button>
         </div>
-        <!-- Toolbar -->
         <div class="flex items-center justify-between gap-4 p-2 bg-surface-container-low rounded-xl">
           <div class="flex items-center gap-2">
             <button class="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors">
@@ -59,7 +62,6 @@ export async function renderDatabase(container) {
         </div>
       </div>
 
-      <!-- Table -->
       <div class="bg-surface-container-lowest rounded-xl overflow-hidden">
         <table class="w-full text-left border-collapse">
           <thead>
@@ -72,7 +74,9 @@ export async function renderDatabase(container) {
             </tr>
           </thead>
           <tbody id="db-table-body">
-            ${pages.length === 0 ? `
+            ${
+              pages.length === 0
+                ? `
               <tr>
                 <td colspan="5" class="px-6 py-12 text-center text-on-surface-variant text-sm">
                   <div class="empty-state">
@@ -82,7 +86,10 @@ export async function renderDatabase(container) {
                   </div>
                 </td>
               </tr>
-            ` : pages.map(page => `
+            `
+                : pages
+                    .map(
+                      (page) => `
               <tr class="hover:bg-[#f2f4f3] transition-colors group cursor-pointer" data-page-id="${page.id}">
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-3">
@@ -106,8 +113,10 @@ export async function renderDatabase(container) {
                   <span class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-error btn-delete-page" data-page-id="${page.id}">delete</span>
                 </td>
               </tr>
-            `).join('')}
-            <!-- Add Row -->
+            `
+                    )
+                    .join('')
+            }
             <tr class="hover:bg-surface-container-low/30 transition-colors">
               <td class="px-6 py-4" colspan="5">
                 <button id="btn-inline-new" class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface text-sm transition-colors">
@@ -120,19 +129,20 @@ export async function renderDatabase(container) {
         </table>
       </div>
 
-      <!-- Pagination -->
       <div class="mt-6 flex items-center justify-between text-sm text-on-surface-variant">
         <div>Showing ${pages.length} item${pages.length !== 1 ? 's' : ''}</div>
       </div>
     </div>
   `;
 
-  // Bind new row
   const addHandler = async () => {
     const title = prompt('Page title:');
     if (!title) return;
     const { error } = await createPage(workspaceId, title);
-    if (error) { showToast('Failed: ' + error.message, 'error'); return; }
+    if (error) {
+      showToast('Failed: ' + error.message, 'error');
+      return;
+    }
     showToast('Row added!', 'success');
     renderDatabase(container);
   };
@@ -140,22 +150,26 @@ export async function renderDatabase(container) {
   document.getElementById('btn-new-row')?.addEventListener('click', addHandler);
   document.getElementById('btn-inline-new')?.addEventListener('click', addHandler);
 
-  // Bind delete
-  container.querySelectorAll('.btn-delete-page').forEach(btn => {
+  container.querySelectorAll('.btn-delete-page').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       if (!confirm('Delete this page?')) return;
       const { error } = await deletePage(btn.dataset.pageId);
-      if (error) { showToast('Failed: ' + error.message, 'error'); return; }
+      if (error) {
+        showToast('Failed: ' + error.message, 'error');
+        return;
+      }
       showToast('Deleted.', 'success');
       renderDatabase(container);
     });
   });
 
-  // Bind row clicks to navigate to editor
-  container.querySelectorAll('[data-page-id]').forEach(tr => {
+  container.querySelectorAll('[data-page-id]').forEach((tr) => {
     if (tr.tagName === 'TR') {
-      tr.addEventListener('click', () => { window.location.hash = 'editor'; });
+      tr.addEventListener('click', () => {
+        const pageId = tr.getAttribute('data-page-id');
+        window.location.hash = pageId ? `editor/${pageId}` : 'editor';
+      });
     }
   });
 }

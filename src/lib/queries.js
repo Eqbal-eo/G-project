@@ -8,21 +8,11 @@ import { supabase } from './supabase.js';
 // USER QUERIES
 // ============================================
 
-/**
- * Get user profile by ID
- */
 export async function getUserProfile(userId) {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', userId)
-    .single();
+  const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
   return { data, error };
 }
 
-/**
- * Update user profile
- */
 export async function updateUserProfile(userId, updates) {
   const { data, error } = await supabase
     .from('users')
@@ -37,9 +27,6 @@ export async function updateUserProfile(userId, updates) {
 // WORKSPACE QUERIES
 // ============================================
 
-/**
- * Get all workspaces for the current user
- */
 export async function getWorkspaces() {
   const { data, error } = await supabase
     .from('workspaces')
@@ -48,9 +35,6 @@ export async function getWorkspaces() {
   return { data: data || [], error };
 }
 
-/**
- * Get workspace by ID
- */
 export async function getWorkspace(workspaceId) {
   const { data, error } = await supabase
     .from('workspaces')
@@ -60,9 +44,6 @@ export async function getWorkspace(workspaceId) {
   return { data, error };
 }
 
-/**
- * Create a new workspace
- */
 export async function createWorkspace(name, ownerId) {
   const { data, error } = await supabase
     .from('workspaces')
@@ -76,9 +57,6 @@ export async function createWorkspace(name, ownerId) {
 // PAGE QUERIES
 // ============================================
 
-/**
- * Get all pages in a workspace
- */
 export async function getPages(workspaceId) {
   const { data, error } = await supabase
     .from('pages')
@@ -88,9 +66,6 @@ export async function getPages(workspaceId) {
   return { data: data || [], error };
 }
 
-/**
- * Get recent pages across all workspaces (limit N)
- */
 export async function getRecentPages(limit = 4) {
   const { data, error } = await supabase
     .from('pages')
@@ -100,21 +75,11 @@ export async function getRecentPages(limit = 4) {
   return { data: data || [], error };
 }
 
-/**
- * Get a single page by ID
- */
 export async function getPage(pageId) {
-  const { data, error } = await supabase
-    .from('pages')
-    .select('*')
-    .eq('id', pageId)
-    .single();
+  const { data, error } = await supabase.from('pages').select('*').eq('id', pageId).single();
   return { data, error };
 }
 
-/**
- * Create a new page
- */
 export async function createPage(workspaceId, title = 'Untitled', pageType = 'note') {
   const { data, error } = await supabase
     .from('pages')
@@ -129,9 +94,6 @@ export async function createPage(workspaceId, title = 'Untitled', pageType = 'no
   return { data, error };
 }
 
-/**
- * Update a page
- */
 export async function updatePage(pageId, updates) {
   const { data, error } = await supabase
     .from('pages')
@@ -142,14 +104,8 @@ export async function updatePage(pageId, updates) {
   return { data, error };
 }
 
-/**
- * Delete a page
- */
 export async function deletePage(pageId) {
-  const { error } = await supabase
-    .from('pages')
-    .delete()
-    .eq('id', pageId);
+  const { error } = await supabase.from('pages').delete().eq('id', pageId);
   return { error };
 }
 
@@ -157,9 +113,6 @@ export async function deletePage(pageId) {
 // NOTE QUERIES
 // ============================================
 
-/**
- * Get all notes for a page
- */
 export async function getNotes(pageId) {
   const { data, error } = await supabase
     .from('notes')
@@ -169,9 +122,6 @@ export async function getNotes(pageId) {
   return { data: data || [], error };
 }
 
-/**
- * Create a note
- */
 export async function createNote(pageId, content = '') {
   const { data, error } = await supabase
     .from('notes')
@@ -181,9 +131,6 @@ export async function createNote(pageId, content = '') {
   return { data, error };
 }
 
-/**
- * Update a note
- */
 export async function updateNote(noteId, content) {
   const { data, error } = await supabase
     .from('notes')
@@ -194,14 +141,8 @@ export async function updateNote(noteId, content) {
   return { data, error };
 }
 
-/**
- * Delete a note
- */
 export async function deleteNote(noteId) {
-  const { error } = await supabase
-    .from('notes')
-    .delete()
-    .eq('id', noteId);
+  const { error } = await supabase.from('notes').delete().eq('id', noteId);
   return { error };
 }
 
@@ -209,9 +150,6 @@ export async function deleteNote(noteId) {
 // TASK QUERIES
 // ============================================
 
-/**
- * Get all tasks (optionally filter by page or status)
- */
 export async function getTasks({ pageId, status, limit } = {}) {
   let query = supabase
     .from('tasks')
@@ -226,29 +164,24 @@ export async function getTasks({ pageId, status, limit } = {}) {
   return { data: data || [], error };
 }
 
-/**
- * Get task counts by status
- */
 export async function getTaskCounts() {
-  const { data, error } = await supabase
-    .from('tasks')
-    .select('status');
+  const { data, error } = await supabase.from('tasks').select('status');
 
   if (error) return { data: { total: 0, todo: 0, in_progress: 0, done: 0 }, error };
 
   const counts = {
     total: data.length,
-    todo: data.filter(t => t.status === 'todo').length,
-    in_progress: data.filter(t => t.status === 'in_progress').length,
-    done: data.filter(t => t.status === 'done').length
+    todo: data.filter((t) => t.status === 'todo').length,
+    in_progress: data.filter((t) => t.status === 'in_progress').length,
+    done: data.filter((t) => t.status === 'done').length
   };
   return { data: counts, error: null };
 }
 
-/**
- * Create a task
- */
-export async function createTask(title, { pageId, status = 'todo', priority = 'medium', assigneeId, dueDate, tags } = {}) {
+export async function createTask(
+  title,
+  { pageId, status = 'todo', priority = 'medium', assigneeId, dueDate, tags } = {}
+) {
   const { data, error } = await supabase
     .from('tasks')
     .insert({
@@ -265,9 +198,6 @@ export async function createTask(title, { pageId, status = 'todo', priority = 'm
   return { data, error };
 }
 
-/**
- * Update a task
- */
 export async function updateTask(taskId, updates) {
   const { data, error } = await supabase
     .from('tasks')
@@ -278,9 +208,6 @@ export async function updateTask(taskId, updates) {
   return { data, error };
 }
 
-/**
- * Toggle task completion
- */
 export async function toggleTask(taskId, completed) {
   return updateTask(taskId, {
     completed,
@@ -288,14 +215,8 @@ export async function toggleTask(taskId, completed) {
   });
 }
 
-/**
- * Delete a task
- */
 export async function deleteTask(taskId) {
-  const { error } = await supabase
-    .from('tasks')
-    .delete()
-    .eq('id', taskId);
+  const { error } = await supabase.from('tasks').delete().eq('id', taskId);
   return { error };
 }
 
@@ -303,21 +224,11 @@ export async function deleteTask(taskId) {
 // SETTINGS QUERIES
 // ============================================
 
-/**
- * Get user settings
- */
 export async function getSettings(userId) {
-  const { data, error } = await supabase
-    .from('settings')
-    .select('*')
-    .eq('user_id', userId)
-    .single();
+  const { data, error } = await supabase.from('settings').select('*').eq('user_id', userId).single();
   return { data, error };
 }
 
-/**
- * Update user settings
- */
 export async function updateSettings(userId, updates) {
   const { data, error } = await supabase
     .from('settings')
@@ -328,9 +239,6 @@ export async function updateSettings(userId, updates) {
   return { data, error };
 }
 
-/**
- * Update specific preferences within settings
- */
 export async function updatePreferences(userId, preferences) {
   const { data: current } = await getSettings(userId);
   const merged = { ...current?.preferences, ...preferences };
@@ -341,9 +249,6 @@ export async function updatePreferences(userId, preferences) {
 // UTILITY: Relative time formatting
 // ============================================
 
-/**
- * Format a timestamp as relative time (e.g., "2 hours ago")
- */
 export function timeAgo(timestamp) {
   const now = new Date();
   const then = new Date(timestamp);

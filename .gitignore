@@ -1,10 +1,33 @@
-# Dependency directories
+# Dependencies
 node_modules/
 
-# Environment and Config files
+# Build output
+dist/
+
+# Environment & Secrets
 .env
-js/config.js
+.env.local
+.env.*.local
+src/lib/config.js
 
 # OS generated files
 .DS_Store
 Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# IDE / Editor
+.vscode/*
+!.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Misc
+*.tmp
+*.bak

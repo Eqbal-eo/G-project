@@ -1,109 +1,107 @@
 <!DOCTYPE html>
 <html class="light" lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>Motion — Your workspace, simplified.</title>
-  <meta name="description" content="Motion brings your notes, databases, and tasks together into a single, serene workspace designed for deep focus and effortless organization." />
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Motion — Your workspace, simplified.</title>
+    <meta
+      name="description"
+      content="Motion brings your notes, databases, and tasks together into a single, serene workspace designed for deep focus and effortless organization."
+    />
 
-  <!-- TailwindCSS CDN -->
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- TailwindCSS CDN (keep same as vanilla app) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Shared Design System -->
-  <link href="css/styles.css" rel="stylesheet" />
+    <!-- Shared Design System -->
+    <link href="/src/styles.css" rel="stylesheet" />
 
-  <!-- Tailwind Config (Monastic Design System) -->
-  <script id="tailwind-config">
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            "on-primary-fixed": "#403f3f",
-            "on-tertiary": "#f4faff",
-            "on-primary-fixed-variant": "#5c5b5b",
-            "on-error": "#fff7f6",
-            "surface": "#f9f9f8",
-            "surface-variant": "#dde4e3",
-            "surface-container-high": "#e4e9e8",
-            "on-primary-container": "#525151",
-            "error-dim": "#4e0309",
-            "on-secondary-fixed": "#3f3f3f",
-            "tertiary-container": "#d0ecff",
-            "tertiary-fixed": "#d0ecff",
-            "background": "#f9f9f8",
-            "on-error-container": "#752121",
-            "secondary": "#5f5f5f",
-            "error-container": "#fe8983",
-            "surface-container-lowest": "#ffffff",
-            "on-secondary-container": "#515252",
-            "on-surface": "#2d3433",
-            "on-tertiary-fixed-variant": "#486272",
-            "on-secondary-fixed-variant": "#5b5b5b",
-            "primary-dim": "#535252",
-            "primary": "#5f5e5e",
-            "surface-tint": "#5f5e5e",
-            "surface-container-low": "#f2f4f3",
-            "on-secondary": "#faf8f8",
-            "on-primary": "#faf7f6",
-            "inverse-surface": "#0c0f0e",
-            "surface-bright": "#f9f9f8",
-            "secondary-fixed": "#e3e2e2",
-            "outline": "#757c7b",
-            "tertiary-fixed-dim": "#c2def0",
-            "on-surface-variant": "#5a6060",
-            "secondary-fixed-dim": "#d5d4d4",
-            "secondary-dim": "#535353",
-            "inverse-on-surface": "#9c9d9c",
-            "outline-variant": "#adb3b2",
-            "tertiary-dim": "#3c5666",
-            "surface-dim": "#d4dcda",
-            "tertiary": "#486272",
-            "surface-container-highest": "#dde4e3",
-            "primary-container": "#e5e2e1",
-            "primary-fixed": "#e5e2e1",
-            "error": "#9f403d",
-            "on-tertiary-fixed": "#2c4655",
-            "secondary-container": "#e3e2e2",
-            "primary-fixed-dim": "#d6d4d3",
-            "inverse-primary": "#ffffff",
-            "on-tertiary-container": "#3e5868",
-            "surface-container": "#ebeeed",
-            "on-background": "#2d3433"
-          },
-          borderRadius: {
-            DEFAULT: "0.5rem",
-            lg: "0.75rem",
-            xl: "1rem",
-            full: "9999px"
-          },
-          fontFamily: {
-            headline: ["Inter"],
-            body: ["Inter"],
-            label: ["Inter"]
+    <!-- Tailwind Config (Monastic Design System) -->
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'on-primary-fixed': '#403f3f',
+              'on-tertiary': '#f4faff',
+              'on-primary-fixed-variant': '#5c5b5b',
+              'on-error': '#fff7f6',
+              surface: '#f9f9f8',
+              'surface-variant': '#dde4e3',
+              'surface-container-high': '#e4e9e8',
+              'on-primary-container': '#525151',
+              'error-dim': '#4e0309',
+              'on-secondary-fixed': '#3f3f3f',
+              'tertiary-container': '#d0ecff',
+              'tertiary-fixed': '#d0ecff',
+              background: '#f9f9f8',
+              'on-error-container': '#752121',
+              secondary: '#5f5f5f',
+              'error-container': '#fe8983',
+              'surface-container-lowest': '#ffffff',
+              'on-secondary-container': '#515252',
+              'on-surface': '#2d3433',
+              'on-tertiary-fixed-variant': '#486272',
+              'on-secondary-fixed-variant': '#5b5b5b',
+              'primary-dim': '#535252',
+              primary: '#5f5e5e',
+              'surface-tint': '#5f5e5e',
+              'surface-container-low': '#f2f4f3',
+              'on-secondary': '#faf8f8',
+              'on-primary': '#faf7f6',
+              'inverse-surface': '#0c0f0e',
+              'surface-bright': '#f9f9f8',
+              'secondary-fixed': '#e3e2e2',
+              outline: '#757c7b',
+              'tertiary-fixed-dim': '#c2def0',
+              'on-surface-variant': '#5a6060',
+              'secondary-fixed-dim': '#d5d4d4',
+              'secondary-dim': '#535353',
+              'inverse-on-surface': '#9c9d9c',
+              'outline-variant': '#adb3b2',
+              'tertiary-dim': '#3c5666',
+              'surface-dim': '#d4dcda',
+              tertiary: '#486272',
+              'surface-container-highest': '#dde4e3',
+              'primary-container': '#e5e2e1',
+              'primary-fixed': '#e5e2e1',
+              error: '#9f403d',
+              'on-tertiary-fixed': '#2c4655',
+              'secondary-container': '#e3e2e2',
+              'primary-fixed-dim': '#d6d4d3',
+              'inverse-primary': '#ffffff',
+              'on-tertiary-container': '#3e5868',
+              'surface-container': '#ebeeed',
+              'on-background': '#2d3433'
+            },
+            borderRadius: {
+              DEFAULT: '0.5rem',
+              lg: '0.75rem',
+              xl: '1rem',
+              full: '9999px'
+            },
+            fontFamily: {
+              headline: ['Inter'],
+              body: ['Inter'],
+              label: ['Inter']
+            }
           }
-        },
-      },
-    }
-  </script>
-</head>
-<body class="bg-surface text-on-surface">
-  <!-- App Root -->
-  <div id="app">
-    <!-- Initial Loading State -->
-    <div class="flex items-center justify-center h-screen">
-      <div class="text-center">
-        <div class="loading-spinner mx-auto mb-4"></div>
-        <p class="text-sm text-on-surface-variant">Loading Motion...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- App Module -->
-  <script type="module" src="js/app.js"></script>
-</body>
+        }
+      };
+    </script>
+  </head>
+  <body class="bg-surface text-on-surface">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
