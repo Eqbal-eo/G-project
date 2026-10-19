@@ -4,6 +4,7 @@
 
 import { AppState, setBreadcrumb } from '../app.js';
 import { getUserProfile, getRecentPages, getTaskCounts, timeAgo } from '../../lib/queries.js';
+import { escapeHtml } from '../../lib/sanitize.js';
 
 export async function renderProfile(container) {
   setBreadcrumb('Profile');
@@ -13,14 +14,24 @@ export async function renderProfile(container) {
 
   const [profileResult, pagesResult, countsResult] = await Promise.all([
     getUserProfile(userId),
-    getRecentPages(3),
-    getTaskCounts()
+    getRecentPages(3, AppState.workspace?.id),
+    getTaskCounts(AppState.workspace?.id)
   ]);
+
+  const loadError = profileResult.error || pagesResult.error || countsResult.error;
+  if (loadError) {
+    container.innerHTML = `<div class="error-state m-8"><span class="material-symbols-outlined">error</span><h3>Failed to load profile</h3><p>${escapeHtml(loadError.message || 'Please try again.')}</p><button id="profile-retry" class="mt-4 px-4 py-2 bg-primary text-on-primary rounded-lg text-sm font-semibold" type="button">Retry</button></div>`;
+    container.querySelector('#profile-retry')?.addEventListener('click', () => renderProfile(container));
+    return;
+  }
 
   const profile = profileResult.data || {};
   const pages = pagesResult.data || [];
   const counts = countsResult.data || { total: 0, done: 0 };
   const completionPct = counts.total > 0 ? Math.round((counts.done / counts.total) * 100) : 0;
+  const safeName = escapeHtml(profile.name || 'Your Name');
+  const safeEmail = escapeHtml(profile.email || 'No email set');
+  const safeAvatarUrl = /^https?:\/\//i.test(profile.avatar_url || '') ? escapeHtml(profile.avatar_url) : '';
 
   const initials = (profile.name || profile.email || 'U')
     .split(' ')
@@ -36,9 +47,9 @@ export async function renderProfile(container) {
           <div class="relative group">
             <div class="w-32 h-32 md:w-40 md:h-40 rounded-3xl overflow-hidden shadow-2xl rotate-3 transition-transform group-hover:rotate-0 duration-500 flex items-center justify-center bg-surface-container-high">
               ${
-                profile.avatar_url
-                  ? `<img class="w-full h-full object-cover" src="${profile.avatar_url}" alt="Profile" />`
-                  : `<span class="text-5xl font-bold text-on-surface-variant">${initials}</span>`
+                safeAvatarUrl
+                  ? `<img class="w-full h-full object-cover" src="${safeAvatarUrl}" alt="Profile" />`
+                  : `<span class="text-5xl font-bold text-on-surface-variant">${escapeHtml(initials)}</span>`
               }
             </div>
             <div class="absolute -bottom-2 -right-2 bg-surface-container-lowest p-2 rounded-xl shadow-lg">
@@ -48,12 +59,12 @@ export async function renderProfile(container) {
 
           <div class="text-center md:text-left space-y-4">
             <div>
-              <h1 class="text-4xl font-extrabold tracking-tighter text-on-surface mb-1">${profile.name || 'Your Name'}</h1>
-              <p class="text-on-surface-variant font-medium tracking-wide">@${(profile.name || profile.email || 'user')
+              <h1 class="text-4xl font-extrabold tracking-tighter text-on-surface mb-1">${safeName}</h1>
+              <p class="text-on-surface-variant font-medium tracking-wide">@${escapeHtml((profile.name || profile.email || 'user')
                 .toLowerCase()
-                .replace(/\s+/g, '_')}</p>
+            .replace(/\s+/g, '_'))}</p>
             </div>
-            <p class="text-on-surface-variant leading-relaxed max-w-md">${profile.email || 'No email set'}</p>
+            <p class="text-on-surface-variant leading-relaxed max-w-md">${safeEmail}</p>
             <div class="flex flex-wrap justify-center md:justify-start gap-4 pt-2">
               <div class="flex items-center gap-1.5 px-3 py-1 bg-surface-container-low rounded-full text-xs font-medium text-on-surface-variant">
                 <span class="material-symbols-outlined text-sm">description</span>
@@ -106,7 +117,7 @@ export async function renderProfile(container) {
                     <span class="material-symbols-outlined text-outline-variant opacity-0 group-hover:opacity-100 transition-opacity">north_east</span>
                   </div>
                   <div>
-                    <h3 class="font-bold text-lg mb-1">${page.title}</h3>
+                    <h3 class="font-bold text-lg mb-1">${escapeHtml(page.title || 'Untitled')}</h3>
                     <p class="text-xs text-on-surface-variant">${timeAgo(page.updated_at)}</p>
                   </div>
                 </div>
@@ -141,7 +152,7 @@ export async function renderProfile(container) {
                   </div>
                 </div>
                 <div>
-                  <p class="text-sm font-semibold mb-1">Edited \"${page.title}\"</p>
+                <p class="text-sm font-semibold mb-1">Edited "${escapeHtml(page.title || 'Untitled')}"</p>
                   <p class="text-xs text-on-surface-variant">${timeAgo(page.updated_at)}</p>
                 </div>
               </div>

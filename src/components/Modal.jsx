@@ -104,7 +104,9 @@ export function PromptDialog({ isOpen, onClose, onSubmit, title, placeholder, su
   const [value, setValue] = useState(defaultValue);
 
   useEffect(() => {
-    if (isOpen) setValue(defaultValue);
+    if (!isOpen) return undefined;
+    const timer = window.setTimeout(() => setValue(defaultValue), 0);
+    return () => window.clearTimeout(timer);
   }, [isOpen, defaultValue]);
 
   function handleSubmit(e) {

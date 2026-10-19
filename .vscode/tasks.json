@@ -2,15 +2,20 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Run Motion (local server)",
-      "type": "shell",
-      "command": "python",
-      "args": ["-m", "http.server", "5173"],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
+      "label": "Run Motion (Vite dev server)",
+      "type": "npm",
+      "script": "dev",
+      "path": "${workspaceFolder}",
       "isBackground": true,
-      "problemMatcher": []
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": [{ "regexp": ".*" }],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "vite",
+          "endsPattern": "Local:"
+        }
+      }
     }
   ]
 }

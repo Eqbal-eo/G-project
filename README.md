@@ -1,143 +1,66 @@
-# Motion ✦
+# Motion Workspace
 
-> Your workspace, simplified — Designed for clarity.
+Motion is a responsive, Notion-style workspace with pages, notes, Kanban tasks, database views, comments, notifications, search, templates, backups, and optional AI assistance.
 
-Motion brings your notes, databases, and tasks together into a single, serene workspace designed for deep focus and effortless organization.
+## In-page AI assistant
 
-![Status](https://img.shields.io/badge/status-in%20development-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+Open **AI page assistant**, describe what you need and click **Generate draft**. Review/select the proposed blocks, refine the draft, discard it, or Apply. No Colab, JSON editing, or user API key is required. Existing content is preserved, with guarded Undo after Apply.
 
----
+An administrator must activate the authenticated Supabase `page-ai` Edge Function once. It uses one allowlisted Gemini model, has no paid fallback or automatic retries, and remains disabled until an unlinked free-tier Google project is confirmed. The application cannot independently detect later billing changes to that project. See [free AI setup](docs/FREE_AI_SETUP.md). Historical Colab files remain available but are no longer part of the app workflow.
 
-## ✨ Features
+## Run from VS Code
 
-- **Dashboard** — Unified overview of your workspace activity
-- **Notes** — Rich note-taking with real-time saving
-- **Kanban Board** — Visual task management with drag-and-drop
-- **Database Views** — Structured data with custom fields
-- **Rich Text Editor** — Block-based document editor
-- **Dark Mode** — System-aware theme switching
-- **Google OAuth** — One-click sign-in with Google
-- **Row Level Security** — Data isolation per user via Supabase RLS
+1. Open the `G-Project` folder in VS Code.
+2. Open **Terminal → New Terminal**.
+3. Confirm Node.js is installed:
 
-## 🛠 Tech Stack
+   ```bash
+   node -v
+   npm -v
+   ```
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19 + Vite |
-| Styling | TailwindCSS + Custom CSS Design Tokens |
-| Backend | [Supabase](https://supabase.com) (Auth, Database, RLS) |
-| Database | PostgreSQL (via Supabase) |
-| Fonts | Inter (Google Fonts) |
-| Icons | Material Symbols Outlined |
+4. Install dependencies if needed:
 
-## 📁 Project Structure
+   ```bash
+   npm install
+   ```
 
-```
-G-Project/
-├── index.html              # App entry point
-├── vite.config.js          # Vite configuration
-├── package.json            # Dependencies & scripts
-├── src/
-│   ├── main.jsx            # React root mount
-│   ├── App.jsx             # Main App component (shell, routing, auth)
-│   ├── styles.css          # Design system (CSS custom properties)
-│   ├── App.css             # App-specific styles
-│   ├── index.css           # Global base styles
-│   ├── components/
-│   │   └── Login.jsx       # Authentication component
-│   ├── lib/
-│   │   ├── supabase.js     # Supabase client & auth helpers
-│   │   ├── queries.js      # Data access layer (all DB queries)
-│   │   └── config.js       # Supabase configuration
-│   └── legacy/             # Pages being migrated to React
-│       ├── app.js          # Shared state bridge (AppState)
-│       └── pages/          # Dashboard, Notes, Kanban, etc.
-├── sql/
-│   └── schema.sql          # Full database schema (tables, RLS, triggers)
-└── public/                 # Static assets
-```
+5. Start the development server:
 
-## 🚀 Getting Started
+   ```bash
+   npm run dev
+   ```
 
-### Prerequisites
+6. Open the URL shown by Vite, normally `http://localhost:5173`.
 
-- [Node.js](https://nodejs.org) (v18 or higher)
-- A [Supabase](https://supabase.com) project (free tier works)
+## Supabase setup
 
-### 1. Clone the repository
+Copy `.env.example` to `.env` and add the Supabase project URL and anon key. These values come from the project owner’s Supabase dashboard under **Project Settings → API**.
+
+Then open the Supabase SQL Editor and run [`sql/schema.sql`](sql/schema.sql). This creates the workspace, page, task, comment, notification, invitation, and collaboration tables, policies, indexes, and triggers.
+
+The database cannot be accessed from the copied frontend alone unless you have access to the same Supabase project or the owner gives you the correct credentials. Never commit `.env` or service-role keys.
+
+## Useful commands
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/G-Project.git
-cd G-Project
+npm run dev       # development server
+npm run lint      # lint the source
+npm run build     # production build
+npm run check     # lint and production build together
+npm run preview   # preview the production build
 ```
 
-### 2. Install dependencies
+## Included features
 
-```bash
-npm install
-```
-
-### 3. Configure Supabase credentials
-
-Create a `.env` file from the example:
-```bash
-cp .env.example .env
-```
-
-Or edit `src/lib/config.js` directly with your Supabase credentials:
-- Go to [Supabase Dashboard](https://supabase.com/dashboard) → Your Project → Settings → API
-- Copy **Project URL** and **anon public key**
-
-### 4. Set up the database
-
-Run the SQL in `sql/schema.sql` in your Supabase SQL Editor. This creates:
-- Tables: `users`, `workspaces`, `pages`, `notes`, `tasks`, `settings`
-- Row Level Security policies for all tables
-- Auto-create triggers for new user profiles
-
-### 5. Start the development server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173) in your browser.
-
-## 📜 Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start local development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview the production build |
-| `npm run lint` | Run ESLint code checks |
-
-## 🗄 Database Schema
-
-The app uses 6 core tables:
-
-| Table | Purpose |
-|-------|---------|
-| `users` | User profiles (extends Supabase Auth) |
-| `workspaces` | User workspaces |
-| `pages` | Notes, documents, kanban boards, databases |
-| `notes` | Note blocks within pages |
-| `tasks` | Tasks with status, priority, and assignments |
-| `settings` | Per-user preferences and theme settings |
-
-All tables are protected with **Row Level Security (RLS)** — users can only access their own data.
-
-## 🔐 Environment & Security
-
-- Supabase credentials are stored in `src/lib/config.js` (git-ignored) or `.env`
-- Use `.env.example` as a template
-- Never commit API keys or secrets to the repository
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-*Built with focus and simplicity in mind.*
+- Responsive desktop, tablet, and mobile layouts with light/dark themes.
+- Supabase email/password authentication, Google OAuth, password reset, and confirmation messaging.
+- Dashboard with recent pages, task counts, overdue work, and quick task creation.
+- Nested notes/pages with favorites, archive, sorting, search, drag-and-drop nesting, and root-page moves.
+- Rich page editor with comments, threaded replies, backlinks, linked tasks, templates, cover/icon controls, import/export, duplicate, archive, and sharing.
+- Kanban board with drag-and-drop status changes, priorities, tags, due dates, assignees, filters, sorting, deep links, and calendar export.
+- Database view with page-backed rows, editable properties, filters, sorting, CSV import, and CSV export.
+- Command palette/search (`Cmd/Ctrl+K`) and new-page shortcut (`Cmd/Ctrl+N`).
+- Realtime task/comment/notification updates and workspace presence when Supabase is configured.
+- JSON workspace backup and restore from Settings.
+- In-page AI drafts through a guarded free-tier Gemini connection; separate text tools run locally without API calls.

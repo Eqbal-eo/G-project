@@ -9,36 +9,36 @@
 /* — CSS Custom Properties (Design Tokens) — */
 :root {
   /* Surface Hierarchy (Tonal Stacking) */
-  --surface: #f9f9f8;
-  --surface-dim: #d4dcda;
-  --surface-bright: #f9f9f8;
+  --surface: #f6f8fb;
+  --surface-dim: #dce3ec;
+  --surface-bright: #ffffff;
   --surface-container-lowest: #ffffff;
-  --surface-container-low: #f2f4f3;
-  --surface-container: #ebeeed;
-  --surface-container-high: #e4e9e8;
-  --surface-container-highest: #dde4e3;
-  --surface-variant: #dde4e3;
-  --surface-tint: #5f5e5e;
+  --surface-container-low: #eef2f7;
+  --surface-container: #e7edf5;
+  --surface-container-high: #dce5f0;
+  --surface-container-highest: #d0dbe8;
+  --surface-variant: #d6e0eb;
+  --surface-tint: #5369d8;
 
   /* Primary Palette */
-  --primary: #5f5e5e;
-  --primary-dim: #535252;
-  --primary-container: #e5e2e1;
+  --primary: #5369d8;
+  --primary-dim: #4358c5;
+  --primary-container: #e0e7ff;
   --primary-fixed: #e5e2e1;
   --primary-fixed-dim: #d6d4d3;
-  --on-primary: #faf7f6;
-  --on-primary-container: #525151;
+  --on-primary: #ffffff;
+  --on-primary-container: #273a91;
   --on-primary-fixed: #403f3f;
   --on-primary-fixed-variant: #5c5b5b;
   --inverse-primary: #ffffff;
 
   /* Secondary Palette */
-  --secondary: #5f5f5f;
-  --secondary-dim: #535353;
-  --secondary-container: #e3e2e2;
+  --secondary: #287d74;
+  --secondary-dim: #1f675f;
+  --secondary-container: #d5f1ec;
   --secondary-fixed: #e3e2e2;
   --secondary-fixed-dim: #d5d4d4;
-  --on-secondary: #faf8f8;
+  --on-secondary: #ffffff;
   --on-secondary-container: #515252;
   --on-secondary-fixed: #3f3f3f;
   --on-secondary-fixed-variant: #5b5b5b;
@@ -62,16 +62,16 @@
   --on-error-container: #752121;
 
   /* Background & Text */
-  --background: #f9f9f8;
-  --on-background: #2d3433;
-  --on-surface: #2d3433;
-  --on-surface-variant: #5a6060;
+  --background: #f6f8fb;
+  --on-background: #1b2430;
+  --on-surface: #1b2430;
+  --on-surface-variant: #526173;
   --inverse-surface: #0c0f0e;
   --inverse-on-surface: #9c9d9c;
 
   /* Outline */
-  --outline: #757c7b;
-  --outline-variant: #adb3b2;
+  --outline: #718096;
+  --outline-variant: #b6c2d0;
 
   /* Border Radius */
   --radius-sm: 0.25rem;

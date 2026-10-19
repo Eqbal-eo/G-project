@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.pnpm-store/
 
 # Build output
 dist/
@@ -8,7 +9,10 @@ dist/
 .env
 .env.local
 .env.*.local
-src/lib/config.js
+supabase/functions/.env
+supabase/functions/.env.*
+!supabase/functions/.env.example
+supabase/.temp/
 
 # OS generated files
 .DS_Store

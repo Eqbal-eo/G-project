@@ -11,7 +11,7 @@ export async function getSession() {
 
 export async function signIn(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  return { user: data?.user || null, error };
+  return { user: data?.user || null, session: data?.session || null, error };
 }
 
 export async function signUp(email, password, name) {
@@ -20,7 +20,7 @@ export async function signUp(email, password, name) {
     password,
     options: { data: { full_name: name } }
   });
-  return { user: data?.user || null, error };
+  return { user: data?.user || null, session: data?.session || null, error };
 }
 
 export async function signInWithGoogle() {
@@ -29,6 +29,18 @@ export async function signInWithGoogle() {
     options: { redirectTo: window.location.origin }
   });
   return { data, error };
+}
+
+export async function sendPasswordReset(email) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}#reset-password`
+  });
+  return { error };
+}
+
+export async function updatePassword(password) {
+  const { data, error } = await supabase.auth.updateUser({ password });
+  return { user: data?.user || null, error };
 }
 
 export async function signOut() {
