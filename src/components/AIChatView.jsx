@@ -5,6 +5,7 @@ import {
   addMessageToChat
 } from '../lib/aiChatStore.js';
 import { chatWithGemini } from '../lib/gemini.js';
+import { parseAttachedDocument } from '../lib/documentParser.js';
 
 function renderMarkdownSnippet(text) {
   if (!text) return null;
@@ -98,6 +99,9 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
   const [inputText, setInputText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [attachedFile, setAttachedFile] = useState(null);
+  const [isParsingFile, setIsParsingFile] = useState(false);
+  const [fileError, setFileError] = useState('');
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -120,47 +124,51 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [currentChat?.messages, isGenerating]);
+  }, [currentChat?.messages, isGenerating, isParsingFile]);
 
-  function handleFileSelect(e) {
+  async function handleFileSelect(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('File size is too large. Maximum allowed size is 2MB.');
-      return;
-    }
+    setFileError('');
+    setIsParsingFile(true);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result || '';
-      setAttachedFile({
-        name: file.name,
-        size: file.size,
-        content: String(content)
-      });
-      // Suggest summary in input if empty
+    try {
+      const parsedDoc = await parseAttachedDocument(file);
+      setAttachedFile(parsedDoc);
+
+      // Pre-fill a helpful prompt suggestion if empty
       if (!inputText.trim()) {
-        setInputText(`Please read and summarize the file "${file.name}" and explain its key points.`);
+        if (parsedDoc.fileType === 'pdf') {
+          setInputText(`Please summarize the PDF document "${file.name}" and extract key takeaways.`);
+        } else if (parsedDoc.fileType === 'pptx') {
+          setInputText(`Please summarize the PowerPoint presentation "${file.name}" and explain the slides.`);
+        } else {
+          setInputText(`Please read and summarize the document "${file.name}" and highlight key concepts.`);
+        }
       }
-    };
-    reader.onerror = () => {
-      alert('An error occurred while reading the file.');
-    };
-    reader.readAsText(file);
-    e.target.value = ''; // Reset input
+    } catch (err) {
+      console.error('File parsing error:', err);
+      setFileError(err.message || 'Error occurred while reading the document.');
+    } finally {
+      setIsParsingFile(false);
+      e.target.value = ''; // Reset input to allow selecting same file again
+    }
   }
 
-  async function handleSendMessage(promptText) {
+  async function handleSendMessage(promptText, overrideFile = null) {
+    const fileToUpload = overrideFile !== null ? overrideFile : attachedFile;
     const baseText = (promptText || inputText).trim();
-    if (!baseText && !attachedFile) return;
-    if (isGenerating) return;
 
-    const textToSend = baseText || (attachedFile ? `Please read and summarize the file "${attachedFile.name}" and explain its key contents in detail.` : '');
+    if (!baseText && !fileToUpload) return;
+    if (isGenerating || isParsingFile) return;
+
+    const textToSend = baseText || (fileToUpload ? `Please read and analyze "${fileToUpload.name}" and provide a comprehensive summary and key takeaways.` : '');
 
     let targetChatId = currentChat?.id;
     if (!targetChatId) {
-      const newChat = createNewAIChat(attachedFile ? `File: ${attachedFile.name}` : 'New chat');
+      const chatTitle = fileToUpload ? `📄 ${fileToUpload.name}` : 'New chat';
+      const newChat = createNewAIChat(chatTitle);
       targetChatId = newChat.id;
       onSelectChat?.(newChat.id);
     }
@@ -169,16 +177,18 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
     addMessageToChat(targetChatId, {
       sender: 'user',
       text: textToSend,
-      fileName: attachedFile?.name || null
+      fileName: fileToUpload?.name || null,
+      fileTypeLabel: fileToUpload?.fileTypeLabel || null,
+      fileIcon: fileToUpload?.icon || null
     });
 
-    const fileToUpload = attachedFile;
     setAttachedFile(null);
     setInputText('');
+    setFileError('');
     setIsGenerating(true);
 
     try {
-      // Direct call to Gemini 3.5 Flash-Lite
+      // Call Gemini 3.8 Flash / 3.5 Flash
       const aiResponseText = await chatWithGemini({
         messages: currentChat?.messages || [],
         newUserPrompt: textToSend,
@@ -192,11 +202,10 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
       });
     } catch (err) {
       console.error('Gemini chat error:', err);
-      // Fallback
       const fallbackText = generateSmartAIResponse(textToSend, workspace, fileToUpload);
       addMessageToChat(targetChatId, {
         sender: 'ai',
-        text: `${fallbackText}\n\n*(Notice: An error occurred while connecting directly to Gemini API: ${err.message})*`
+        text: `${fallbackText}\n\n*(Notice: Error connecting to Gemini API: ${err.message})*`
       });
     } finally {
       setIsGenerating(false);
@@ -208,15 +217,71 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
     const newChat = createNewAIChat('New chat');
     onSelectChat?.(newChat.id);
     setAttachedFile(null);
+    setFileError('');
     setTimeout(() => inputRef.current?.focus(), 100);
   }
 
-  const starterPrompts = [
-    { title: 'Schema & Tables Overview', prompt: 'Explain the database schema, core tables, and relationships in the project' },
-    { title: 'Project Action Plan', prompt: 'Create an actionable project plan with a timeline and milestones' },
-    { title: 'Organize Kanban Tasks', prompt: 'Suggest an organized task backlog for our workspace Kanban board' },
-    { title: 'Summarize Attached File', prompt: 'I have a file I want you to analyze and extract a comprehensive summary from' }
+  // Pre-configured quick action prompts for attached files
+  const fileQuickActions = [
+    {
+      title: '📑 Comprehensive Summary',
+      desc: 'Summary of core concepts and key findings',
+      prompt: 'Please provide a comprehensive and detailed summary of this document, extracting the most important concepts, key definitions, and notable conclusions in an organized format.'
+    },
+    {
+      title: '🎯 Exam & Quiz Questions',
+      desc: 'MCQ, True/False, and conceptual questions with answers',
+      prompt: 'Generate a comprehensive exam quiz based on this document: include multiple choice questions (MCQ) with 4 choices, True/False questions with justifications, and short-answer questions, providing the answer key and explanations at the end.'
+    },
+    {
+      title: '💡 Core Concepts Explained',
+      desc: 'Simplified explanations of key definitions and principles',
+      prompt: 'Explain the core concepts, terminologies, and definitions in this document in an educational, easy-to-understand manner with illustrative examples.'
+    },
+    {
+      title: '❓ Quick Revision Q&A',
+      desc: '10 focused questions and answers for fast review',
+      prompt: 'Extract the top 10 high-yield questions and answers (Q&A) for rapid exam preparation based on the content of this document.'
+    }
   ];
+
+  const starterPrompts = [
+    {
+      title: 'Analyze & Summarize PDF or Slides',
+      prompt: 'Upload a PDF or PowerPoint presentation for instant summary and explanation',
+      action: () => fileInputRef.current?.click()
+    },
+    {
+      title: 'Generate Practice Exam & Quiz',
+      prompt: 'Create a question bank with answer keys and explanations from your study materials',
+      action: () => fileInputRef.current?.click()
+    },
+    {
+      title: 'Schema & Tables Overview',
+      prompt: 'Explain the database schema, core tables, and relationships in the project',
+      action: () => handleSendMessage('Explain the database schema, core tables, and relationships in the project')
+    },
+    {
+      title: 'Project Action Plan',
+      prompt: 'Create an actionable project plan with a timeline, milestones, and task breakdown',
+      action: () => handleSendMessage('Create an actionable project plan with a timeline, milestones, and task breakdown')
+    }
+  ];
+
+  function getFileIcon(type, icon) {
+    if (icon) return icon;
+    if (type === 'pdf') return 'picture_as_pdf';
+    if (type === 'pptx') return 'slideshow';
+    if (type === 'docx') return 'article';
+    return 'description';
+  }
+
+  function getFileColor(type) {
+    if (type === 'pdf') return 'text-red-500 bg-red-500/10 border-red-500/20';
+    if (type === 'pptx') return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+    if (type === 'docx') return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
+    return 'text-primary bg-primary/10 border-primary/20';
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] bg-surface text-on-surface">
@@ -231,11 +296,11 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
               {currentChat?.title || 'Motion AI'}
               <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                Gemini 3.5 Flash-Lite
+                Gemini 3.8 Flash • PDF &amp; Slides
               </span>
             </h2>
             <p className="text-[11px] text-on-surface-variant">
-              Workspace AI Assistant &amp; Document Summarizer
+              PDF &amp; Presentation Analysis • Exam Generation • Intelligent Workspace Assistant
             </p>
           </div>
         </div>
@@ -261,7 +326,7 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
             </div>
             <h3 className="text-xl font-bold text-on-surface mb-2">How can I help you today?</h3>
             <p className="text-sm text-on-surface-variant mb-8 max-w-md mx-auto">
-              Ask a question directly, or attach a file to summarize and analyze via Gemini AI.
+              Upload a PDF, PowerPoint presentation, or document to summarize, ask questions, or generate instant exam quizzes.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
@@ -269,13 +334,7 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
                 <button
                   key={index}
                   type="button"
-                  onClick={() => {
-                    if (item.title === 'Summarize Attached File') {
-                      fileInputRef.current?.click();
-                    } else {
-                      handleSendMessage(item.prompt);
-                    }
-                  }}
+                  onClick={item.action}
                   className="p-3.5 rounded-xl border border-outline-variant/20 bg-surface-container-lowest hover:bg-surface-container-high transition-colors text-left group"
                 >
                   <p className="text-xs font-semibold text-primary mb-1 flex items-center justify-between">
@@ -301,17 +360,25 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
                 )}
 
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${msg.sender === 'user'
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                    msg.sender === 'user'
                       ? 'bg-primary text-on-primary rounded-br-sm'
                       : 'bg-surface-container-lowest text-on-surface border border-outline-variant/15 rounded-bl-sm'
-                    }`}
+                  }`}
                 >
                   {msg.sender === 'user' ? (
                     <div>
                       {msg.fileName && (
-                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-black/20 text-[11px] font-mono mb-2">
-                          <span className="material-symbols-outlined text-xs">description</span>
-                          <span>{msg.fileName}</span>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/25 text-xs font-medium mb-2 border border-white/10 shadow-xs">
+                          <span className="material-symbols-outlined text-sm">
+                            {getFileIcon(msg.fileType, msg.fileIcon)}
+                          </span>
+                          <span className="font-semibold">{msg.fileName}</span>
+                          {msg.fileTypeLabel && (
+                            <span className="text-[10px] opacity-80 border-l border-white/20 pl-1.5 ml-0.5">
+                              {msg.fileTypeLabel}
+                            </span>
+                          )}
                         </div>
                       )}
                       <p className="whitespace-pre-wrap leading-relaxed">{msg.text}</p>
@@ -352,7 +419,7 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
                   <span className="w-2 h-2 rounded-full bg-primary animate-bounce"></span>
                   <span className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]"></span>
                   <span className="w-2 h-2 rounded-full bg-primary animate-bounce [animation-delay:0.4s]"></span>
-                  <span className="text-xs text-on-surface-variant ml-1 font-medium">Gemini is thinking...</span>
+                  <span className="text-xs text-on-surface-variant ml-1 font-medium">Motion AI is analyzing the document and drafting a response...</span>
                 </div>
               </div>
             )}
@@ -364,21 +431,98 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
 
       {/* Input Bar */}
       <div className="p-4 border-t border-outline-variant/15 bg-surface-container-lowest">
-        <div className="max-w-3xl mx-auto">
-          {/* Attached File Chip Preview */}
-          {attachedFile && (
-            <div className="flex items-center gap-2 mb-2 px-3 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant/30 text-xs w-fit shadow-xs">
-              <span className="material-symbols-outlined text-sm text-primary">description</span>
-              <span className="font-semibold text-on-surface">{attachedFile.name}</span>
-              <span className="text-[10px] text-on-surface-variant">({(attachedFile.size / 1024).toFixed(1)} KB)</span>
+        <div className="max-w-3xl mx-auto space-y-2">
+          {/* File Error Alert */}
+          {fileError && (
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">error</span>
+                <span>{fileError}</span>
+              </div>
               <button
                 type="button"
-                onClick={() => setAttachedFile(null)}
-                className="text-on-surface-variant hover:text-red-500 ml-1.5 flex items-center justify-center"
-                title="Remove file"
+                onClick={() => setFileError('')}
+                className="hover:opacity-75"
               >
                 <span className="material-symbols-outlined text-xs">close</span>
               </button>
+            </div>
+          )}
+
+          {/* Attached File Preview Card */}
+          {attachedFile && (
+            <div className="p-3 rounded-xl bg-surface-container-high border border-outline-variant/30 shadow-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${getFileColor(attachedFile.fileType)}`}>
+                    <span className="material-symbols-outlined text-lg">
+                      {getFileIcon(attachedFile.fileType, attachedFile.icon)}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-on-surface truncate">
+                      {attachedFile.name}
+                    </p>
+                    <p className="text-[10px] text-on-surface-variant flex items-center gap-1.5">
+                      <span className="font-medium text-primary">{attachedFile.fileTypeLabel}</span>
+                      <span>•</span>
+                      <span>{(attachedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                      {attachedFile.stats?.slidesCount && (
+                        <>
+                          <span>•</span>
+                          <span className="bg-amber-500/15 text-amber-500 px-1 rounded font-semibold">
+                            {attachedFile.stats.slidesCount} slides
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setAttachedFile(null)}
+                  className="text-on-surface-variant hover:text-red-500 p-1 rounded-md hover:bg-surface-container-highest transition-colors"
+                  title="Remove attached file"
+                >
+                  <span className="material-symbols-outlined text-base">close</span>
+                </button>
+              </div>
+
+              {/* Quick Actions for this file */}
+              <div className="pt-2 border-t border-outline-variant/15">
+                <p className="text-[11px] font-semibold text-on-surface-variant mb-1.5 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-xs text-primary">tips_and_updates</span>
+                  Quick actions for this file (click to send):
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  {fileQuickActions.map((qa, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      disabled={isGenerating || isParsingFile}
+                      onClick={() => handleSendMessage(qa.prompt, attachedFile)}
+                      className="p-1.5 rounded-lg border border-outline-variant/20 bg-surface hover:bg-primary/10 hover:border-primary/40 transition-all text-left text-xs group disabled:opacity-50"
+                      title={qa.desc}
+                    >
+                      <div className="font-semibold text-on-surface text-[11px] group-hover:text-primary transition-colors">
+                        {qa.title}
+                      </div>
+                      <div className="text-[9px] text-on-surface-variant truncate">
+                        {qa.desc}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Parsing Spinner */}
+          {isParsingFile && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-surface-container-high border border-outline-variant/30 text-xs text-on-surface-variant">
+              <span className="material-symbols-outlined text-base text-primary animate-spin">progress_activity</span>
+              <span>Reading and extracting document content... Please wait</span>
             </div>
           )}
 
@@ -387,10 +531,11 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
             ref={fileInputRef}
             type="file"
             className="hidden"
-            accept=".txt,.md,.json,.js,.jsx,.ts,.tsx,.css,.html,.csv,.py,.sql,.xml,.yaml,.yml,.log"
+            accept=".pdf,.pptx,.ppt,.docx,.txt,.md,.json,.csv,.py,.js,.jsx,.ts,.tsx,.html,.css,.sql"
             onChange={handleFileSelect}
           />
 
+          {/* Main Input Form */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -402,8 +547,9 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-9 h-9 rounded-lg border border-outline-variant/20 text-on-surface-variant hover:text-primary hover:bg-surface-container-high flex items-center justify-center flex-shrink-0 transition-colors"
-              title="Attach a file (text / code / report) for summarization or analysis"
+              disabled={isGenerating || isParsingFile}
+              className="w-9 h-9 rounded-lg border border-outline-variant/20 text-on-surface-variant hover:text-primary hover:bg-surface-container-high flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-50"
+              title="Attach PDF, PowerPoint presentation, or document to analyze"
             >
               <span className="material-symbols-outlined text-lg">attach_file</span>
             </button>
@@ -419,21 +565,26 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
                   handleSendMessage();
                 }
               }}
-              placeholder="Type your question, or attach a file to summarize... (Press Enter to send)"
+              placeholder={
+                attachedFile
+                  ? "Ask a question about the document, or pick a quick action above..."
+                  : "Ask anything, or attach a document for instant analysis..."
+              }
               className="flex-1 bg-transparent border-0 resize-none outline-none text-sm text-on-surface placeholder:text-on-surface-variant/50 px-2 py-1 max-h-32 leading-relaxed"
             />
 
             <button
               type="submit"
-              disabled={(!inputText.trim() && !attachedFile) || isGenerating}
+              disabled={(!inputText.trim() && !attachedFile) || isGenerating || isParsingFile}
               className="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center disabled:opacity-40 hover:opacity-90 transition-opacity flex-shrink-0"
               aria-label="Send message"
             >
               <span className="material-symbols-outlined text-base">arrow_upward</span>
             </button>
           </form>
-          <p className="text-[10px] text-center text-on-surface-variant/60 mt-2">
-            Connected to Google Gemini 3.5 Flash-Lite • Supports attaching code and text documents for instant analysis.
+
+          <p className="text-[10px] text-center text-on-surface-variant/60">
+            Powered by Google Gemini 3.8 Flash • Supports PDFs, PowerPoint presentations, and documents for automated analysis and quiz generation
           </p>
         </div>
       </div>
@@ -443,12 +594,13 @@ export default function AIChatView({ activeChatId, onSelectChat, workspace, user
 
 function generateSmartAIResponse(prompt, workspace, file) {
   if (file) {
-    return `### Summary of "${file.name}":
-- **File size:** ${(file.size / 1024).toFixed(1)} KB.
-- File received and content read successfully.
+    return `### Document summary for "${file.name}":
+- **File Type:** ${file.fileTypeLabel || 'Document'}
+- **Size:** ${(file.size / 1024).toFixed(1)} KB.
+- Document content has been extracted and prepared.
 
-${file.content.substring(0, 300)}...`;
+Please verify your network connection and Gemini API key to utilize full intelligent document analysis.`;
   }
 
-  return `Welcome! I am your Motion AI assistant. You can ask me anything about your project or attach a document for instant analysis and summarization.`;
+  return `Hello! I am Motion AI. You can attach any PDF, PowerPoint presentation, or document, and I will summarize it or generate quiz questions based on it.`;
 }

@@ -24,6 +24,8 @@ import {
 import Login, { PasswordReset } from './components/Login.jsx';
 import TeamChat from './components/TeamChat.jsx';
 import AIChatView from './components/AIChatView.jsx';
+import AIPageSidebar from './components/AIPageSidebar.jsx';
+import NotionAIFace from './components/NotionAIFace.jsx';
 import Modal, { PromptDialog } from './components/Modal.jsx';
 import { getStoredChats, createNewAIChat, deleteAIChat, formatChatDate } from './lib/aiChatStore.js';
 import './App.css';
@@ -518,6 +520,7 @@ export default function App() {
   const [searchLoading, setSearchLoading] = useState(false);
 
   // AI Chat Sidebar States
+  const [isAISidebarOpen, setIsAISidebarOpen] = useState(false);
   const [aiChats, setAiChats] = useState(getStoredChats);
   const [activeAIChatId, setActiveAIChatId] = useState(() => {
     const hash = parseHash();
@@ -1589,29 +1592,54 @@ export default function App() {
           </div>
         ) : null}
 
-        <div id="page-content" className="flex-1 min-w-0">
-          {isBootstrapping ? (
-            <div className="flex items-center justify-center h-[60vh]">
-              <div className="text-center">
-                <div className="loading-spinner mx-auto mb-4"></div>
-                <p className="text-sm text-on-surface-variant">Loading Motion...</p>
+        <div className="flex-1 min-h-0 flex overflow-hidden relative">
+          <div id="page-content" className="flex-1 min-w-0 overflow-y-auto">
+            {isBootstrapping ? (
+              <div className="flex items-center justify-center h-[60vh]">
+                <div className="text-center">
+                  <div className="loading-spinner mx-auto mb-4"></div>
+                  <p className="text-sm text-on-surface-variant">Loading Motion...</p>
+                </div>
               </div>
-            </div>
-          ) : route.path === 'chat' ? (
-            <TeamChat key={AppState.workspace?.id} workspace={AppState.workspace} user={AppState.user} />
-          ) : route.path === 'ai-chat' ? (
-            <AIChatView
-              key={AppState.workspace?.id}
-              activeChatId={activeAIChatId}
-              onSelectChat={(id) => {
-                setActiveAIChatId(id);
-                window.location.hash = `ai-chat?id=${encodeURIComponent(id)}`;
-              }}
+            ) : route.path === 'chat' ? (
+              <TeamChat key={AppState.workspace?.id} workspace={AppState.workspace} user={AppState.user} />
+            ) : route.path === 'ai-chat' ? (
+              <AIChatView
+                key={AppState.workspace?.id}
+                activeChatId={activeAIChatId}
+                onSelectChat={(id) => {
+                  setActiveAIChatId(id);
+                  window.location.hash = `ai-chat?id=${encodeURIComponent(id)}`;
+                }}
+                workspace={AppState.workspace}
+                user={AppState.user}
+              />
+            ) : (
+              <LegacyRenderer renderer={renderer} routeKey={routeKey} route={route} />
+            )}
+          </div>
+
+          {/* Docked AI Chat Sidebar (Image 2) */}
+          {isAISidebarOpen && (
+            <AIPageSidebar
+              isOpen={isAISidebarOpen}
+              onClose={() => setIsAISidebarOpen(false)}
               workspace={AppState.workspace}
               user={AppState.user}
             />
-          ) : (
-            <LegacyRenderer renderer={renderer} routeKey={routeKey} route={route} />
+          )}
+
+          {/* Floating Notion AI button at the bottom-right corner of the page (Image 1) */}
+          {!isAISidebarOpen && (route.path === 'editor' || route.path === 'notes') && (
+            <button
+              type="button"
+              onClick={() => setIsAISidebarOpen(true)}
+              className="fixed bottom-6 right-8 z-40 w-12 h-12 rounded-full shadow-lg hover:shadow-2xl hover:scale-110 active:scale-95 transition-all flex items-center justify-center bg-[#f0f0ef] dark:bg-[#343536] border border-black/10 dark:border-white/10 group cursor-pointer"
+              title="Open Notion AI Assistant"
+              aria-label="Open Notion AI Assistant"
+            >
+              <NotionAIFace size={36} className="pointer-events-none" />
+            </button>
           )}
         </div>
       </main>

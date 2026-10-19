@@ -8,6 +8,7 @@ import { assistWithText } from '../../lib/ai.js';
 import { sanitizeHtml } from '../../lib/sanitize.js';
 import { openAIPagePanel } from '../../lib/aiPagePanel.js';
 import { createNotionEditor } from '../../lib/notionEditor.js';
+import { registerActiveEditor, unregisterActiveEditor } from '../../lib/aiEditorBridge.js';
 import {
   getRecentPages,
   getPages,
@@ -57,6 +58,10 @@ function cleanBlockContent(html) {
 }
 
 export async function renderEditor(container, route) {
+  if (container.__editorBridgeInstance) {
+    unregisterActiveEditor(container.__editorBridgeInstance);
+    container.__editorBridgeInstance = null;
+  }
   if (container.__notionEditor) {
     container.__notionEditor.destroy();
     container.__notionEditor = null;
@@ -226,6 +231,43 @@ export async function renderEditor(container, route) {
   }
 
   if (titleEl) titleEl.addEventListener('input', debouncedSave);
+
+  const editorBridgeInstance = {
+    pageId: page.id,
+    page,
+    getTitle: () => titleEl?.textContent || page.title || 'Untitled',
+    setTitle: (newTitle) => {
+      if (titleEl) {
+        titleEl.textContent = newTitle;
+        debouncedSave();
+      }
+    },
+    getHtml: () => editorHtml(),
+    getText: () => notionEditor ? notionEditor.quill.getText() : (titleEl?.textContent || ''),
+    replaceContent: async ({ html, title }) => {
+      if (title && titleEl) {
+        titleEl.textContent = title;
+      }
+      if (html !== undefined && notionEditor) {
+        notionEditor.setHtml(html);
+      }
+      await saveNow();
+    },
+    insertContent: async (html, position = 'end') => {
+      if (!notionEditor) return;
+      if (position === 'start') {
+        const current = notionEditor.getHtml();
+        notionEditor.setHtml(html + current);
+      } else {
+        const len = notionEditor.quill.getLength();
+        notionEditor.quill.clipboard.dangerouslyPasteHTML(len - 1, html);
+      }
+      await saveNow();
+    },
+    saveNow
+  };
+  container.__editorBridgeInstance = editorBridgeInstance;
+  registerActiveEditor(editorBridgeInstance);
 
   container.querySelector('#editor-add-block')?.addEventListener('click', () => {
     if (!notionEditor) return;

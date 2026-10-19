@@ -1,9 +1,10 @@
 // Integration with Google Gemini API for Motion AI Chat and Document Summarization
 
 const CANDIDATE_MODELS = [
-  'gemini-flash-lite-latest',
+  'gemini-3.8-flash',
+  'gemini-3.5-flash',
   'gemini-3.5-flash-lite',
-  'gemini-3.1-flash-lite'
+  'gemini-flash-latest'
 ];
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
@@ -44,14 +45,44 @@ export function buildGeminiContents({ history = [], newUserPrompt = '', attached
   }
 
   // 2. Format new user prompt + attached file
-  let userText = newUserPrompt ? newUserPrompt.trim() : '';
-  if (attachedFile) {
-    const fileHeader = `[Attached File: ${attachedFile.name}]\n\n--- File Content ---\n${attachedFile.content}\n--- End of File Content ---`;
-    userText = userText ? `${fileHeader}\n\nUser Request:\n${userText}` : `${fileHeader}\n\nPlease read and summarize this file accurately and explain the key points in detail.`;
-  }
+  const userText = newUserPrompt ? newUserPrompt.trim() : '';
 
-  // 3. Append the new user prompt
-  if (userText) {
+  if (attachedFile) {
+    const parts = [];
+
+    // Native PDF support via Gemini multimodal inlineData
+    if (attachedFile.base64 && attachedFile.mimeType === 'application/pdf') {
+      parts.push({
+        inlineData: {
+          mimeType: 'application/pdf',
+          data: attachedFile.base64
+        }
+      });
+
+      const promptLabel = userText || `Please thoroughly read and analyze this attached PDF document ("${attachedFile.name}"), provide an executive summary, and explain its key sections.`;
+      parts.push({
+        text: `[Attached PDF Document: ${attachedFile.name}]\n\nUser Request:\n${promptLabel}`
+      });
+    } else if (attachedFile.content) {
+      // Extracted text from PowerPoint (.pptx), Word (.docx), or text files
+      const docLabel = attachedFile.fileTypeLabel || 'Document';
+      const fileHeader = `[Attached ${docLabel}: ${attachedFile.name}]\n\n--- Document Content ---\n${attachedFile.content}\n--- End of Document Content ---`;
+      const promptLabel = userText || `Please read and analyze this ${docLabel} ("${attachedFile.name}") and provide a comprehensive summary and key takeaways.`;
+
+      parts.push({
+        text: `${fileHeader}\n\nUser Request:\n${promptLabel}`
+      });
+    } else if (userText) {
+      parts.push({ text: userText });
+    }
+
+    if (parts.length > 0) {
+      turns.push({
+        role: 'user',
+        parts
+      });
+    }
+  } else if (userText) {
     if (turns.length > 0 && turns[turns.length - 1].role === 'user') {
       turns[turns.length - 1].parts[0].text += `\n\n${userText}`;
     } else {
@@ -62,17 +93,17 @@ export function buildGeminiContents({ history = [], newUserPrompt = '', attached
     }
   }
 
-  // 4. Ensure contents starts with 'user' (Gemini API requirement)
+  // 3. Ensure contents starts with 'user' (Gemini requirement)
   while (turns.length > 0 && turns[0].role !== 'user') {
     turns.shift();
   }
 
-  // 5. Ensure contents ends with 'user' (Gemini requirement: requests ending with model turn are rejected)
+  // 4. Ensure contents ends with 'user'
   while (turns.length > 0 && turns[turns.length - 1].role !== 'user') {
     turns.pop();
   }
 
-  // 6. Safe fallback if somehow empty
+  // 5. Safe fallback if somehow empty
   if (turns.length === 0) {
     turns.push({
       role: 'user',
@@ -83,7 +114,7 @@ export function buildGeminiContents({ history = [], newUserPrompt = '', attached
   return turns;
 }
 
-export async function chatWithGemini({ messages, newUserPrompt, attachedFile, workspaceContext }) {
+export async function chatWithGemini({ messages, newUserPrompt, attachedFile, workspaceContext, pageContext }) {
   const apiKey = getGeminiApiKey();
 
   if (!apiKey) {
@@ -91,15 +122,27 @@ export async function chatWithGemini({ messages, newUserPrompt, attachedFile, wo
   }
 
   const workspaceInfo = workspaceContext?.name ? `\nCurrent Workspace: "${workspaceContext.name}".` : '';
+  const pageInfo = pageContext?.title
+    ? `\nActive Page: "${pageContext.title}"\nCurrent Page Content:\n${pageContext.text || '(Empty page)'}\n`
+    : '';
 
-  const systemInstruction = `You are Motion AI, an intelligent, friendly, and expert workspace assistant built into the Motion Workspace productivity suite.${workspaceInfo}
-You assist users with:
-1. Thoroughly summarizing and analyzing uploaded files and documents.
-2. Drafting notes, project plans, meeting minutes, and specifications.
-3. Explaining technical concepts, database schemas, code, and architectures.
-4. Organizing Kanban tasks, milestones, and workflows.
+  const systemInstruction = `You are Motion AI, an expert workspace assistant, academic tutor, and document analyst built into the Motion Workspace productivity suite.${workspaceInfo}${pageInfo}
 
-Always answer clearly in English (or the user's requested language). Use clean, rich markdown formatting with headers (###), bullet points, bold highlights, tables, and fenced code blocks where appropriate. If a file is attached, read and understand its full content carefully and deliver an accurate, well-structured summary or answer based on the user's instructions.`;
+Your capabilities include:
+1. **Document & Presentation Analysis**: Thoroughly reading, analyzing, and summarizing uploaded files (PDFs, PowerPoint presentations, Word documents, code, notes).
+2. **Page Content Assistant & Controller**: You are directly connected to the user's active page. You can edit, rewrite, summarize, translate, generate tables, task lists, and modify page content. When the user asks to summarize, translate, or modify this page, output clean, structured content ready to be applied or inserted directly into the page editor.
+3. **Exam & Quiz Generation**: When asked to create exam questions, generate well-crafted, realistic exam questions based directly on the attached file or page:
+   - Multiple Choice Questions (MCQ) with 4 clear choices (A, B, C, D)
+   - True / False questions with justifications
+   - Short-answer and conceptual discussion questions
+   - Always include the correct answers (Answer Key) and educational explanations at the end.
+4. **Structured Summaries & Tasks**: Extract key ideas, core definitions, and convert plans into actionable task checklists and tables.
+5. **English & Multilingual Fluency**: By default, keep all interface elements, explanations, and outputs in clear, high-quality English, while fluently translating to or from any other language when requested.
+
+Formatting rules:
+- Use clean, structured Markdown formatting (### Headers, bold highlights, bullet points, numbered lists, tables, and fenced code blocks).
+- Be thorough, helpful, and concise.
+- Base your answers strictly on the content of the attached document or active page when provided.`;
 
   const contents = buildGeminiContents({
     history: messages,
@@ -125,8 +168,8 @@ Always answer clearly in English (or the user's requested language). Use clean, 
           },
           contents,
           generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 4096
+            temperature: 0.6,
+            maxOutputTokens: 6000
           }
         })
       });
@@ -135,8 +178,8 @@ Always answer clearly in English (or the user's requested language). Use clean, 
 
       if (!response.ok) {
         const errorMsg = data?.error?.message || `API Error (${response.status})`;
-        // If high demand (503), try next model
-        if (response.status === 503 || errorMsg.includes('high demand')) {
+        // If high demand (503) or model unavailable, try next candidate
+        if (response.status === 503 || response.status === 404 || errorMsg.includes('high demand') || errorMsg.includes('not available')) {
           lastError = new Error(errorMsg);
           continue;
         }
@@ -151,7 +194,7 @@ Always answer clearly in English (or the user's requested language). Use clean, 
       }
     } catch (err) {
       lastError = err;
-      if (err.message?.includes('high demand') || err.message?.includes('503')) {
+      if (err.message?.includes('high demand') || err.message?.includes('503') || err.message?.includes('not available')) {
         continue;
       }
       throw err;
@@ -160,3 +203,4 @@ Always answer clearly in English (or the user's requested language). Use clean, 
 
   throw lastError || new Error('Unable to receive a response from the model right now. Please try again in a few moments.');
 }
+
