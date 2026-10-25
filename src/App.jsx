@@ -416,9 +416,8 @@ function SidebarNotesTree({ pages, searchQuery, onPageMoved }) {
           onDragOver={(e) => handleDragOver(e, node.id)}
           onDragLeave={(e) => handleDragLeave(e, node.id)}
           onDrop={(e) => handleDrop(e, node.id)}
-          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-all duration-150 group cursor-pointer ${
-            isDragOver ? 'ring-2 ring-primary bg-primary/10' : 'hover:bg-surface-container-high'
-          } ${isNested ? 'text-[11px] text-on-surface-variant' : 'text-xs text-on-surface-variant font-medium'}`}
+          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-all duration-150 group cursor-pointer ${isDragOver ? 'ring-2 ring-primary bg-primary/10' : 'hover:bg-surface-container-high'
+            } ${isNested ? 'text-[11px] text-on-surface-variant' : 'text-xs text-on-surface-variant font-medium'}`}
           style={{ paddingLeft: `${depth * 0.75 + 0.35}rem` }}
         >
           {hasChildren ? (
@@ -474,9 +473,8 @@ function SidebarNotesTree({ pages, searchQuery, onPageMoved }) {
         }}
         onDragLeave={() => setRootDragOver(false)}
         onDrop={handleRootDrop}
-        className={`px-2 py-1.5 text-[10px] uppercase tracking-wider rounded-md border border-dashed transition-all flex items-center gap-1.5 cursor-pointer ${
-          rootDragOver ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant/30 text-on-surface-variant/60'
-        }`}
+        className={`px-2 py-1.5 text-[10px] uppercase tracking-wider rounded-md border border-dashed transition-all flex items-center gap-1.5 cursor-pointer ${rootDragOver ? 'border-primary bg-primary/10 text-primary' : 'border-outline-variant/30 text-on-surface-variant/60'
+          }`}
         title="Drop here to move page to root level"
       >
         <span className="material-symbols-outlined text-xs">drive_file_move</span>
