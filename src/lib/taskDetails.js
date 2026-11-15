@@ -1,0 +1,273 @@
+import { supabase } from './supabase.js';
+import { updateTask, createTaskComment } from './queries.js';
+import { attachMentionPicker, extractMentionIds, renderMentionsHtml, memberLabel } from './mentions.js';
+import { escapeHtml as esc } from './sanitize.js';
+import { AppState, showToast } from '../legacy/app.js';
+import { requestForm } from './dialogs.js';
+import { loadTaskFields, renderFieldInputs, readFieldInputs } from './taskFields.js';
+import { requestFocus } from './focusZone.js';
+import { getWorkspaceTeams, taskPermissions, taskProgress, workspaceRole, TEAM_COLORS } from './teams.js';
+
+let closeActiveTask = null;
+
+// Always open the newest version of the task: the list on screen may be a few
+// seconds old (e.g. right after a Focus session saved progress), and saving an
+// old copy would undo someone's changes.
+export async function openTaskDetails(task, members = [], onSaved = () => {}, options = {}) {
+  let latest = task;
+  if (task?.id) {
+    const { data } = await supabase.from('tasks').select('*, assignee:users!assignee_id(id, name, avatar_url)').eq('id', task.id).maybeSingle();
+    if (data) latest = data;
+  }
+  return renderTaskDetails(latest, members, onSaved, options);
+}
+
+function renderTaskDetails(task, members = [], onSaved = () => {}, { teams: knownTeams = null } = {}) {
+  closeActiveTask?.();
+  const details = task.details || {};
+  const checklist = Array.isArray(details.checklist) ? details.checklist.map(item => ({ id: item.id || crypto.randomUUID(), text: String(item.text || ''), done: Boolean(item.done) })) : [];
+  const backdrop = document.createElement('div');
+  backdrop.className = 'task-detail-backdrop';
+  backdrop.innerHTML = `<section class="task-detail-panel" role="dialog" aria-modal="true" aria-label="Task details">
+    <header><div><small>TASK</small><h2>Details &amp; progress</h2></div><div class="task-detail-head-actions">${task.status !== 'done' ? '<button type="button" class="task-focus-btn" data-focus title="Work on this task with a timer, no distractions">🎯 Focus</button>' : ''}<button type="button" data-close aria-label="Close task details">×</button></div></header>
+    <p class="task-detail-lock" data-lock hidden></p>
+    <form class="task-detail-form">
+      <label>Title<input name="title" value="${esc(task.title || '')}" required maxlength="500" /></label>
+      <div class="task-detail-fields task-detail-essentials">
+        <label>Status<select name="status">${['todo','in_progress','done'].map(value => `<option value="${value}" ${task.status === value ? 'selected' : ''}>${{todo:'To do',in_progress:'In progress',done:'Done'}[value]}</option>`).join('')}</select></label>
+        <label>Assignee<select name="assignee_id"><option value="">Unassigned</option>${members.map(member => `<option value="${esc(member.user_id)}" ${task.assignee_id === member.user_id ? 'selected' : ''}>${esc(member.user?.name || member.user?.email || 'Member')}</option>`).join('')}${task.assignee_id && !members.some(member => member.user_id === task.assignee_id) ? `<option value="${esc(task.assignee_id)}" selected>${esc(task.assignee?.name || 'Current assignee')}</option>` : ''}</select></label>
+        <label>Due date<input name="due_date" type="date" value="${esc(task.due_date || '')}" /></label>
+        <label class="task-detail-progress">Progress <output data-progress-value>${taskProgress(task)}%</output><input name="progress" type="range" min="0" max="100" step="5" value="${taskProgress(task)}" /></label>
+      </div>
+      <label>Description<textarea name="description" rows="4" placeholder="What needs to be done, and what does “done” look like?">${esc(details.description || '')}</textarea></label>
+      <details class="task-detail-more" data-more>
+        <summary><span class="material-symbols-outlined" aria-hidden="true">expand_more</span><strong>More details</strong><small data-more-summary></small></summary>
+        <div class="task-detail-more-body">
+          <div class="task-detail-fields">
+            <label>Priority<select name="priority">${['low','medium','high','urgent'].map(value => `<option value="${value}" ${task.priority === value ? 'selected' : ''}>${value[0].toUpperCase() + value.slice(1)}</option>`).join('')}</select></label>
+            <label>Team<select name="team_id" data-team-select><option value="">No team</option>${task.team_id ? `<option value="${esc(task.team_id)}" selected>Loading…</option>` : ''}</select></label>
+          </div>
+          <div data-custom-fields></div>
+          <section class="task-detail-checklist"><h3>Checklist <small data-progress></small></h3><div data-checklist></div><button type="button" data-add-step>+ Add a step</button></section>
+          <label>Tags<input name="tags" value="${esc((task.tags || []).join(', '))}" placeholder="Separate tags with commas" /></label>
+          <label>Reference links<textarea name="links" rows="2" placeholder="Paste one https:// URL per line">${esc((Array.isArray(details.links) ? details.links : []).join('\n'))}</textarea></label>
+        </div>
+      </details>
+      <div class="task-detail-references">${(Array.isArray(details.links) ? details.links : []).filter(url => /^https?:\/\//i.test(url)).map(url => `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(url)}</a>`).join('')}${task.page_id ? `<a href="#editor/${esc(task.page_id)}" data-related-page>Open related page →</a>` : ''}</div>
+      <p data-save-status role="status"></p><button type="submit" class="modal-btn-primary">Save task</button>
+    </form>
+    <section class="task-detail-discussion"><h3>Discussion</h3><div data-comments>Loading comments…</div><form data-comment-form><label>Add a comment<textarea name="comment" rows="2" required placeholder="Share an update. Type @ to mention a teammate."></textarea></label><div class="task-detail-comment-actions"><small>Ctrl/⌘ + Enter to post</small><button class="modal-btn-primary" type="submit">Post comment</button></div></form></section>
+  </section>`;
+  const oldFocus = document.activeElement;
+  const panel = backdrop.querySelector('.task-detail-panel');
+  const form = backdrop.querySelector('.task-detail-form');
+  let stopLive = null;
+  const close = () => { stopLive?.(); backdrop.remove(); window.removeEventListener('hashchange', close); closeActiveTask = null; if(oldFocus?.isConnected) oldFocus.focus(); };
+  closeActiveTask = close;
+  backdrop.querySelector('[data-close]').addEventListener('click', close);
+  backdrop.querySelector('[data-focus]')?.addEventListener('click', () => { close(); requestFocus(task); });
+  backdrop.addEventListener('click', event => { if(event.target === backdrop) close(); });
+  backdrop.addEventListener('keydown', event => {
+    if(event.key === 'Escape') { event.stopPropagation(); close(); }
+    if(event.key === 'Tab') {
+      const controls = [...panel.querySelectorAll('button, input, textarea, select, a[href]')].filter(el => !el.disabled);
+      const first = controls[0], last = controls.at(-1);
+      if(event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if(!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  });
+  window.addEventListener('hashchange', close);
+  // "More details": remember if the person likes it open, and summarise what's inside
+  // so nothing important is hidden.
+  const more = backdrop.querySelector('[data-more]');
+  try { more.open = localStorage.getItem('groupify.taskMoreOpen') === '1'; } catch { /* storage unavailable */ }
+  more.addEventListener('toggle', () => { try { localStorage.setItem('groupify.taskMoreOpen', more.open ? '1' : '0'); } catch { /* storage unavailable */ } });
+  const updateMoreSummary = () => {
+    const form = backdrop.querySelector('.task-detail-form');
+    const teamSelect = form.elements.team_id;
+    const teamName = teamSelect?.value ? teamSelect.selectedOptions[0]?.textContent.replace(/^●\s*/, '') : '';
+    const tags = form.elements.tags.value.split(',').map(tag => tag.trim()).filter(Boolean);
+    const links = form.elements.links.value.split('\n').map(value => value.trim()).filter(Boolean);
+    const steps = checklist.filter(item => item.text.trim());
+    const bits = [
+      form.elements.priority.value !== 'medium' && `${form.elements.priority.value[0].toUpperCase()}${form.elements.priority.value.slice(1)} priority`,
+      teamName && teamName !== 'Loading…' && teamName,
+      steps.length && `${steps.filter(item => item.done).length}/${steps.length} steps`,
+      tags.length && `${tags.length} tag${tags.length === 1 ? '' : 's'}`,
+      links.length && `${links.length} link${links.length === 1 ? '' : 's'}`
+    ].filter(Boolean);
+    backdrop.querySelector('[data-more-summary]').textContent = bits.length ? bits.join(' · ') : 'Priority, team, checklist, tags, links';
+  };
+  more.addEventListener('input', updateMoreSummary);
+  more.addEventListener('change', updateMoreSummary);
+
+  function renderChecklist() {
+    backdrop.querySelector('[data-progress]').textContent = `${checklist.filter(item => item.done).length}/${checklist.length}`;
+    backdrop.querySelector('[data-checklist]').innerHTML = checklist.map(item => `<div class="task-detail-step" data-step="${esc(item.id)}"><input type="checkbox" ${item.done ? 'checked' : ''} aria-label="Complete checklist step" /><input type="text" value="${esc(item.text)}" aria-label="Checklist step" placeholder="Describe this step" /><button type="button" data-remove aria-label="Remove checklist step">×</button></div>`).join('');
+  }
+  backdrop.querySelector('[data-add-step]').addEventListener('click', () => { checklist.push({id:crypto.randomUUID(),text:'',done:false}); renderChecklist(); backdrop.querySelector('[data-checklist] > div:last-child input[type=text]').focus(); });
+  backdrop.querySelector('[data-checklist]').addEventListener('input', event => {
+    const row = event.target.closest('[data-step]');
+    const item = checklist.find(item => item.id === row?.dataset.step);
+    if(!item) return;
+    if(event.target.type === 'checkbox') item.done = event.target.checked;
+    else item.text = event.target.value;
+    backdrop.querySelector('[data-progress]').textContent = `${checklist.filter(item => item.done).length}/${checklist.length}`;
+  });
+  backdrop.querySelector('[data-checklist]').addEventListener('click', event => {
+    if(!event.target.matches('[data-remove]')) return;
+    const index = checklist.findIndex(item => item.id === event.target.closest('[data-step]').dataset.step);
+    if(index >= 0) checklist.splice(index,1);
+    renderChecklist();
+  });
+  // Progress and status move together: 100% means done, done means 100%.
+  const progressInput = form.elements.progress;
+  const progressValue = backdrop.querySelector('[data-progress-value]');
+  progressInput.addEventListener('input', () => {
+    progressValue.textContent = `${progressInput.value}%`;
+    if (progressInput.value === '100') form.elements.status.value = 'done';
+    else if (form.elements.status.value === 'done') form.elements.status.value = 'in_progress';
+    else if (progressInput.value !== '0' && form.elements.status.value === 'todo') form.elements.status.value = 'in_progress';
+  });
+  form.elements.status.addEventListener('change', () => {
+    if (form.elements.status.value === 'done') { progressInput.value = '100'; progressValue.textContent = '100%'; }
+    else if (progressInput.value === '100') { progressInput.value = '90'; progressValue.textContent = '90%'; }
+  });
+
+  // Team tasks: only the leader (or team owner/admin) edits; the assignee reports progress.
+  let permissions = { full: true, progressOnly: false, readOnly: false };
+  let teamsForTask = [];
+  const applyPermissions = () => {
+    const me = AppState.user?.id;
+    const team = teamsForTask.find(item => item.id === task.team_id) || null;
+    permissions = taskPermissions(task, team, workspaceRole(members, me, AppState.workspace), me);
+    const lock = backdrop.querySelector('[data-lock]');
+    const leaderName = team?.leader?.name || team?.leader?.email || 'the team leader';
+    // Focus is for doing your own work; hide it on tasks you can't change.
+    if (permissions.readOnly) backdrop.querySelector('[data-focus]')?.remove();
+    if (permissions.readOnly || permissions.progressOnly) {
+      lock.hidden = false;
+      lock.innerHTML = permissions.readOnly
+        ? `<span class="material-symbols-outlined">lock</span> Only ${esc(leaderName)} can edit tasks in <strong>${esc(team?.name || 'this team')}</strong>. You can still comment below.`
+        : `<span class="material-symbols-outlined">lock_open</span> You can update the status and progress. ${esc(leaderName)} manages the rest of this task.`;
+      form.querySelectorAll('input, select, textarea, button').forEach(control => {
+        const allowed = permissions.progressOnly && ['status', 'progress'].includes(control.name);
+        if (control.type === 'submit') { control.hidden = permissions.readOnly; return; }
+        if (!allowed) control.disabled = true;
+      });
+      backdrop.querySelectorAll('[data-add-step], [data-checklist] button').forEach(button => { button.hidden = true; });
+    }
+  };
+  (knownTeams ? Promise.resolve({ data: knownTeams }) : getWorkspaceTeams(AppState.workspace?.id)).then(({ data }) => {
+    if (!backdrop.isConnected) return;
+    const all = data || [];
+    teamsForTask = all.filter(team => team.id === task.team_id || (task.page_id && team.project_id === task.page_id));
+    const select = backdrop.querySelector('[data-team-select]');
+    select.innerHTML = `<option value="">No team</option>${teamsForTask.map(team => `<option value="${esc(team.id)}" ${team.id === task.team_id ? 'selected' : ''}>● ${esc(team.name)}</option>`).join('')}`;
+    select.closest('label').hidden = !teamsForTask.length;
+    const current = teamsForTask.find(team => team.id === task.team_id);
+    if (current) select.style.color = TEAM_COLORS[current.color] || '';
+    applyPermissions();
+    updateMoreSummary();
+  });
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    const fields = form.elements;
+    const links = fields.links.value.split('\n').map(value => value.trim()).filter(Boolean);
+    const status = form.querySelector('[data-save-status]');
+    if(!fields.title.value.trim()) { status.textContent = 'Enter a task title.'; return; }
+    if(links.some(url => !/^https?:\/\/[^\s]+$/i.test(url))) { status.textContent = 'Reference links must start with http:// or https://.'; return; }
+    const submit = form.querySelector('button[type=submit]');
+    submit.disabled = true; status.textContent = 'Saving…';
+    const fieldValues = customFields.length ? readFieldInputs(form, customFields, task.fields) : undefined;
+    const progress = Number(fields.progress.value);
+    if (permissions.progressOnly) {
+      const {error} = await updateTask(task.id, { status: fields.status.value, progress });
+      submit.disabled = false;
+      if(error) { status.textContent = `Could not save task: ${error.message}`; return; }
+      showToast('Progress updated'); close(); await onSaved();
+      return;
+    }
+    const teamChange = (fields.team_id.value || null) !== (task.team_id || null) ? { team_id: fields.team_id.value || null } : {};
+    const {error} = await updateTask(task.id, {
+      ...teamChange,
+      ...('progress' in task ? { progress } : {}),
+      ...(fieldValues ? {fields: fieldValues} : {}),
+      title:fields.title.value.trim(), status:fields.status.value, priority:fields.priority.value,
+      due_date:fields.due_date.value || null, assignee_id:fields.assignee_id.value || null,
+      tags:fields.tags.value.split(',').map(tag => tag.trim()).filter(Boolean).slice(0,10),
+      details:{...details,description:fields.description.value,checklist:checklist.filter(item => item.text.trim()),links}
+    });
+    submit.disabled = false;
+    if(error) { status.textContent = `Could not save task: ${error.message}`; return; }
+    showToast('Task details saved'); close(); await onSaved();
+  });
+  async function loadComments() {
+    const {data,error} = await supabase.from('task_comments').select('*, author:users(name, avatar_url)').eq('task_id',task.id).order('created_at');
+    if(!backdrop.isConnected) return;
+    const box = backdrop.querySelector('[data-comments]');
+    box.innerHTML = error ? `<p>${esc(error.message)}</p>` : data?.length ? data.map(comment => {
+      const name = comment.author?.name || 'Team member';
+      return `<article><span class="task-comment-avatar" aria-hidden="true">${esc(name.slice(0,1).toUpperCase())}</span><div><strong>${esc(name)}</strong><time>${esc(new Date(comment.created_at).toLocaleString())}</time><p>${renderMentionsHtml(comment.content, members, Array.isArray(comment.mentions) ? comment.mentions : null)}</p></div></article>`;
+    }).join('') : '<p>No comments yet. Ask a question or @mention someone to bring them in.</p>';
+    box.scrollTop = box.scrollHeight;
+  }
+  backdrop.querySelector('[data-comment-form]').addEventListener('submit', async event => {
+    event.preventDefault();
+    const commentForm = event.currentTarget;
+    const content = commentForm.elements.comment.value.trim();
+    if(!content) return;
+    const button = commentForm.querySelector('button'); button.disabled = true;
+    const mentions = extractMentionIds(content, members, AppState.user.id);
+    const {error} = await createTaskComment(task.id, AppState.user.id, content, mentions);
+    button.disabled = false;
+    if(error) { showToast(`Could not post comment: ${error.message}`,'error'); return; }
+    commentForm.reset(); await loadComments();
+    if(mentions.length) showToast(`Notified ${mentions.map(id => memberLabel(members.find(member => member.user_id === id))).join(', ')}`);
+  });
+  const commentBox = backdrop.querySelector('[data-comment-form] textarea');
+  attachMentionPicker(commentBox, () => members);
+  commentBox.addEventListener('keydown', event => {
+    if(event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); backdrop.querySelector('[data-comment-form]').requestSubmit(); }
+  });
+  const liveComments = supabase.channel(`task-comments-${task.id}-${crypto.randomUUID()}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'task_comments', filter: `task_id=eq.${task.id}` }, () => loadComments())
+    .subscribe();
+  stopLive = () => supabase.removeChannel(liveComments);
+  let customFields = [];
+  loadTaskFields(AppState.workspace?.id).then(fields => {
+    customFields = fields;
+    const slot = backdrop.querySelector('[data-custom-fields]');
+    if (slot && fields.length) slot.outerHTML = renderFieldInputs(fields, task.fields || {});
+  });
+  document.body.append(backdrop); renderChecklist(); updateMoreSummary(); form.elements.title.focus(); loadComments();
+}
+
+// One form for a new task (instead of a prompt per field). Resolves to createTask options or null.
+export async function requestNewTask({ members = [], status = 'todo', title = '', heading = 'New task', projects = [], projectId = '' } = {}) {
+  const me = AppState.user?.id || '';
+  const values = await requestForm({
+    title: heading,
+    submitLabel: 'Create task',
+    fields: [
+      { name: 'title', label: 'Title', value: title, required: true, placeholder: 'What needs to be done?', maxLength: 500 },
+      ...(projects.length ? [{ name: 'projectId', label: 'Project', type: 'select', value: projectId, options: [{ value: '', label: 'No project' }, ...projects.map((project) => ({ value: project.id, label: `${project.icon || '📁'}  ${project.title || 'Untitled project'}` }))] }] : []),
+      { name: 'status', label: 'Status', type: 'select', value: status, half: true, options: [{ value: 'todo', label: 'To do' }, { value: 'in_progress', label: 'In progress' }, { value: 'done', label: 'Done' }] },
+      { name: 'priority', label: 'Priority', type: 'select', value: 'medium', half: true, options: ['low', 'medium', 'high', 'urgent'].map((value) => ({ value, label: value[0].toUpperCase() + value.slice(1) })) },
+      { name: 'assigneeId', label: 'Assignee', type: 'select', value: me, half: true, options: [{ value: '', label: 'Unassigned' }, ...members.map((member) => ({ value: member.user_id, label: `${member.user?.name || member.user?.email || 'Member'}${member.user_id === me ? ' (you)' : ''}` }))].concat(me && !members.some((member) => member.user_id === me) ? [{ value: me, label: 'Me' }] : []) },
+      { name: 'dueDate', label: 'Due date', type: 'date', value: '', half: true },
+      { name: 'tags', label: 'Tags', placeholder: 'design, sprint-3', hint: 'Separate with commas' }
+    ]
+  });
+  if (!values?.title) return null;
+  return {
+    title: values.title,
+    ...(projects.length ? { pageId: values.projectId || null } : {}),
+    status: values.status,
+    priority: values.priority,
+    assigneeId: values.assigneeId || null,
+    dueDate: values.dueDate || null,
+    tags: values.tags.split(',').map((tag) => tag.trim()).filter(Boolean).slice(0, 10)
+  };
+}
