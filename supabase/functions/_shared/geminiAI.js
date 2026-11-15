@@ -13,8 +13,18 @@ export class GeminiError extends Error {
   }
 }
 
+function cleanSecret(val) {
+  let s = String(val || '').trim();
+  const eq = s.indexOf('=');
+  if (eq > 0 && eq < 40 && !s.includes(' ')) {
+    s = s.slice(eq + 1).trim();
+  }
+  return s.replace(/^["']|["']$/g, '').trim();
+}
+
 export function isGeminiConfigured(env) {
-  return /^[A-Za-z0-9._-]{20,200}$/.test(env('GEMINI_API_KEY') || '');
+  const key = cleanSecret(env('GEMINI_API_KEY'));
+  return /^[A-Za-z0-9._-]{20,200}$/.test(key);
 }
 
 function modelsFor(env) {
@@ -36,6 +46,7 @@ export async function requestGemini({ env, fetchImpl, parts, system, schema, his
   if (!isGeminiConfigured(env)) {
     throw new GeminiError(503, 'AI_NOT_CONFIGURED', 'Lesson AI is not activated yet. The workspace administrator needs to add the Gemini API key.');
   }
+  const key = cleanSecret(env('GEMINI_API_KEY'));
   const body = JSON.stringify({
     ...(system ? { system_instruction: { parts: [{ text: system }] } } : {}),
     contents: [...history, { role: 'user', parts }],
@@ -50,7 +61,7 @@ export async function requestGemini({ env, fetchImpl, parts, system, schema, his
   for (const model of modelsFor(env)) {
     response = await fetchImpl(`${API_BASE}/${model}:generateContent`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env('GEMINI_API_KEY') },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
       signal: AbortSignal.timeout(timeoutMs),
       body
     });

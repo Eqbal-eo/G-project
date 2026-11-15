@@ -10,21 +10,39 @@ export class AIProviderError extends Error {
   }
 }
 
+export function cleanSecret(val) {
+  let s = String(val || '').trim();
+  const eq = s.indexOf('=');
+  if (eq > 0 && eq < 40 && !s.includes(' ')) {
+    s = s.slice(eq + 1).trim();
+  }
+  return s.replace(/^["']|["']$/g, '').trim();
+}
+
 export function isFreeAIConfigured(env) {
-  return env('MOTION_AI_CLOUDFLARE_PLAN') === 'workers-free' &&
-    /^[a-f0-9]{32}$/i.test(env('CLOUDFLARE_ACCOUNT_ID') || '') &&
-    Boolean(env('CLOUDFLARE_AI_TOKEN'));
+  const plan = cleanSecret(env('MOTION_AI_CLOUDFLARE_PLAN')).toLowerCase();
+  const accountId = cleanSecret(env('CLOUDFLARE_ACCOUNT_ID'));
+  const token = cleanSecret(env('CLOUDFLARE_AI_TOKEN'));
+  const planOk = !plan || plan === 'workers-free';
+  const accountOk = /^[a-f0-9]{32}$/i.test(accountId);
+  const tokenOk = Boolean(token);
+  if (!planOk || !accountOk || !tokenOk) {
+    console.error(`[AI config check failed] plan="${plan}" (ok: ${planOk}), accountId="${accountId ? accountId.slice(0, 6) + '...' : ''}" (length: ${accountId.length}, ok: ${accountOk}), tokenPresent=${tokenOk}`);
+    return false;
+  }
+  return true;
 }
 
 export async function requestFreeAI({env, fetchImpl, messages, json = false, maxTokens = 2048}) {
   if (!isFreeAIConfigured(env)) {
     throw new AIProviderError(503, 'AI_NOT_CONFIGURED', 'AI is not activated yet. The workspace administrator needs to finish the free AI setup.');
   }
-  const accountId = env('CLOUDFLARE_ACCOUNT_ID');
+  const accountId = cleanSecret(env('CLOUDFLARE_ACCOUNT_ID'));
+  const token = cleanSecret(env('CLOUDFLARE_AI_TOKEN'));
   const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${FREE_MODEL}`;
   const response = await fetchImpl(url, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json', Authorization: `Bearer ${env('CLOUDFLARE_AI_TOKEN')}`},
+    headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
     signal: AbortSignal.timeout(45000),
     body: JSON.stringify({messages, max_tokens: maxTokens, temperature: 0.4, ...(json ? {response_format: {type: 'json_object'}} : {})})
   });
