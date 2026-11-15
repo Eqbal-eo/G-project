@@ -19,14 +19,32 @@ async function readJson(request, limit=180000) {
   try{return JSON.parse(new TextDecoder().decode(bytes));}catch{throw new RequestError(400,'INVALID_REQUEST','The request could not be read. Please try again.');}
 }
 
+function getAllowedOrigins(env) {
+  const raw = env('MOTION_AI_ALLOWED_ORIGINS') || '';
+  const parsed = raw
+    .replace(/^["']|["']$/g, '')
+    .split(',')
+    .map(x => x.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, ''))
+    .filter(Boolean);
+  const defaults = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://www.group-ify.app',
+    'https://group-ify.app'
+  ];
+  return Array.from(new Set([...defaults, ...parsed]));
+}
+
 export function createPageAIHandler({env, fetchImpl=fetch, authenticate, authorizePage, reserveQuota}) {
   return async request => {
-    const origin=request.headers.get('origin');
-    const allowed=(env('MOTION_AI_ALLOWED_ORIGINS')||'').split(',').map(value=>value.trim()).filter(Boolean);
-    const cors=origin&&allowed.includes(origin)?{'Access-Control-Allow-Origin':origin,'Vary':'Origin'}:{};
-    const reply=(status,body)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
-    if(origin&&!allowed.includes(origin))return reply(403,{error:{code:'ORIGIN_DENIED',message:'AI is not enabled for this website address.'}});
-    if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...cors,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Max-Age':'600'}});
+    const rawOrigin = request.headers.get('origin');
+    const origin = rawOrigin ? rawOrigin.trim().replace(/\/+$/, '') : null;
+    const allowed = getAllowedOrigins(env);
+    const isAllowed = !origin || allowed.includes(origin);
+    const cors = origin && isAllowed ? {'Access-Control-Allow-Origin': rawOrigin, Vary: 'Origin'} : {};
+    const reply = (status,body) => new Response(JSON.stringify(body), {status, headers: {...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store'}});
+    if (origin && !isAllowed) return reply(403, {error: {code: 'ORIGIN_DENIED', message: 'AI is not enabled for this website address.'}});
+    if (request.method === 'OPTIONS') return new Response(null, {status: 204, headers: {...cors, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Max-Age': '600'}});
     if(request.method!=='POST')return reply(405,{error:{code:'METHOD_NOT_ALLOWED',message:'Use Generate to request an AI draft.'}});
     try {
       const token=request.headers.get('authorization');

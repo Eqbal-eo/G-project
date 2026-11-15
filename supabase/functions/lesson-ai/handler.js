@@ -27,13 +27,31 @@ function onlyKeys(input, keys) {
 //   outline { lessonId, title?, duration, segments }                → { summary, chapters, keyPoints }   (owners, admins, editors)
 //   ask     { lessonId, title?, duration, segments, summary?, question, messages? } → { answer }   (commenters and above)
 // authorizeLesson(token, lessonId) → { video_id, role } for the signed-in person, or null when they can't see it.
+function getAllowedOrigins(env) {
+  const raw = env('MOTION_AI_ALLOWED_ORIGINS') || '';
+  const parsed = raw
+    .replace(/^["']|["']$/g, '')
+    .split(',')
+    .map(x => x.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, ''))
+    .filter(Boolean);
+  const defaults = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'https://www.group-ify.app',
+    'https://group-ify.app'
+  ];
+  return Array.from(new Set([...defaults, ...parsed]));
+}
+
 export function createLessonAIHandler({ env, fetchImpl = fetch, authenticate, reserveQuota, authorizeLesson }) {
   return async (request) => {
-    const origin = request.headers.get('origin');
-    const allowed = (env('MOTION_AI_ALLOWED_ORIGINS') || '').split(',').map((item) => item.trim()).filter(Boolean);
-    const cors = origin && allowed.includes(origin) ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
+    const rawOrigin = request.headers.get('origin');
+    const origin = rawOrigin ? rawOrigin.trim().replace(/\/+$/, '') : null;
+    const allowed = getAllowedOrigins(env);
+    const isAllowed = !origin || allowed.includes(origin);
+    const cors = origin && isAllowed ? { 'Access-Control-Allow-Origin': rawOrigin, Vary: 'Origin' } : {};
     const reply = (status, body) => Response.json(body, { status, headers: { ...cors, 'Cache-Control': 'no-store' } });
-    if (origin && !allowed.includes(origin)) return reply(403, { error: { code: 'ORIGIN_DENIED', message: 'AI is not enabled for this website address.' } });
+    if (origin && !isAllowed) return reply(403, { error: { code: 'ORIGIN_DENIED', message: 'AI is not enabled for this website address.' } });
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...cors, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info' } });
     if (request.method !== 'POST') return reply(405, { error: { code: 'METHOD_NOT_ALLOWED', message: 'Use POST to request lesson AI.' } });
     try {
