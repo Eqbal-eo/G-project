@@ -74,6 +74,17 @@ test('converts markdown safely', () => {
   assert.doesNotMatch(html, /<\/ul class/);
 });
 
+test('renders inline and block LaTeX math with KaTeX', () => {
+  const inlineHtml = markdownToHtml('Solving $n$ equations with $Ax = b$');
+  assert.match(inlineHtml, /class="katex"/);
+  assert.doesNotMatch(inlineHtml, /\$n\$/);
+  assert.doesNotMatch(inlineHtml, /\$Ax = b\$/);
+
+  const blockHtml = markdownToHtml('$$\nE = mc^2\n$$');
+  assert.match(blockHtml, /class="katex-display-block"/);
+  assert.match(blockHtml, /class="katex-display"/);
+});
+
 const teamSnapshot = validateSnapshot({
   team: 'Team A', me: 'U2', today: '2026-11-08',
   members: [{ ref: 'U1', name: 'Omar', role: 'owner' }, { ref: 'U2', name: 'Sara', role: 'editor' }, { ref: 'U3', name: 'Ali', role: 'editor' }],

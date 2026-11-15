@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import katex from 'katex';
 import NotionAIFace from './NotionAIFace.jsx';
 import {
   getStoredChats,
@@ -95,7 +96,7 @@ function renderMarkdownSnippet(text) {
 
 function formatInline(str) {
   if (!str) return '';
-  const tokens = str.split(/(`[^`]+`|\*\*[^*]+\*\*)/g);
+  const tokens = str.split(/(`[^`]+`|\*\*[^*]+\*\*|\$\$[^$]+?\$\$|\$[^\s$](?:[^$]*?[^\s$])?\$)/g);
   return tokens.map((token, i) => {
     if (token.startsWith('**') && token.endsWith('**')) {
       return <strong key={i} className="font-bold text-on-surface">{token.slice(2, -2)}</strong>;
@@ -106,6 +107,22 @@ function formatInline(str) {
           {token.slice(1, -1)}
         </code>
       );
+    }
+    if (token.startsWith('$$') && token.endsWith('$$')) {
+      try {
+        const html = katex.renderToString(token.slice(2, -2).trim(), { displayMode: true, throwOnError: false });
+        return <span key={i} className="block my-2" dangerouslySetInnerHTML={{ __html: html }} />;
+      } catch {
+        return token;
+      }
+    }
+    if (token.startsWith('$') && token.endsWith('$')) {
+      try {
+        const html = katex.renderToString(token.slice(1, -1).trim(), { displayMode: false, throwOnError: false });
+        return <span key={i} className="inline-block" dangerouslySetInnerHTML={{ __html: html }} />;
+      } catch {
+        return token;
+      }
     }
     return token;
   });
