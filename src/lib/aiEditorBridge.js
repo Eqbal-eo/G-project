@@ -1,4 +1,6 @@
 import { showToast } from '../legacy/app.js';
+import { markdownInline } from './markdown.js';
+import { normalizeLanguage } from './codeBlockText.js';
 
 let activeEditorInstance = null;
 const listeners = new Set();
@@ -46,6 +48,7 @@ export function markdownToEditorHtml(markdown) {
   let currentList = null;
   let inCodeBlock = false;
   let codeBuffer = [];
+  let codeLanguage = 'plain';
   let inTable = false;
   let tableRows = [];
 
@@ -73,7 +76,9 @@ export function markdownToEditorHtml(markdown) {
   function flushCode() {
     if (inCodeBlock) {
       const code = escapeHtml(codeBuffer.join('\n'));
-      blocks.push(`<pre class="notion-code-block"><code>${code}</code></pre>`);
+      // Keep back-to-back code blocks apart; the editor would otherwise join them.
+      if (/^<pre[\s>]/.test(blocks.at(-1) || '')) blocks.push('<p><br></p>');
+      blocks.push(`<pre data-language="${codeLanguage}">${code}</pre>`);
       codeBuffer = [];
       inCodeBlock = false;
     }
@@ -91,6 +96,7 @@ export function markdownToEditorHtml(markdown) {
         flushList();
         flushTable();
         inCodeBlock = true;
+        codeLanguage = normalizeLanguage(trimmed.slice(3).trim());
       }
       continue;
     }
@@ -202,19 +208,16 @@ export function markdownToEditorHtml(markdown) {
   flushList();
   flushTable();
   flushCode();
+  // Never end on a code block (the editor would merge its last line with the page's last line).
+  if (/^<pre[\s>]/.test(blocks.at(-1) || '')) blocks.push('<p><br></p>');
 
   return blocks.join('\n');
 }
 
+// Same inline rules as AI actions (bold, code, math, colors), so both paths look alike.
 function formatInline(str) {
   if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code class="bg-surface-container-high px-1 rounded text-primary">$1</code>');
+  return markdownInline(str);
 }
 
 function escapeHtml(str) {

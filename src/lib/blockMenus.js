@@ -62,7 +62,9 @@ function escapeHtml(value) {
 // keep writing after a divider, table, callout or toggle.
 export function ensureTrailingParagraph(quill, source = 'user') {
   const last = quill.scroll.children.tail;
-  if (last instanceof BlockEmbed) {
+  // Also after a code block: otherwise there is no way to type below it, and content added at
+  // the end of the page would land inside the code block.
+  if (last instanceof BlockEmbed || last?.statics?.blotName === 'code-block-container') {
     quill.updateContents(new Delta().retain(quill.getLength()).insert('\n'), source);
   }
 }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { markdownToHtml, splitTableRow } from '../src/lib/markdown.js';
-import { keepWritingInOpenPage, asksForNewPage, AGENT_INSTRUCTIONS } from '../supabase/functions/_shared/agentContract.js';
+import { keepWritingInOpenPage, asksForNewPage, AGENT_INSTRUCTIONS, needsWriteFollowUp, writeFollowUpPrompt } from '../supabase/functions/_shared/agentContract.js';
 
 test('turns a Markdown table into a real table, with alignment', () => {
   const html = markdownToHtml('## Truth Table\n| p | q | p ∧ q |\n| --- | :---: | ---: |\n| T | T | T |\n| T | F | F |\n\nAfter **bold**');
@@ -74,4 +74,27 @@ test('keeps written content in the open page unless a new page was asked for', (
   // Other actions are untouched.
   const mixed = keepWritingInOpenPage({ actions: [{ type: 'create_task', title: 'Check table', project: 'P1' }, { type: 'append_to_page', page: 'G3', content: 'x' }] }, { openPage: 'G3', prompt: 'add a task' });
   assert.deepEqual(mixed.actions.map((action) => action.type), ['create_task', 'append_to_page']);
+});
+
+test('asks again when a writing request comes back as only a sentence', () => {
+  const noAction = (reply) => ({ reply, actions: [] });
+  // What happened in practice: a promise or a description, and no action.
+  assert.equal(needsWriteFollowUp('اكتب برنامج بلغة جافا يحسب بقوانين التكامل والتفاضل', noAction('I will create a new page with Java code that calculates integral and differential equations.')), true);
+  assert.equal(needsWriteFollowUp('اكتب كود بلغة سي لحساب قوانين التفاضل والتكامل', noAction('I can provide you with an example of a C code that calculates basic differential and integral rules.')), true);
+  assert.equal(needsWriteFollowUp('write a C program that computes derivatives', noAction('Sure.')), true);
+  // A promise counts even when the wording of the request is unusual.
+  assert.equal(needsWriteFollowUp('Java calculus please', noAction('I will create a page with the program.')), true);
+  // Not when actions came back, the reply already holds the code, or it was a question.
+  assert.equal(needsWriteFollowUp('write code', { reply: 'Done', actions: [{ type: 'create_page' }] }), false);
+  assert.equal(needsWriteFollowUp('write code', noAction('```java\nclass A {}\n```')), false);
+  assert.equal(needsWriteFollowUp('what is overdue?', noAction('Two tasks are overdue.')), false);
+  assert.equal(needsWriteFollowUp('ما هي المهام المتأخرة؟', noAction('There are two overdue tasks.')), false);
+  assert.equal(needsWriteFollowUp('how do I write a for loop in C?', noAction('Use for (int i = 0; i < n; i++).')), false);
+});
+
+test('the follow-up asks for the full content in the right action', () => {
+  assert.match(writeFollowUpPrompt('اكتب برنامج جافا', 'G8'), /^اكتب برنامج جافا\n\nIMPORTANT: .*ONE append_to_page action on page G8/s);
+  assert.match(writeFollowUpPrompt('write a C program'), /ONE create_page action/);
+  assert.ok(writeFollowUpPrompt('x'.repeat(5000)).length <= 4000);
+  assert.match(AGENT_INSTRUCTIONS, /NEVER say "I will create\/write\/add…" in "reply" without including that action/);
 });

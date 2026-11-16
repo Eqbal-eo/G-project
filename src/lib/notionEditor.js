@@ -8,6 +8,8 @@ Quill.register('modules/cursors', QuillCursors, true);
 import { executeAIAction } from './editorAI.js';
 import { NOTION_COLORS } from './notionColors.js';
 import { createSlashMenu, attachMarkdownShortcuts, createBlockActionsMenu, ensureTrailingParagraph } from './blockMenus.js';
+// Registers the code-block format with a language and wrap setting (must run before Quill starts).
+import { attachCodeBlockPaste, createCodeBlockToolbar, preserveCodeBlockSpacing } from './codeBlocks.js';
 
 // ============================================
 // Custom Blots for Notion-like Rich Text
@@ -241,6 +243,8 @@ export function createNotionEditor({
 
   // Custom clipboard matchers for tables, callouts, and toggles
   const Delta = Quill.import('delta');
+  // Saved code blocks keep their exact spacing (diagrams, trees) when the page loads.
+  preserveCodeBlockSpacing(quill);
   quill.clipboard.addMatcher('table', (node) => {
     return new Delta().insert({ 'table-block': node.outerHTML });
   });
@@ -283,6 +287,10 @@ export function createNotionEditor({
 
   // Table, checklist, and tab navigation interactions
   setupEditorInteractions(quill, () => onChange(quill.root.innerHTML));
+
+  // Code blocks: language / copy / wrap toolbar, and diagrams or trees pasted as code
+  attachCodeBlockPaste(quill);
+  createCodeBlockToolbar(quill, container);
 
   // Notion block hover & drag handle gutter (with drag_indicator & add button)
   const blockGutter = createBlockGutterManager(quill, container, {

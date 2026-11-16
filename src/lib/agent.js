@@ -9,7 +9,7 @@ import { buildProjectIndex, listProjects, projectProgress, tasksForProject, PROJ
 import { markdownToHtml } from './markdown.js';
 import { getWorkspaceTeams, createTeam, updateTeam, canManageTeam, workspaceRole, averageProgress } from './teams.js';
 import { createMilestone, createDecision } from './teamTools.js';
-import { keepWritingInOpenPage } from '../../supabase/functions/_shared/agentContract.js';
+import { keepWritingInOpenPage, needsWriteFollowUp, writeFollowUpPrompt } from '../../supabase/functions/_shared/agentContract.js';
 import { getActiveEditor } from './aiEditorBridge.js';
 
 function todayKey() {
@@ -144,6 +144,11 @@ export async function runAgent({ prompt, history = [], attachment = null, signal
     if (readResults.length) result = (await invokeAI('text-ai', { ...base, readResults }, signal)).agent;
   }
   if (!result || typeof result !== 'object') throw new Error('AI returned an invalid response.');
+  // A writing request answered with only a sentence and no action: ask once more for the content.
+  if (needsWriteFollowUp(prompt, result)) {
+    const retry = (await invokeAI('text-ai', { ...base, prompt: writeFollowUpPrompt(prompt, focusRef), ...(focusText ? { readResults: [focusText] } : {}) }, signal)).agent;
+    if (retry?.actions?.length) result = retry;
+  }
   // Writing asked for while a page is open goes into that page, unless a new page was asked for.
   result = keepWritingInOpenPage(result, { openPage: focusRef, prompt });
   const sources = (result.sources || []).map((ref) => context.refs.get(ref)).filter(Boolean).map((entry) => ({
