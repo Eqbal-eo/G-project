@@ -16,11 +16,13 @@ import { getProjectTeams, teamStats, TEAM_COLORS, workspaceRole } from '../../li
 import { renderMilestonesCard, openMeetingAssistant, renderDecisionsTab, renderResources, renderWorkload } from './projectTools.js';
 import { LESSON_SETUP_MESSAGE, isMissingLessonsTable, listProjectLessons, createLesson, findLesson, parseYouTubeId, formatTime } from '../../lib/lessons.js';
 import { generateProjectReport } from '../../lib/projectReport.js';
+import { parseAgenda } from '../../lib/meetingAI.js';
+import { MEETING_SETUP_MESSAGE, isMissingMeetingsTable, listProjectMeetings, createMeeting } from '../../lib/meetings.js';
 import { requestForm } from '../../lib/dialogs.js';
 import { loaderHtml } from '../../lib/loader.js';
 
-// Six main tabs. Team and Library each have two sections; their old addresses
-// (#project/<id>/checkins and /lessons) still work and open the right section.
+// Six main tabs. Team and Library have sections; their own addresses
+// (#project/<id>/checkins, /meetings and /lessons) open the right section.
 const TABS = [
   { id: 'overview', label: 'Overview', icon: 'space_dashboard', hint: 'What’s next, what’s late, and the progress report' },
   { id: 'plan', label: 'Plan & discussion', icon: 'forum', hint: 'The project plan page, with comments from the team' },
@@ -32,14 +34,15 @@ const TABS = [
 const SECTIONS = {
   teams: [
     { id: 'teams', label: 'Teams & workload', icon: 'groups', hint: 'Split the work into teams, each with a leader and progress' },
-    { id: 'checkins', label: 'Weekly check-ins', icon: 'event_note', hint: 'Weekly: what everyone did, what’s next, what’s blocking them' }
+    { id: 'checkins', label: 'Weekly check-ins', icon: 'event_note', hint: 'Weekly: what everyone did, what’s next, what’s blocking them' },
+    { id: 'meetings', label: 'Live meetings', icon: 'groups_3', hint: 'Run a meeting together: shared agenda timer, live notes, and minutes that become tasks' }
   ],
   pages: [
     { id: 'pages', label: 'Pages & files', icon: 'description', hint: 'Pages, links, files and notes for this project' },
     { id: 'lessons', label: 'YouTube lessons', icon: 'smart_display', hint: 'YouTube lectures turned into timestamped notes you can search and ask about' }
   ]
 };
-const PARENT_TAB = { checkins: 'teams', lessons: 'pages' };
+const PARENT_TAB = { checkins: 'teams', meetings: 'teams', lessons: 'pages' };
 
 function tabHref(projectId, tab) {
   if (tab === 'plan') return `#editor/${projectId}`;
@@ -95,7 +98,7 @@ export async function renderProject(container, route) {
 
 async function renderProjectView(container, route) {
   const projectId = route?.segments?.[0];
-  const tab = ['tasks', 'pages', 'teams', 'checkins', 'decisions', 'lessons'].includes(route?.segments?.[1]) ? route.segments[1] : 'overview';
+  const tab = ['tasks', 'pages', 'teams', 'checkins', 'meetings', 'decisions', 'lessons'].includes(route?.segments?.[1]) ? route.segments[1] : 'overview';
   const workspaceId = AppState.workspace?.id;
 
   const [pagesResult, tasksResult, membersResult, teamsResult] = await Promise.all([
@@ -135,6 +138,11 @@ async function renderProjectView(container, route) {
   if (tab === 'checkins') {
     container.innerHTML = `<div class="project-view">${bar}<section class="project-section project-checkins"></section></div>`;
     await renderCheckinsTab(container.querySelector('.project-checkins'), { project, tasks, teams, members, workspaceId });
+    return;
+  }
+
+  if (tab === 'meetings') {
+    await renderMeetingsTab(container, { bar, project, workspaceId, role });
     return;
   }
 
@@ -257,7 +265,7 @@ async function renderProjectView(container, route) {
     const button = event.currentTarget;
     button.disabled = true;
     try {
-      await openMeetingAssistant({ project, tasks, members, workspaceId, weekCheckins });
+      await openMeetingAssistant({ project, tasks, members, workspaceId, weekCheckins, role });
     } catch (error) {
       showToast(`Could not build the agenda: ${error.message}`, 'error');
     } finally {
@@ -364,5 +372,65 @@ async function renderLessonsTab(container, { bar, project, workspaceId, role }) 
       return showToast(isMissingLessonsTable(createError) ? LESSON_SETUP_MESSAGE : `Could not add the lesson: ${createError.message}`, 'error');
     }
     window.location.hash = `lesson/${data.id}`;
+  });
+}
+
+// Live meetings: shared agenda timer and notes; minutes become tasks, decisions and a page.
+function meetingStatusLabel(meeting) {
+  if (meeting.status === 'live') return '<span class="meeting-status is-live"><span class="meeting-live-dot" aria-hidden="true"></span>Live now</span>';
+  if (meeting.status === 'ended') return '<span class="meeting-status is-ended">Ended</span>';
+  return '<span class="meeting-status is-planned">Planned</span>';
+}
+
+async function renderMeetingsTab(container, { bar, project, workspaceId, role }) {
+  const { data: meetings, error } = await listProjectMeetings(project.id);
+  // Same rule as the database: owners, admins and editors plan and run meetings; everyone in the team can follow them.
+  const canPlan = ['owner', 'admin', 'editor'].includes(role);
+  const formatDate = (value) => (value ? new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : '');
+  const row = (meeting) => {
+    const agenda = Array.isArray(meeting.agenda) ? meeting.agenda : [];
+    const minutes = agenda.reduce((sum, item) => sum + (Number(item.minutes) || 0), 0);
+    const when = meeting.status === 'ended' ? `Ended ${formatDate(meeting.ended_at)}` : meeting.status === 'live' ? `Started ${formatDate(meeting.started_at)}` : `Created ${formatDate(meeting.created_at)}`;
+    return `<li><a href="#meeting/${escapeHtml(meeting.id)}">
+      <span class="material-symbols-outlined" aria-hidden="true">${meeting.status === 'ended' ? 'summarize' : 'groups_3'}</span>
+      <span class="meeting-list-main"><strong>${escapeHtml(meeting.title || 'Untitled meeting')}</strong><small>${escapeHtml(when)} · ${agenda.length} item${agenda.length === 1 ? '' : 's'} · ${minutes} min${meeting.minutes_page_id ? ' · Minutes saved' : ''}</small></span>
+      ${meetingStatusLabel(meeting)}
+    </a></li>`;
+  };
+  const body = error
+    ? `<div class="team-chat-error" role="alert">${escapeHtml(isMissingMeetingsTable(error) ? MEETING_SETUP_MESSAGE : `Could not load meetings: ${error.message}`)}</div>`
+    : meetings.length
+      ? `<ul class="meeting-list">${meetings.map(row).join('')}</ul>`
+      : `<div class="project-hint"><span class="material-symbols-outlined">groups_3</span><div><strong>No live meetings yet</strong><p>${canPlan ? 'Plan a meeting with a timed agenda, or use “Plan a meeting” on the Overview to build the agenda from blockers and deadlines.' : 'When an editor plans a meeting it appears here.'} Everyone sees the same timer and adds notes live; the minutes become tasks, decisions and a page.</p></div></div>`;
+  container.innerHTML = `<div class="project-view">${bar}
+    <section class="project-section">
+      <div class="project-section-head"><h2>Live meetings</h2>${error || !canPlan ? '' : '<button type="button" class="project-btn primary" data-new-meeting><span class="material-symbols-outlined">add</span> New meeting</button>'}</div>
+      ${body}
+    </section></div>`;
+
+  container.querySelector('[data-new-meeting]')?.addEventListener('click', async () => {
+    const values = await requestForm({
+      title: 'New meeting',
+      description: `Plan a meeting for “${project.title || 'this project'}”.`,
+      submitLabel: 'Create meeting',
+      fields: [
+        { name: 'title', label: 'Title', required: true, maxLength: 200, placeholder: 'Weekly sync' },
+        { name: 'agenda', label: 'Agenda', type: 'textarea', placeholder: ['Status updates - 10', 'Budget review - 15', 'Next steps - 5'].join('\n'), hint: 'One item per line, as “Title - minutes”. Items without minutes get 10.' }
+      ]
+    });
+    if (!values?.title) return;
+    const agenda = parseAgenda(values.agenda);
+    const { data, error: createError } = await createMeeting({
+      workspaceId,
+      projectId: project.id,
+      title: values.title.slice(0, 200),
+      agenda: agenda.length ? agenda : [{ id: 'item-1', title: 'Discussion', minutes: 30 }],
+      userId: AppState.user?.id
+    });
+    if (createError) {
+      return showToast(isMissingMeetingsTable(createError) ? MEETING_SETUP_MESSAGE : `Could not create the meeting: ${createError.message}`, 'error');
+    }
+    showToast('Meeting created', 'success');
+    window.location.hash = `meeting/${data.id}`;
   });
 }

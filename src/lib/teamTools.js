@@ -176,12 +176,13 @@ export async function deleteResource(resource) {
 // ---------- Catch me up (whole workspace, since a moment in time) ----------
 // Decisions made, open polls (with votes) and milestones that are not reached yet.
 export async function getWorkspaceUpdates(workspaceId, sinceIso) {
-  const [decisions, polls, milestones, blockers] = await Promise.all([
+  const [decisions, polls, milestones, blockers, meetings] = await Promise.all([
     supabase.from('project_decisions').select('id, project_id, title, created_by, created_at').eq('workspace_id', workspaceId).gte('created_at', sinceIso).order('created_at', { ascending: false }).limit(20),
     supabase.from('project_polls').select('id, project_id, question, created_by, created_at, votes:project_poll_votes(user_id)').eq('workspace_id', workspaceId).is('closed_at', null).order('created_at', { ascending: false }).limit(20),
     supabase.from('project_milestones').select('id, project_id, title, due_date').eq('workspace_id', workspaceId).is('done_at', null).order('due_date', { ascending: true }).limit(20),
-    supabase.from('project_checkins').select('id, project_id, user_id, blockers, created_at, user:users!user_id(id, name, email)').eq('workspace_id', workspaceId).neq('blockers', '').is('blocker_resolved_at', null).gte('updated_at', sinceIso).limit(20)
+    supabase.from('project_checkins').select('id, project_id, user_id, blockers, created_at, user:users!user_id(id, name, email)').eq('workspace_id', workspaceId).neq('blockers', '').is('blocker_resolved_at', null).gte('updated_at', sinceIso).limit(20),
+    supabase.from('meetings').select('id, project_id, title, status, ended_at, decisions').eq('workspace_id', workspaceId).or(`status.eq.live,ended_at.gte."${sinceIso}"`).order('created_at', { ascending: false }).limit(20)
   ]);
   const rows = (result) => (result.error ? [] : result.data || []);
-  return { decisions: rows(decisions), polls: rows(polls), milestones: rows(milestones), blockers: rows(blockers) };
+  return { decisions: rows(decisions), polls: rows(polls), milestones: rows(milestones), blockers: rows(blockers), meetings: rows(meetings) };
 }

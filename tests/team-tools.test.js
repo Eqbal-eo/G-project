@@ -77,6 +77,19 @@ test('catch me up: only what changed since the last visit, and only what others 
   assert.deepEqual(byKind.decisions.items.map((item) => item.text), ['Use OpenStreetMap · Capstone']);
   assert.deepEqual(byKind.finished.items.map((item) => item.text), ['Sara finished · Capstone']);
   assert.deepEqual(catchUpItems({ me: 'me', since, tasks: [], updates: {} }), []);
+
+  const withMeetings = catchUpItems({
+    me: 'me', since, tasks: [], projectTitle: () => 'Capstone',
+    updates: { meetings: [
+      { id: 'm1', project_id: 'p1', title: 'Weekly sync', status: 'live' },
+      { id: 'm2', project_id: 'p1', title: 'Kick-off', status: 'ended', ended_at: '2026-11-12T10:00:00Z', decisions: ['A', 'B'] },
+      { id: 'm3', project_id: 'p1', title: 'Old one', status: 'ended', ended_at: '2026-11-01T10:00:00Z', decisions: [] },
+      { id: 'm4', project_id: 'p1', title: 'Not started', status: 'planned' }
+    ] }
+  });
+  assert.deepEqual(withMeetings.map((group) => group.kind), ['live', 'meetings']);
+  assert.deepEqual(withMeetings[0].items, [{ text: 'Join: Weekly sync · Capstone', href: '#meeting/m1' }]);
+  assert.deepEqual(withMeetings[1].items, [{ text: 'Kick-off · 2 decisions · Capstone', href: '#meeting/m2' }]);
 });
 
 test('library uploads: allowed types, size limit and safe names', async () => {

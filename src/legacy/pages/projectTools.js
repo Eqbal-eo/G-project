@@ -10,6 +10,7 @@ import { escapeHtml } from '../../lib/sanitize.js';
 import { requestForm, requestConfirmation, openCustomDialog } from '../../lib/dialogs.js';
 import { markdownToHtml } from '../../lib/markdown.js';
 import { taskProgress } from '../../lib/teams.js';
+import { createMeeting, isMissingMeetingsTable, MEETING_SETUP_MESSAGE } from '../../lib/meetings.js';
 import {
   getMilestones, createMilestone, updateMilestone, deleteMilestone, deadlineHealth, todayKey,
   getDecisions, createDecision, deleteDecision,
@@ -113,7 +114,8 @@ export async function renderMilestonesCard(el, ctx) {
 
 // ---------------------------------------------------------------- Meeting assistant
 export async function openMeetingAssistant(ctx) {
-  const { project, tasks, members, workspaceId, weekCheckins = [] } = ctx;
+  const { project, tasks, members, workspaceId, weekCheckins = [], role = null } = ctx;
+  const canRunLive = ['owner', 'admin', 'editor'].includes(role);
   const today = todayKey();
   const soon = todayKey(new Date(Date.now() + 7 * 86400000));
   const [{ data: milestones = [] }, { data: polls = [] }, { data: decisions = [] }] = await Promise.all([
@@ -162,10 +164,26 @@ export async function openMeetingAssistant(ctx) {
         ${agenda.length ? agenda.map((section, index) => `<section class="meeting-section"><h4>${index + 1}. ${e(section.title)}</h4><ul>${section.items.map((item) => `<li>${e(item)}</li>`).join('')}</ul></section>`).join('') : '<p class="tools-empty">Nothing urgent. A quick round of updates is enough today. 🎉</p>'}
         <p class="meeting-tip"><span class="material-symbols-outlined">auto_awesome</span><span>After the meeting, open the page’s <strong>Ask AI</strong> menu and choose <strong>“Meeting notes → decisions &amp; tasks”</strong>.</span></p>
       </div>
-      <div class="modal-footer"><button type="button" class="modal-btn-secondary" data-cancel>Close</button><button type="button" class="modal-btn-primary" data-create-meeting>Create meeting page</button></div>
+      <div class="modal-footer"><button type="button" class="modal-btn-secondary" data-cancel>Close</button>${canRunLive ? '<button type="button" class="modal-btn-secondary" data-live-meeting title="Everyone sees the same agenda timer and adds notes live">Run it live</button>' : ''}<button type="button" class="modal-btn-primary" data-create-meeting>Create meeting page</button></div>
     </div>`,
     onReady(dialog, finish) {
       const createButton = dialog.querySelector('[data-create-meeting]');
+      // Live meeting: one timed agenda item per section above (10 minutes each to start with).
+      dialog.querySelector('[data-live-meeting]')?.addEventListener('click', async (event) => {
+        const liveButton = event.currentTarget;
+        liveButton.disabled = true;
+        const items = agenda.length
+          ? agenda.map((section, index) => ({ id: `item-${index + 1}`, title: String(section.title).slice(0, 200), minutes: 10 }))
+          : [{ id: 'item-1', title: 'Quick round of updates', minutes: 15 }];
+        const { data: meeting, error } = await createMeeting({ workspaceId, projectId: project.id, title: `Meeting · ${dateLabel}`, agenda: items, userId: AppState.user?.id });
+        if (error) {
+          liveButton.disabled = false;
+          showToast(isMissingMeetingsTable(error) ? MEETING_SETUP_MESSAGE : `Could not create the meeting: ${error.message}`, 'error');
+          return;
+        }
+        finish(true);
+        window.location.hash = `meeting/${meeting.id}`;
+      });
       createButton.addEventListener('click', async () => {
         createButton.disabled = true;
         const { data: page, error } = await createPage(workspaceId, `Meeting · ${dateLabel}`, 'note', { html: markdownToHtml(markdown) }, project.id);

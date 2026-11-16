@@ -64,6 +64,9 @@ export function catchUpItems({ tasks = [], updates = {}, me, since, today = toda
   const groups = [];
   const add = (kind, icon, title, items, tone = '') => { if (items.length) groups.push({ kind, icon, title, items, tone }); };
 
+  add('live', 'radio_button_checked', 'A meeting is live now',
+    (updates.meetings || []).filter((meeting) => meeting.status === 'live')
+      .map((meeting) => ({ text: `Join: ${meeting.title}${where(meeting.project_id)}`, href: `#meeting/${meeting.id}` })), 'bad');
   add('assigned', 'assignment_ind', 'New tasks for you',
     tasks.filter((task) => task.assignee_id === me && isOpen(task) && after(task.created_at) && task.created_by && task.created_by !== me)
       .map((task) => ({ text: `${task.title}${task.due_date ? ` · due ${task.due_date}` : ''}`, href: taskHref(task) })), 'warn');
@@ -80,6 +83,12 @@ export function catchUpItems({ tasks = [], updates = {}, me, since, today = toda
   add('decisions', 'gavel', 'Decisions made',
     (updates.decisions || []).filter((decision) => decision.created_by !== me)
       .map((decision) => ({ text: `${decision.title}${where(decision.project_id)}`, href: `#project/${decision.project_id}/decisions` })));
+  add('meetings', 'summarize', 'Meetings that ended',
+    (updates.meetings || []).filter((meeting) => meeting.status === 'ended' && after(meeting.ended_at))
+      .map((meeting) => {
+        const count = Array.isArray(meeting.decisions) ? meeting.decisions.length : 0;
+        return { text: `${meeting.title}${count ? ` · ${count} decision${count === 1 ? '' : 's'}` : ''}${where(meeting.project_id)}`, href: `#meeting/${meeting.id}` };
+      }));
   add('finished', 'task_alt', 'Finished by teammates',
     tasks.filter((task) => !isOpen(task) && after(task.completed_at) && (task.completed_by || task.assignee_id) !== me)
       .sort((a, b) => String(b.completed_at).localeCompare(String(a.completed_at)))
