@@ -59,10 +59,22 @@ export async function createLiveKitToken({ apiKey, apiSecret, identity, name, ro
   return `${unsigned}.${base64url(signature)}`;
 }
 
+// Same rules as the AI functions: the site's own addresses are always allowed, and
+// MOTION_AI_ALLOWED_ORIGINS may be quoted or have trailing slashes.
+export function allowedOrigins(env) {
+  const parsed = String(env('MOTION_AI_ALLOWED_ORIGINS') || '')
+    .replace(/^["']|["']$/g, '')
+    .split(',')
+    .map((item) => item.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, ''))
+    .filter(Boolean);
+  const defaults = ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://www.group-ify.app', 'https://group-ify.app'];
+  return Array.from(new Set([...defaults, ...parsed]));
+}
+
 export function createLiveKitTokenHandler({ env, authenticate, readMeeting, now = () => Date.now() }) {
   return async (request) => {
-    const origin = request.headers.get('origin');
-    const allowed = (env('MOTION_AI_ALLOWED_ORIGINS') || '').split(',').map((item) => item.trim()).filter(Boolean);
+    const origin = request.headers.get('origin')?.trim().replace(/\/+$/, '') || null;
+    const allowed = allowedOrigins(env);
     const cors = origin && allowed.includes(origin) ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
     const reply = (status, body) => Response.json(body, { status, headers: { ...cors, 'Cache-Control': 'no-store' } });
     if (origin && !allowed.includes(origin)) return reply(403, { error: { code: 'ORIGIN_DENIED', message: 'Video calls are not enabled for this website address.' } });

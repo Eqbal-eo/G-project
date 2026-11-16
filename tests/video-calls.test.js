@@ -58,6 +58,16 @@ test('refuses people outside the team, ended meetings and bad input', async () =
   assert.equal((await makeHandler()(post({ meetingId: MEETING }, { Origin: 'https://evil.example' }))).status, 403);
 });
 
+test('the live site is allowed even when the origins setting is quoted or missing', async () => {
+  for (const origins of [undefined, '"https://www.group-ify.app/,https://group-ify.app"']) {
+    const preflight = await makeHandler({ env: { ...SECRETS, MOTION_AI_ALLOWED_ORIGINS: origins } })(new Request('http://localhost/livekit-token', {
+      method: 'OPTIONS', headers: { Origin: 'https://www.group-ify.app' }
+    }));
+    assert.equal(preflight.status, 204);
+    assert.equal(preflight.headers.get('access-control-allow-origin'), 'https://www.group-ify.app');
+  }
+});
+
 test('says clearly when LiveKit is not set up', async () => {
   const response = await makeHandler({ env: { MOTION_AI_ALLOWED_ORIGINS: '' } })(post({ meetingId: MEETING }));
   assert.equal(response.status, 503);
