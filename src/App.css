@@ -2662,12 +2662,27 @@ html.dark .notion-ai-new-btn:hover {
 }
 
 /* Notion Table Styling */
+/* Like Notion: the table is as wide as its columns, with a "+" bar on the right edge
+   (new column) and on the bottom edge (new row) that appear on hover. */
 .notion-table-block {
   margin: 1.25rem 0;
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, max-content) 22px;
+  grid-template-areas: "table add-col" "add-row ." "toolbar toolbar";
+  column-gap: 4px;
+  row-gap: 4px;
 }
 
+/* The editor keeps whitespace (pre-wrap); the block's own markup must not show as blank lines.
+   Cells keep pre-wrap so typed spaces stay. */
+.notion-table-block { white-space: normal; }
+.notion-table-block td,
+.notion-table-block th { white-space: pre-wrap; }
+
 .notion-table-inner {
+  grid-area: table;
+  min-width: 0;
   overflow-x: auto;
   border-radius: 6px;
   border: 1px solid var(--outline-variant);
@@ -2715,12 +2730,70 @@ html.dark .notion-ai-new-btn:hover {
   background-color: color-mix(in srgb, var(--surface-container-high) 30%, transparent);
 }
 
+.notion-table-add {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: var(--surface-container-high);
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
+  user-select: none;
+}
+.notion-table-add .material-symbols-outlined { font-size: 16px; pointer-events: none; }
+.notion-table-add-col { grid-area: add-col; align-self: stretch; min-height: 28px; }
+.notion-table-add-row { grid-area: add-row; height: 22px; }
+.notion-table-block:hover .notion-table-add,
+.notion-table-block:focus-within .notion-table-add,
+.notion-table-add:focus-visible { opacity: 1; }
+.notion-table-add:hover,
+.notion-table-add:focus-visible {
+  background: var(--surface-container-highest);
+  color: var(--on-surface);
+  outline: none;
+}
+/* Tooltip, as in Notion: "Click to add a new column". */
+.notion-table-add::after {
+  content: attr(data-tip);
+  position: absolute;
+  z-index: 20;
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #262a2c;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  /* Not laid out until shown, so it never widens the page. */
+  display: none;
+}
+.notion-table-add-col::after { top: calc(100% + 6px); right: 0; }
+.notion-table-add-row::after { top: calc(100% + 6px); left: 50%; transform: translateX(-50%); }
+.notion-table-add:hover::after { display: block; }
+
 .notion-table-toolbar {
+  grid-area: toolbar;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
   user-select: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.notion-table-block:hover .notion-table-toolbar,
+.notion-table-block:focus-within .notion-table-toolbar { opacity: 1; }
+
+/* Touch screens have no hover: keep the controls visible there. */
+@media (hover: none) {
+  .notion-table-add, .notion-table-toolbar { opacity: 1; }
+  .notion-table-add::after { display: none; }
 }
 
 .notion-table-btn {

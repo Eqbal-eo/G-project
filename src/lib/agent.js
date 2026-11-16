@@ -9,6 +9,8 @@ import { buildProjectIndex, listProjects, projectProgress, tasksForProject, PROJ
 import { markdownToHtml } from './markdown.js';
 import { getWorkspaceTeams, createTeam, updateTeam, canManageTeam, workspaceRole, averageProgress } from './teams.js';
 import { createMilestone, createDecision } from './teamTools.js';
+import { keepWritingInOpenPage } from '../../supabase/functions/_shared/agentContract.js';
+import { getActiveEditor } from './aiEditorBridge.js';
 
 function todayKey() {
   const now = new Date();
@@ -61,7 +63,7 @@ export async function buildAgentContext({ focusPageId = null } = {}) {
   const route = window.location.hash.replace(/^#/, '');
   const [path, segment] = route.split(/[/?]/);
   let currentView = '';
-  if (focusPageId && ref('G', focusPageId)) currentView = `page ${ref('G', focusPageId)} (the user asked about this page)`;
+  if (focusPageId && ref('G', focusPageId)) currentView = `page ${ref('G', focusPageId)} (open in the editor: write requested content into this page with append_to_page)`;
   else if (path === 'project' && ref('P', segment)) currentView = `project ${ref('P', segment)}`;
   else if (path === 'editor' && ref('G', segment)) currentView = `page ${ref('G', segment)}`;
 
@@ -142,6 +144,8 @@ export async function runAgent({ prompt, history = [], attachment = null, signal
     if (readResults.length) result = (await invokeAI('text-ai', { ...base, readResults }, signal)).agent;
   }
   if (!result || typeof result !== 'object') throw new Error('AI returned an invalid response.');
+  // Writing asked for while a page is open goes into that page, unless a new page was asked for.
+  result = keepWritingInOpenPage(result, { openPage: focusRef, prompt });
   const sources = (result.sources || []).map((ref) => context.refs.get(ref)).filter(Boolean).map((entry) => ({
     title: entry.title,
     kind: entry.kind,
@@ -247,6 +251,14 @@ export async function executeAgentActions(actions, context) {
         navigateTo ??= `editor/${page.id}`;
       } else if (action.type === 'append_to_page') {
         const pageId = idOf(action.page, 'G');
+        // The page is open: write through its editor, so the text appears right away, tables become
+        // real table blocks, and the editor never saves its older copy over the new content.
+        const openEditor = getActiveEditor();
+        if (openEditor?.pageId === pageId && typeof openEditor.insertContent === 'function') {
+          await openEditor.insertContent(markdownToHtml(action.content), 'end');
+          results.push({ ok: true, text: info.text, href: `#editor/${pageId}` });
+          continue;
+        }
         const { data: page, error: readError } = await supabase.from('pages').select('content').eq('id', pageId).single();
         if (readError) throw readError;
         const html = `${page?.content?.html || ''}${markdownToHtml(action.content)}`;

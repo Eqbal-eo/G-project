@@ -47,6 +47,56 @@ function inline(text) {
   return str;
 }
 
+// ---------- tables ----------
+// "| a | b |" → ['a', 'b']. Escaped pipes (\|) stay inside a cell.
+export function splitTableRow(line) {
+  const text = String(line).trim().replace(/^\|/, '').replace(/\|$/, '');
+  const cells = [];
+  let cell = '';
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] === '\\' && text[index + 1] === '|') { cell += '|'; index += 1; }
+    else if (text[index] === '|') { cells.push(cell.trim()); cell = ''; }
+    else cell += text[index];
+  }
+  cells.push(cell.trim());
+  return cells;
+}
+
+const TABLE_SEPARATOR = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
+const PIPE_ROW = /^\s*\|.*\|\s*$/;
+
+function isTableRow(line) {
+  return PIPE_ROW.test(line) && splitTableRow(line).length >= 2;
+}
+
+// A table starts at a pipe row followed by a "|---|---|" line, or at two or more pipe rows
+// with the same number of cells (models sometimes leave out the separator).
+function tableAt(lines, start) {
+  if (!isTableRow(lines[start])) return null;
+  const header = splitTableRow(lines[start]);
+  let index = start + 1;
+  let aligns = header.map(() => '');
+  if (TABLE_SEPARATOR.test(lines[index] || '')) {
+    aligns = splitTableRow(lines[index]).map((cell) => (/^:-+:$/.test(cell) ? 'center' : /^-+:$/.test(cell) ? 'right' : ''));
+    index += 1;
+  } else if (!(isTableRow(lines[index] || '') && splitTableRow(lines[index]).length === header.length)) {
+    return null;
+  }
+  const rows = [];
+  while (index < lines.length && isTableRow(lines[index]) && !TABLE_SEPARATOR.test(lines[index])) {
+    rows.push(splitTableRow(lines[index]));
+    index += 1;
+  }
+  return { header, aligns, rows, end: index };
+}
+
+function tableHtml({ header, aligns, rows }) {
+  const width = header.length;
+  const cell = (tag, text, column) => `<${tag}${aligns[column] ? ` style="text-align:${aligns[column]}"` : ''}>${inline(text) || '<br>'}</${tag}>`;
+  const row = (cells, tag) => `<tr>${Array.from({ length: width }, (_, column) => cell(tag, cells[column] ?? '', column)).join('')}</tr>`;
+  return `<table class="editor-simple-table"><thead>${row(header, 'th')}</thead><tbody>${rows.map((cells) => row(cells, 'td')).join('')}</tbody></table>`;
+}
+
 export function markdownToHtml(markdown = '') {
   const lines = String(markdown).replace(/\r/g, '').split('\n');
   const out = [];
@@ -55,7 +105,8 @@ export function markdownToHtml(markdown = '') {
   let mathBlock = null;
   const closeList = () => { if (list) { out.push(`</${list}>`); list = null; } };
 
-  for (const line of lines) {
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex += 1) {
+    const line = lines[lineIndex];
     if (code !== null) {
       if (/^```/.test(line)) { out.push(`<pre><code>${escapeHtml(code.join('\n'))}</code></pre>`); code = null; } else code.push(line);
       continue;
@@ -82,6 +133,14 @@ export function markdownToHtml(markdown = '') {
       mathBlock = [];
       const after = line.replace(/^\s*\$\$/, '').trim();
       if (after) mathBlock.push(after);
+      continue;
+    }
+
+    const table = tableAt(lines, lineIndex);
+    if (table) {
+      closeList();
+      out.push(tableHtml(table));
+      lineIndex = table.end - 1;
       continue;
     }
 

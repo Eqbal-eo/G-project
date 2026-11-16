@@ -85,13 +85,13 @@ class TableBlot extends BlockEmbed {
       <div class="notion-table-inner" contenteditable="true">
         ${tableHtml}
       </div>
+      <button type="button" class="notion-table-add notion-table-add-col" contenteditable="false" data-table-action="add-col" aria-label="Add a column" data-tip="Click to add a new column">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      </button>
+      <button type="button" class="notion-table-add notion-table-add-row" contenteditable="false" data-table-action="add-row" aria-label="Add a row" data-tip="Click to add a new row">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      </button>
       <div class="notion-table-toolbar" contenteditable="false">
-        <button type="button" class="notion-table-btn" data-table-action="add-row">
-          <span class="material-symbols-outlined text-[14px]">add</span> Row
-        </button>
-        <button type="button" class="notion-table-btn" data-table-action="add-col">
-          <span class="material-symbols-outlined text-[14px]">add</span> Column
-        </button>
         <button type="button" class="notion-table-btn" data-table-action="del-row">
           <span class="material-symbols-outlined text-[14px]">remove</span> Row
         </button>
@@ -982,23 +982,27 @@ function setupEditorInteractions(quill, onChange) {
       const tr = document.createElement('tr');
       for (let i = 0; i < colCount; i++) {
         const td = document.createElement('td');
-        td.textContent = 'Cell';
+        td.innerHTML = '<br>';
         tr.appendChild(td);
       }
       tbody.appendChild(tr);
+      tr.firstElementChild?.focus?.();
     } else if (action === 'add-col') {
       const thead = table.querySelector('thead');
       if (thead) {
         const th = document.createElement('th');
-        th.textContent = 'Header';
+        th.innerHTML = '<br>';
         thead.querySelector('tr')?.appendChild(th);
       }
       const rows = table.querySelectorAll('tbody tr');
       rows.forEach(tr => {
         const td = document.createElement('td');
-        td.textContent = 'Cell';
+        td.innerHTML = '<br>';
         tr.appendChild(td);
       });
+      // Keep the new column in view when the table scrolls sideways.
+      const inner = block.querySelector('.notion-table-inner');
+      if (inner) inner.scrollLeft = inner.scrollWidth;
     } else if (action === 'del-row') {
       const rows = table.querySelectorAll('tbody tr');
       if (rows.length > 1) {
