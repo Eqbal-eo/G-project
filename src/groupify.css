@@ -1252,6 +1252,14 @@ html.dark .lesson-time-chip:hover, html.dark .lesson-time:hover, html.dark butto
    Live meetings (#meeting/<id>): the parts not already shared with lessons
    ========================================================================== */
 .meeting-view { max-width: 1200px; margin: 0 auto; padding: 24px 24px 48px; color: var(--on-surface); }
+/* Video call (LiveKit). The library draws the tiles and controls inside this box. */
+.meeting-call-btn { margin-left: auto; }
+.meeting-call { height: min(68vh, 600px); min-height: 360px; margin: 12px 0 20px; border-radius: 14px; overflow: hidden; border: 1px solid var(--outline-variant, #E1E7EA); background: #111; }
+.meeting-call .lk-room-container, .meeting-call .lk-video-conference { height: 100%; }
+@media (max-width: 640px) {
+  .meeting-call { height: 70vh; min-height: 300px; border-radius: 10px; }
+  .meeting-call-btn { margin-left: 0; width: 100%; justify-content: center; }
+}
 .meeting-view .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .meeting-status.is-live { background: #fde8e7; color: #b3261e; }
 html.dark .meeting-status.is-live { background: #4a1c1a; color: #f2b8b5; }

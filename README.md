@@ -97,6 +97,22 @@ If email isn't set up, **Send invite** still creates the invitation and gives yo
    `npx supabase secrets set BREVO_API_KEY=… INVITE_FROM_EMAIL=… SITE_URL=https://your-site --project-ref YOUR_PROJECT_REF`, then
    `npx supabase functions deploy send-invite --project-ref YOUR_PROJECT_REF`. Make sure your site's address is in `MOTION_AI_ALLOWED_ORIGINS`.
 
+## Video calls
+
+Every meeting has its own video call, so the team doesn't need Zoom or Google Meet. Open a meeting and click **Join video call**: camera, microphone, screen sharing and chat all work in the browser, next to the agenda, timer and notes. You join with the microphone on and the camera off.
+
+- Only members of the meeting's team can join. The database checks this through the same policies as the meeting itself.
+- The call opens when the meeting is created and closes when it ends.
+- Calls run on [LiveKit](https://livekit.io), which is open source. Its free Cloud plan is enough for a team, and the same code works with a self-hosted LiveKit server. Audio and video go straight between the browsers and LiveKit, never through Supabase.
+
+**Turn on video calls:**
+
+1. Create a free project at [cloud.livekit.io](https://cloud.livekit.io). Under **Settings → API keys**, create a key and copy its secret, which LiveKit shows only once. The project URL starts with `wss://`.
+2. Run `npm run setup:video` and paste the URL, key and secret. They are saved to the ignored `supabase/functions/.env`. Restart the dev server.
+3. **Deployed site:** set the same values as Supabase secrets and deploy the function:
+   `npx supabase secrets set LIVEKIT_URL=wss://… LIVEKIT_API_KEY=… LIVEKIT_API_SECRET=… --project-ref YOUR_PROJECT_REF`, then
+   `npx supabase functions deploy livekit-token --project-ref YOUR_PROJECT_REF`. Make sure your site's address is in `MOTION_AI_ALLOWED_ORIGINS`.
+
 ## YouTube lessons
 
 Open a project's **Library** tab, choose **YouTube lessons**, click **Add YouTube lesson** and paste the link of a public video (a lecture, tutorial or recorded class).

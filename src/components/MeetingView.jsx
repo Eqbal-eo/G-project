@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { AppState, setBreadcrumb, showToast } from '../legacy/app.js';
 import { requestConfirmation } from '../lib/dialogs.js';
@@ -12,7 +12,9 @@ import {
 import {
   NOTE_KINDS, buildMeetingRequest, parseMeetingResponse, fallbackProposal, buildMinutesHtml, groupNotesByItem
 } from '../lib/meetingAI.js';
+import { getCallConnection } from '../lib/videoCalls.js';
 
+const MeetingCall = lazy(() => import('./MeetingCall.jsx'));
 const POLL_MS = 15000;
 const KIND_META = {
   note: { label: 'Note', icon: 'notes' },
@@ -85,6 +87,8 @@ function MeetingRoom({ meetingId, user }) {
   const [review, setReview] = useState(() => loadReview(meetingId));
   const [preparing, setPreparing] = useState(false);
   const [refresh, setRefresh] = useState(0);
+  const [call, setCall] = useState(null);
+  const [joining, setJoining] = useState(false);
   const notesEnd = useRef(null);
   const sendLock = useRef(false);
   const aiLock = useRef(false);
@@ -180,6 +184,23 @@ function MeetingRoom({ meetingId, user }) {
   const currentItem = agenda[currentIndex];
   const isLast = currentIndex >= agenda.length - 1;
   const groups = useMemo(() => groupNotesByItem(agenda, notes), [agenda, notes]);
+
+  // The call closes for everyone when the meeting ends; the server also stops handing out new tickets.
+  const activeCall = status === 'ended' ? null : call;
+
+  async function joinCall() {
+    if (joining) return;
+    setJoining(true);
+    try {
+      setCall(await getCallConnection(meetingId));
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      setJoining(false);
+    }
+  }
+  const leaveCall = useCallback(() => setCall(null), []);
+  const callError = useCallback((error) => showToast(`Call problem: ${error?.message || 'unknown error'}`, 'error'), []);
 
   async function start() {
     setBusy('start');
@@ -327,6 +348,17 @@ function MeetingRoom({ meetingId, user }) {
         <div className="meeting-title-row">
           <h1>{meeting.title}</h1>
           <span className={`meeting-status is-${status}`}>{status === 'live' && <span className="meeting-live-dot" aria-hidden="true" />}{statusLabel}</span>
+          {status !== 'ended' && role && (
+            activeCall ? (
+              <button type="button" className="project-btn meeting-call-btn" onClick={leaveCall}>
+                <span className="material-symbols-outlined" aria-hidden="true">call_end</span>Leave call
+              </button>
+            ) : (
+              <button type="button" className="project-btn primary meeting-call-btn" disabled={joining} onClick={joinCall}>
+                <span className="material-symbols-outlined" aria-hidden="true">videocam</span>{joining ? 'Joining…' : 'Join video call'}
+              </button>
+            )
+          )}
         </div>
         <p className="meeting-muted">
           {status === 'ended' ? `Ended ${formatDate(meeting.ended_at)}` : status === 'live' ? `Started ${formatDate(meeting.started_at)}` : `Created ${formatDate(meeting.created_at)}`}
@@ -334,6 +366,12 @@ function MeetingRoom({ meetingId, user }) {
         </p>
         {loadError && <div className="team-chat-error" role="alert">{loadError}</div>}
       </header>
+
+      {activeCall && (
+        <Suspense fallback={<p className="meeting-muted project-section" role="status">Connecting to the call…</p>}>
+          <MeetingCall connection={activeCall}onLeave={leaveCall} onError={callError} />
+        </Suspense>
+      )}
 
       <div className="meeting-layout">
         <aside className="meeting-agenda project-section" aria-label="Agenda">
