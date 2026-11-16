@@ -34,7 +34,8 @@ if (!/^wss:\/\/[^\s/]+$/.test(url)) fail('That is not a LiveKit URL. In LiveKit 
 const key = await ask('API key (starts with API…): ');
 if (!/^\S{6,100}$/.test(key)) fail('That does not look like a LiveKit API key. In LiveKit Cloud: Settings → API keys → Create key.');
 const secret = await ask('API secret (it stays hidden): ', { hidden: true });
-if (!/^\S{16,200}$/.test(secret)) fail('That does not look like a LiveKit API secret.');
+if (/[•●*]{6,}/.test(secret)) fail('That is the hidden dots (•••), not the secret. LiveKit shows the real secret only once: create a new key and copy its secret.');
+if (!/^[\x21-\x7e]{16,200}$/.test(secret)) fail('That does not look like a LiveKit API secret.');
 rl.close();
 
 const lines = existsSync(FILE) ? readFileSync(FILE, 'utf8').split(/\r?\n/) : [];

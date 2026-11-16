@@ -74,6 +74,12 @@ test('says clearly when LiveKit is not set up', async () => {
   assert.equal((await response.json()).error.code, 'VIDEO_NOT_CONFIGURED');
 });
 
+test('a secret copied as the hidden dots is refused with a clear message', async () => {
+  const response = await makeHandler({ env: { ...SECRETS, LIVEKIT_API_SECRET: '•'.repeat(32) } })(post({ meetingId: MEETING }));
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error.message, /hidden dots/);
+});
+
 test('display names fall back to the email name', () => {
   assert.equal(displayNameFor({ email: 'omar@x.io', user_metadata: {} }), 'omar');
   assert.equal(displayNameFor({ user_metadata: { full_name: ' Lina ' } }), 'Lina');

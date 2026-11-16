@@ -15,10 +15,23 @@ class RequestError extends Error {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TOKEN_SECONDS = 4 * 60 * 60;
 
+// Keys and secrets are plain ASCII; dots (•••) mean the masked value was copied
+// from the LiveKit screen instead of the real secret.
+const KEY_TEXT = /^[\x21-\x7e]+$/;
+
 export function isVideoConfigured(env) {
+  const key = env('LIVEKIT_API_KEY') || '';
+  const secret = env('LIVEKIT_API_SECRET') || '';
   return /^wss?:\/\/\S+$/.test(env('LIVEKIT_URL') || '')
-    && /^\S{6,}$/.test(env('LIVEKIT_API_KEY') || '')
-    && /^\S{16,}$/.test(env('LIVEKIT_API_SECRET') || '');
+    && key.length >= 6 && KEY_TEXT.test(key)
+    && secret.length >= 16 && KEY_TEXT.test(secret);
+}
+
+export function videoSetupProblem(env) {
+  if (/[•●*]{6,}/.test(env('LIVEKIT_API_SECRET') || '')) {
+    return 'LIVEKIT_API_SECRET holds the hidden dots (•••) instead of the real secret. Create a new key in LiveKit Cloud, copy its secret and save it again.';
+  }
+  return 'Video calls aren’t set up yet. Run npm run setup:video (see README → Video calls).';
 }
 
 export function roomNameFor(meetingId) {
@@ -91,7 +104,7 @@ export function createLiveKitTokenHandler({ env, authenticate, readMeeting, now 
       if (!input || typeof input !== 'object' || Object.keys(input).some((key) => key !== 'meetingId') || !UUID.test(String(input.meetingId || ''))) {
         throw new RequestError(400, 'INVALID_REQUEST', 'Choose a meeting to join.');
       }
-      if (!isVideoConfigured(env)) throw new RequestError(503, 'VIDEO_NOT_CONFIGURED', 'Video calls aren’t set up yet. Run npm run setup:video (see README → Video calls).');
+      if (!isVideoConfigured(env)) throw new RequestError(503, 'VIDEO_NOT_CONFIGURED', videoSetupProblem(env));
 
       let meeting;
       try { meeting = await readMeeting(token, input.meetingId); } catch {
