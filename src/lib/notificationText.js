@@ -8,7 +8,8 @@ const ICONS = {
   task_assigned: 'assignment_ind',
   page_updated: 'edit_note',
   task_due: 'alarm',
-  checkin_due: 'event_note'
+  checkin_due: 'event_note',
+  workspace_invite: 'group_add'
 };
 
 function quoted(value, fallback) {
@@ -45,6 +46,9 @@ export function describeNotification(notification) {
     case 'task_due':
       text = payload.when === 'overdue' ? `Overdue: ${taskTarget}` : `Reminder: ${taskTarget} is due ${payload.when === 'today' ? 'today' : 'tomorrow'}`;
       break;
+    case 'workspace_invite':
+      text = `${actor} invited you to join ${quoted(payload.workspace_name, 'a team')}`;
+      break;
     case 'checkin_due':
       text = `Weekly check-in for ${quoted(payload.title, 'your project')}: how did your week go?`;
       break;
@@ -61,6 +65,8 @@ export function describeNotification(notification) {
   else if (payload.task_id) href = `kanban?task=${encodeURIComponent(payload.task_id)}`;
   else if (notification?.type === 'task_assigned') href = 'kanban';
   if (notification?.type === 'checkin_due' && payload.project_id) href = `project/${payload.project_id}/checkins`;
+  // Invitations are answered on Home (Accept / Decline).
+  if (notification?.type === 'workspace_invite') href = 'dashboard';
 
   return {
     text,

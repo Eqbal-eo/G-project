@@ -1237,3 +1237,13 @@ html.dark .lesson-time-chip:hover, html.dark .lesson-time:hover, html.dark butto
 .auth-password-eye:focus-visible { outline: 2px solid var(--primary, #2E7CA9); outline-offset: 1px; }
 .auth-password-eye:disabled { opacity: .5; cursor: default; }
 .auth-password-eye .material-symbols-outlined { font-size: 20px; }
+
+/* Home: invitations to join a team */
+.home-invites { margin: 0 0 18px; padding: 14px 16px; border-radius: 14px; background: var(--surface-container-lowest); border: 1px solid var(--outline-variant); border-left: 4px solid var(--primary); }
+.home-invites[hidden] { display: none; }
+.home-invites h2 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font: 600 14.5px var(--g-font); color: var(--on-surface); }
+.home-invites h2 .material-symbols-outlined { font-size: 19px; color: var(--primary); }
+.home-invites ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.home-invites li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; font-size: 14px; color: var(--on-surface-variant); }
+.home-invites li strong { color: var(--on-surface); }
+.home-invite-actions { display: flex; gap: 6px; }

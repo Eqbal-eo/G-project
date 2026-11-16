@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.lesson-ai]
 verify_jwt = true
+
+[functions.send-invite]
+verify_jwt = true

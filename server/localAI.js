@@ -3,6 +3,7 @@ import {fileURLToPath} from 'node:url';
 import {createPageAIHandler} from '../supabase/functions/cloudflare-page-ai/handler.js';
 import {createTextAIHandler} from '../supabase/functions/text-ai/handler.js';
 import {createLessonAIHandler} from '../supabase/functions/lesson-ai/handler.js';
+import {createSendInviteHandler} from '../supabase/functions/send-invite/handler.js';
 
 const secretFile = fileURLToPath(new URL('../supabase/functions/.env', import.meta.url));
 const loopback = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
@@ -66,6 +67,14 @@ export function localAIPlugin(publicEnv) {
         if (!response.ok) throw new Error('Lesson permissions unavailable');
         return response.json();
       };
+      // Owner-only and rate-limited in the database (sql/invitations.sql).
+      const prepareEmail = async (token, invitationId) => {
+        const response = await fetch(`${base}/rest/v1/rpc/prepare_invitation_email`, {
+          method: 'POST', headers: headers(token), body: JSON.stringify({p_invitation: invitationId}), signal: AbortSignal.timeout(10000)
+        });
+        if (!response.ok) throw new Error('Invitation storage unavailable');
+        return response.json();
+      };
       const authorizePage = async (token, pageId) => {
         const response = await fetch(`${base}/rest/v1/pages?select=id&id=eq.${pageId}&limit=1`, {
           headers: headers(token), signal: AbortSignal.timeout(10000)
@@ -75,7 +84,8 @@ export function localAIPlugin(publicEnv) {
       const handlers = {
         '/cloudflare-page-ai': createPageAIHandler({env, authenticate, reserveQuota, authorizePage}),
         '/text-ai': createTextAIHandler({env, authenticate, reserveQuota}),
-        '/lesson-ai': createLessonAIHandler({env, authenticate, reserveQuota: reserveLessonQuota, authorizeLesson})
+        '/lesson-ai': createLessonAIHandler({env, authenticate, reserveQuota: reserveLessonQuota, authorizeLesson}),
+        '/send-invite': createSendInviteHandler({env, authenticate, prepareEmail})
       };
       server.middlewares.use('/__motion_ai', async (req, res, next) => {
         const handler = handlers[req.url?.split('?')[0]];

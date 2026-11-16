@@ -25,6 +25,7 @@ import {
   restorePage
 } from '../../lib/queries.js';
 import { escapeHtml } from '../../lib/sanitize.js';
+import { emailInvitation } from '../../lib/invitations.js';
 
 const SECTIONS = [
   { id: 'account', icon: 'person', label: 'My account', hint: 'Name, photo and look' },
@@ -195,7 +196,7 @@ export async function renderSettings(container, route) {
 
             <div class="gs-card">
               <div class="gs-card-head">
-                <div><h2>Invite people</h2><p>${isWorkspaceOwner ? 'We create an invite link and copy it for you. Send it to your teammate.' : 'Ask the team owner to invite new people.'}</p></div>
+                <div><h2>Invite people</h2><p>${isWorkspaceOwner ? 'We email them an invitation with a “Join the team” button. If they already use Groupify, they’ll also see it on their Home page.' : 'Ask the team owner to invite new people.'}</p></div>
               </div>
               ${isWorkspaceOwner ? `
               <form id="invite-member-form" class="gs-invite">
@@ -205,7 +206,7 @@ export async function renderSettings(container, route) {
                   <option value="commenter">Commenter</option>
                   <option value="viewer">Viewer</option>
                 </select>
-                <button class="gs-btn gs-btn-primary" type="submit"><span class="material-symbols-outlined">person_add</span>Invite</button>
+                <button class="gs-btn gs-btn-primary" type="submit"><span class="material-symbols-outlined">send</span>Send invite</button>
               </form>
               <p class="gs-role-help" id="gs-role-help">${ROLE_HELP.editor}.</p>` : ''}
             </div>
@@ -217,8 +218,9 @@ export async function renderSettings(container, route) {
                 ${invitations.map((invitation) => `
                   <div class="gs-row">
                     <span class="gs-avatar gs-avatar-md gs-avatar-muted"><span class="material-symbols-outlined">mail</span></span>
-                    <div class="gs-row-main"><strong>${escapeHtml(invitation.email)}</strong><small>${escapeHtml(capitalize(invitation.role))} · invited ${timeSince(invitation.created_at)}</small></div>
+                    <div class="gs-row-main"><strong>${escapeHtml(invitation.email)}</strong><small>${escapeHtml(capitalize(invitation.role))} · invited ${timeSince(invitation.created_at)}${invitation.emailed_at ? ` · emailed ${timeSince(invitation.emailed_at)}` : ''}</small></div>
                     ${isWorkspaceOwner ? `
+                      <button class="gs-btn gs-btn-ghost resend-invitation" data-invitation-id="${invitation.id}" data-email="${escapeHtml(invitation.email)}" data-token="${escapeHtml(invitation.token || '')}" type="button" title="Email the invitation again"><span class="material-symbols-outlined">forward_to_inbox</span>Resend email</button>
                       <button class="gs-btn gs-btn-ghost copy-invitation" data-token="${escapeHtml(invitation.token || '')}" type="button"><span class="material-symbols-outlined">link</span>Copy link</button>
                       <button class="gs-icon-btn revoke-invitation" data-invitation-id="${invitation.id}" type="button" title="Cancel invitation" aria-label="Cancel invitation for ${escapeHtml(invitation.email)}"><span class="material-symbols-outlined">close</span></button>` : ''}
                   </div>`).join('')}
@@ -425,13 +427,16 @@ export async function renderSettings(container, route) {
     container.querySelector('#gs-role-help').textContent = `${ROLE_HELP[roleSelect.value]}.`;
   });
 
-  const copyInviteLink = async (token) => {
+  // Returns true when the link went to the clipboard (otherwise it was shown to copy by hand).
+  const copyInviteLink = async (token, { quiet = false } = {}) => {
     const inviteUrl = `${window.location.origin}${window.location.pathname}#invite/${token}`;
     try {
       await navigator.clipboard.writeText(inviteUrl);
-      showToast('Invite link copied — send it to your teammate', 'success');
+      if (!quiet) showToast('Invite link copied — send it to your teammate', 'success');
+      return true;
     } catch {
       await requestInput('Copy this invite link and send it to your teammate:', inviteUrl);
+      return false;
     }
   };
 
@@ -452,8 +457,34 @@ export async function renderSettings(container, route) {
       submit.disabled = false;
     }
     if (result.error) return showToast(`Could not invite: ${result.error.message}`, 'error');
-    await copyInviteLink(result.data.token);
+    await deliverInvitation(result.data, { first: true });
     await rerender('team');
+  });
+
+  // Email the invitation; if email isn't set up or fails, copy the link instead so inviting always works.
+  const deliverInvitation = async (invitation, { first = false, button = null } = {}) => {
+    if (button) button.disabled = true;
+    const result = await emailInvitation(invitation.id);
+    if (button) button.disabled = false;
+    if (result.sent) {
+      showToast(`Invitation emailed to ${result.email}${first ? '. If they already use Groupify, they’ll see it on Home too.' : ''}`, 'success');
+      return;
+    }
+    if (['TOO_SOON', 'TOO_MANY', 'DAILY_LIMIT', 'NOT_ALLOWED', 'ALREADY_ACCEPTED'].includes(result.error.code)) {
+      showToast(result.error.message, 'error');
+      return;
+    }
+    // Not set up yet, or the email service failed: fall back to the link.
+    const copied = await copyInviteLink(invitation.token, { quiet: true });
+    const why = result.error.code === 'EMAIL_NOT_CONFIGURED' ? 'Invitation emails aren’t set up yet' : 'The email could not be sent';
+    showToast(`${why}. ${copied ? 'The invite link was copied — send' : 'Send'} it to ${invitation.email} yourself.`, 'error');
+  };
+
+  container.querySelectorAll('.resend-invitation').forEach((button) => {
+    button.addEventListener('click', async () => {
+      await deliverInvitation({ id: button.dataset.invitationId, email: button.dataset.email, token: button.dataset.token }, { button });
+      await rerender('team');
+    });
   });
 
   container.querySelectorAll('.copy-invitation').forEach((button) => {

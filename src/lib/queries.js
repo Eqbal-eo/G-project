@@ -73,12 +73,16 @@ export async function createWorkspaceInvitation(workspaceId, email, role = 'edit
 }
 
 export async function getWorkspaceInvitations(workspaceId) {
-  const { data, error } = await supabase
+  const load = (fields) => supabase
     .from('workspace_invitations')
-    .select('id, workspace_id, email, role, token, created_at, accepted_at')
+    .select(fields)
     .eq('workspace_id', workspaceId)
     .is('accepted_at', null)
     .order('created_at', { ascending: false });
+  const base = 'id, workspace_id, email, role, token, created_at, accepted_at';
+  // emailed_at comes from sql/invitations.sql; older databases still list invitations without it.
+  let { data, error } = await load(`${base}, emailed_at`);
+  if (error && (error.code === '42703' || /emailed_at/.test(error.message || ''))) ({ data, error } = await load(base));
   return { data: data || [], error };
 }
 

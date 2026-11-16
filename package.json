@@ -14,6 +14,7 @@
     "test:lessons": "node --test tests/lesson-ai.test.js",
     "test:collab": "node --test tests/collaboration.test.js tests/projects.test.js tests/team-tools.test.js",
     "setup:gemini": "node scripts/set-gemini-key.js",
+    "setup:email": "node scripts/set-email-key.js",
     "e2e": "playwright test",
     "e2e:login": "node e2e/save-login.js",
     "preview": "vite preview",

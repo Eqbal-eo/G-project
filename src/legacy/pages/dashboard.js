@@ -12,10 +12,54 @@ import { pickAndFocus } from '../../lib/focusZone.js';
 import { getMyCheckinsForWeek } from '../../lib/checkins.js';
 import { getWorkspaceTeams } from '../../lib/teams.js';
 import { getWorkspaceUpdates, catchUpItems } from '../../lib/teamTools.js';
+import { getMyInvitations, declineInvitation } from '../../lib/invitations.js';
+import { acceptWorkspaceInvitation } from '../../lib/queries.js';
+import { requestConfirmation } from '../../lib/dialogs.js';
 
 function checklistKey() {
   return `motion-onboarding-dismissed-${AppState.workspace?.id || 'none'}`;
 }
+// Invitations addressed to you (by email) from teams you're not in yet: Accept / Decline.
+const ROLE_LABEL = { admin: 'Admin', editor: 'Editor', commenter: 'Commenter', viewer: 'Viewer' };
+async function renderInvites(section) {
+  if (!section) return;
+  const { data: invites } = await getMyInvitations();
+  if (!section.isConnected) return;
+  if (!invites?.length) { section.hidden = true; return; }
+  section.innerHTML = `<h2><span class="material-symbols-outlined" aria-hidden="true">group_add</span>You’re invited</h2>
+    <ul>${invites.map((invite) => `<li data-invite="${escapeHtml(invite.token)}">
+      <span><strong>${escapeHtml(invite.inviter_name)}</strong> invited you to join <strong>${escapeHtml(invite.workspace_name)}</strong> as ${escapeHtml(ROLE_LABEL[invite.role] || 'Member')}</span>
+      <span class="home-invite-actions">
+        <button type="button" class="project-btn primary" data-accept="${escapeHtml(invite.token)}" data-team="${escapeHtml(invite.workspace_name)}" data-workspace="${escapeHtml(invite.workspace_id)}">Accept</button>
+        <button type="button" class="project-btn" data-decline="${escapeHtml(invite.token)}" data-team="${escapeHtml(invite.workspace_name)}">Decline</button>
+      </span>
+    </li>`).join('')}</ul>`;
+  section.hidden = false;
+  section.querySelectorAll('[data-accept]').forEach((button) => button.addEventListener('click', async () => {
+    section.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+    const { data: workspaceId, error } = await acceptWorkspaceInvitation(button.dataset.accept);
+    if (error) {
+      section.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+      return showToast(`Could not join: ${error.message}`, 'error');
+    }
+    // Open the team you just joined.
+    try {
+      localStorage.setItem('motion-workspace-id', workspaceId || button.dataset.workspace);
+      sessionStorage.setItem('groupify.joinedTeam', button.dataset.team || 'the team');
+    } catch { /* storage blocked */ }
+    window.location.hash = 'dashboard';
+    window.location.reload();
+  }));
+  section.querySelectorAll('[data-decline]').forEach((button) => button.addEventListener('click', async () => {
+    if (!await requestConfirmation(`Decline the invitation to join “${button.dataset.team}”?`)) return;
+    const { error } = await declineInvitation(button.dataset.decline);
+    if (error) return showToast(`Could not decline: ${error.message}`, 'error');
+    button.closest('li')?.remove();
+    if (!section.querySelector('li')) section.hidden = true;
+    showToast('Invitation declined', 'success');
+  }));
+}
+
 // "Catch me up" remembers when you last read it (per person and team).
 function caughtUpKey(userId, workspaceId) {
   return `groupify.lastCaughtUp.${userId}.${workspaceId}`;
@@ -190,6 +234,7 @@ export async function renderDashboard(container) {
         <ul>${attentionRows.join('')}</ul>
       </section>` : ''}
 
+      <section class="home-invites" aria-label="Team invitations" hidden></section>
       <section class="home-catchup" aria-label="Catch me up" hidden></section>
 
       ${projects.length ? `<section class="home-digest" aria-label="This week">
@@ -249,6 +294,11 @@ export async function renderDashboard(container) {
 
   const refresh = () => renderDashboard(container);
   renderCatchUp(container.querySelector('.home-catchup'), { workspaceId, me, tasks, projectById, projectIndex }).catch(() => {});
+  renderInvites(container.querySelector('.home-invites')).catch(() => {});
+  try {
+    const joined = sessionStorage.getItem('groupify.joinedTeam');
+    if (joined) { sessionStorage.removeItem('groupify.joinedTeam'); showToast(`Welcome to ${joined}! 🎉`, 'success'); }
+  } catch { /* storage blocked */ }
   container.querySelectorAll('[data-new-project]').forEach((button) => button.addEventListener('click', () => startNewProject()));
   container.querySelectorAll('[data-template]').forEach((button) => button.addEventListener('click', () => startNewProject({ template: button.dataset.template })));
   container.querySelectorAll('[data-step-action="new-project"]').forEach((button) => button.addEventListener('click', () => startNewProject()));

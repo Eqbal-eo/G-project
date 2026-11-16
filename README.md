@@ -74,9 +74,28 @@ Copy `.env.example` to `.env` and add the Supabase project URL and anon key. The
 
 Then open the Supabase SQL Editor and run [`sql/schema.sql`](sql/schema.sql). This creates the workspace, page, task, comment, notification, invitation, and collaboration tables, policies, indexes, and triggers.
 
-For team features, also run [`sql/task-details.sql`](sql/task-details.sql), [`sql/team-chat.sql`](sql/team-chat.sql), [`sql/collaboration.sql`](sql/collaboration.sql), [`sql/projects.sql`](sql/projects.sql) and [`sql/workspace-features.sql`](sql/workspace-features.sql) and [`sql/project-teams.sql`](sql/project-teams.sql), [`sql/checkins.sql`](sql/checkins.sql), [`sql/checkin-blockers.sql`](sql/checkin-blockers.sql), [`sql/team-tools.sql`](sql/team-tools.sql), [`sql/project-files.sql`](sql/project-files.sql) and [`sql/lessons.sql`](sql/lessons.sql), in that order. `collaboration.sql` adds @mentions and targeted, throttled notifications; `projects.sql` enables projects; `workspace-features.sql` adds page history, public share links, team templates, custom task fields, page @mentions, daily due-date reminders, and lets every team member (not only the owner) see the team list; `project-teams.sql` adds teams inside projects (leader, members, progress %) and the database rule that only a team's leader (or the team owner/admins) can edit that team's tasks, while the person assigned can update its status and progress. Until they're applied, the app still works, but mentions aren't stored and creating a project shows a message asking for the update.
+For team features, also run [`sql/task-details.sql`](sql/task-details.sql), [`sql/team-chat.sql`](sql/team-chat.sql), [`sql/collaboration.sql`](sql/collaboration.sql), [`sql/projects.sql`](sql/projects.sql) and [`sql/workspace-features.sql`](sql/workspace-features.sql) and [`sql/project-teams.sql`](sql/project-teams.sql), [`sql/checkins.sql`](sql/checkins.sql), [`sql/checkin-blockers.sql`](sql/checkin-blockers.sql), [`sql/team-tools.sql`](sql/team-tools.sql), [`sql/project-files.sql`](sql/project-files.sql), [`sql/lessons.sql`](sql/lessons.sql) and [`sql/invitations.sql`](sql/invitations.sql), in that order. `collaboration.sql` adds @mentions and targeted, throttled notifications; `projects.sql` enables projects; `workspace-features.sql` adds page history, public share links, team templates, custom task fields, page @mentions, daily due-date reminders, and lets every team member (not only the owner) see the team list; `project-teams.sql` adds teams inside projects (leader, members, progress %) and the database rule that only a team's leader (or the team owner/admins) can edit that team's tasks, while the person assigned can update its status and progress. Until they're applied, the app still works, but mentions aren't stored and creating a project shows a message asking for the update.
 
 The database cannot be accessed from the copied frontend alone unless you have access to the same Supabase project or the owner gives you the correct credentials. Never commit `.env` or service-role keys.
+
+## Invitations
+
+In **Settings → Team**, the team owner types an email, picks a role and clicks **Send invite**:
+
+- **Email:** Groupify emails a short invitation with a **Join the team** button. New people sign up with that email and join automatically; people with an account sign in and join.
+- **Inside Groupify:** if the email already has an account, the person also gets a bell notification and a **You're invited** card on Home with **Accept** / **Decline**.
+- **Pending invites** show **Resend email**, **Copy link** (works without email) and cancel. Only the owner can send; emails are limited to once a minute per invite, 5 per invite and 30 per team a day.
+
+If email isn't set up, **Send invite** still creates the invitation and gives you the link to send yourself.
+
+**Turn on invitation emails** (Brevo, free plan, 300 emails/day, no domain needed):
+
+1. Run [`sql/invitations.sql`](sql/invitations.sql) in the Supabase SQL Editor.
+2. Create a free account at [brevo.com](https://www.brevo.com). Under **Senders, domains & dedicated IPs → Senders**, add the email you want invitations to come from (e.g. your Gmail) and confirm it from Brevo's email. Under **SMTP & API → API keys**, generate a key.
+3. Run `npm run setup:email` and paste the key and sender email. It checks both with Brevo, then saves them to the ignored `supabase/functions/.env`. Restart the dev server.
+4. **Deployed site:** set the same values as Supabase secrets and deploy the function:
+   `npx supabase secrets set BREVO_API_KEY=… INVITE_FROM_EMAIL=… SITE_URL=https://your-site --project-ref YOUR_PROJECT_REF`, then
+   `npx supabase functions deploy send-invite --project-ref YOUR_PROJECT_REF`. Make sure your site's address is in `MOTION_AI_ALLOWED_ORIGINS`.
 
 ## YouTube lessons
 
