@@ -1,5 +1,6 @@
 // Custom task fields: team-defined properties such as "Estimate", "Sprint" or "Link".
 // Definitions live in task_fields; values live in tasks.fields as { fieldId: value }.
+import { iconSvg } from './icons.js';
 import { supabase } from './supabase.js';
 import { escapeHtml } from './sanitize.js';
 
@@ -62,7 +63,7 @@ export function normalizeFieldValue(field, raw) {
 
 export function renderFieldValue(field, value) {
   if (value === undefined || value === null || value === '' || value === false) return '<span class="task-muted">—</span>';
-  if (field.field_type === 'checkbox') return '<span class="material-symbols-outlined task-check-on" aria-label="Yes">check_box</span>';
+  if (field.field_type === 'checkbox') return `${iconSvg('square-check', 'task-check-on', 'aria-label="Yes"')}`;
   if (field.field_type === 'url' && /^https?:\/\//i.test(String(value))) {
     let host = String(value);
     try { host = new URL(String(value)).hostname; } catch { /* keep raw */ }

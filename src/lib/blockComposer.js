@@ -1,3 +1,4 @@
+import { iconSvg } from './icons.js';
 import { escapeHtml as esc } from './sanitize.js';
 
 const labels = {text:'Text',heading1:'Heading 1',heading2:'Heading 2',heading3:'Heading 3',bulleted:'Bulleted list',numbered:'Numbered list',todo:'To-do list',toggle:'Toggle',quote:'Quote',callout:'Callout',code:'Code',divider:'Divider',table:'Table',equation:'Equation'};
@@ -33,7 +34,7 @@ export function composeBlock(type, initialHtml = '') {
       if(type === 'quote') return `<blockquote>${esc(value).replaceAll('\n','<br>')}</blockquote>`;
       if(type === 'code') return `<pre><code>${esc(value)}</code></pre>`;
       if(type === 'divider') return '<hr />';
-      if(type === 'callout') return `<aside class="editor-callout"><span class="editor-callout-icon">💡</span><span>${esc(value).replaceAll('\n','<br>')}</span></aside>`;
+      if(type === 'callout') return `<aside class="editor-callout"><span class="editor-callout-icon">${iconSvg('lightbulb')}</span><span>${esc(value).replaceAll('\n','<br>')}</span></aside>`;
       if(type === 'equation') return `<p class="editor-equation">${esc(value)}</p>`;
       if(type === 'table') return `<table class="editor-simple-table"><tbody>${lines.map((line,index) => `<tr>${line.split('|').map(cell => `<${index ? 'td' : 'th'}>${esc(cell.trim())}</${index ? 'td' : 'th'}>`).join('')}</tr>`).join('')}</tbody></table>`;
       return `<p>${esc(value).replaceAll('\n','<br>')}</p>`;

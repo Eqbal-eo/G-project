@@ -101,11 +101,22 @@ body {
   color: var(--on-surface);
 }
 
-/* — Material Symbols — */
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+/* — Icons (Lucide, drawn by src/lib/icons.js and src/components/Icon.jsx) —
+   Icons are 1em square, so a font-size rule on .icon sizes them, like the old icon font. */
+:where(.icon) {
+  font-size: 24px;
+}
+.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1em;
+  height: 1em;
   vertical-align: middle;
   user-select: none;
+}
+/* A filled icon, for example the star of a favorite page. */
+.icon.icon-filled {
+  fill: currentColor;
 }
 
 /* — Monastic Scrollbar — */
@@ -169,7 +180,7 @@ body {
   color: var(--on-surface-variant);
 }
 
-.empty-state .material-symbols-outlined {
+.empty-state .icon {
   font-size: 3rem;
   opacity: 0.3;
   margin-bottom: 1rem;

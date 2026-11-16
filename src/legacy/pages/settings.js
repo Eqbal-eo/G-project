@@ -1,3 +1,4 @@
+import { iconSvg, pageIconSvg } from '../../lib/icons.js';
 import { requestInput, requestConfirmation } from "../../lib/dialogs.js";
 // ============================================
 // GROUPIFY — Settings page (tabs: account, notifications, team, archive & backup)
@@ -28,10 +29,10 @@ import { escapeHtml } from '../../lib/sanitize.js';
 import { emailInvitation } from '../../lib/invitations.js';
 
 const SECTIONS = [
-  { id: 'account', icon: 'person', label: 'My account', hint: 'Name, photo and look' },
-  { id: 'notifications', icon: 'notifications', label: 'Notifications', hint: 'What we tell you about' },
-  { id: 'team', icon: 'group', label: 'Team', hint: 'Members and invitations' },
-  { id: 'data', icon: 'inventory_2', label: 'Archive & backup', hint: 'Restore and export' }
+  { id: 'account', icon: 'user', label: 'My account', hint: 'Name, photo and look' },
+  { id: 'notifications', icon: 'bell', label: 'Notifications', hint: 'What we tell you about' },
+  { id: 'team', icon: 'users', label: 'Team', hint: 'Members and invitations' },
+  { id: 'data', icon: 'package', label: 'Archive & backup', hint: 'Restore and export' }
 ];
 
 const ROLE_HELP = {
@@ -72,7 +73,7 @@ export async function renderSettings(container, route) {
 
   const loadError = profileResult.error || settingsResult.error;
   if (loadError) {
-    container.innerHTML = `<div class="gs-page"><div class="gs-card gs-error"><span class="material-symbols-outlined">error</span><h3>Settings could not load</h3><p>${escapeHtml(loadError.message || 'Please try again.')}</p><button id="settings-retry" class="gs-btn gs-btn-primary" type="button">Try again</button></div></div>`;
+    container.innerHTML = `<div class="gs-page"><div class="gs-card gs-error">${iconSvg('circle-alert')}<h3>Settings could not load</h3><p>${escapeHtml(loadError.message || 'Please try again.')}</p><button id="settings-retry" class="gs-btn gs-btn-primary" type="button">Try again</button></div></div>`;
     container.querySelector('#settings-retry')?.addEventListener('click', () => renderSettings(container, route));
     return;
   }
@@ -102,7 +103,7 @@ export async function renderSettings(container, route) {
         <nav class="gs-tabs" role="tablist" aria-label="Settings sections">
           ${SECTIONS.map((section) => `
             <button type="button" role="tab" class="gs-tab" id="gs-tab-${section.id}" data-settings-tab="${section.id}" aria-controls="settings-${section.id}">
-              <span class="material-symbols-outlined">${section.icon}</span>
+              ${iconSvg(section.icon)}
               <span class="gs-tab-text"><strong>${section.label}</strong><small>${section.hint}</small></span>
               ${section.id === 'team' && invitations.length ? `<span class="gs-tab-badge">${invitations.length}</span>` : ''}
             </button>`).join('')}
@@ -152,8 +153,8 @@ export async function renderSettings(container, route) {
               <div class="gs-card-head">
                 <div><h2>Appearance</h2><p>Choose how Groupify looks on this device.</p></div>
                 <div class="gs-segment" role="radiogroup" aria-label="Theme">
-                  <button type="button" role="radio" data-theme-choice="light" aria-checked="${currentTheme === 'light'}"><span class="material-symbols-outlined">light_mode</span>Light</button>
-                  <button type="button" role="radio" data-theme-choice="dark" aria-checked="${currentTheme === 'dark'}"><span class="material-symbols-outlined">dark_mode</span>Dark</button>
+                  <button type="button" role="radio" data-theme-choice="light" aria-checked="${currentTheme === 'light'}">${iconSvg('sun')}Light</button>
+                  <button type="button" role="radio" data-theme-choice="dark" aria-checked="${currentTheme === 'dark'}">${iconSvg('moon')}Dark</button>
                 </div>
               </div>
             </div>
@@ -161,7 +162,7 @@ export async function renderSettings(container, route) {
             <div class="gs-card gs-card-quiet">
               <div class="gs-card-head">
                 <div><h2>Log out</h2><p>Sign out of Groupify on this device. Your work stays saved.</p></div>
-                <button type="button" class="gs-btn gs-btn-danger" id="btn-sign-out"><span class="material-symbols-outlined">logout</span>Log out</button>
+                <button type="button" class="gs-btn gs-btn-danger" id="btn-sign-out">${iconSvg('log-out')}Log out</button>
               </div>
             </div>
           </section>
@@ -175,8 +176,8 @@ export async function renderSettings(container, route) {
               </div>
               <div class="gs-list">
                 ${renderNotificationRow('email_notifications', 'mail', 'Email summaries', 'A daily digest of what changed in your projects.', prefs.email_notifications)}
-                ${renderNotificationRow('direct_messages', 'chat_bubble', 'Messages and mentions', 'When someone messages you or @mentions you.', prefs.direct_messages)}
-                ${renderNotificationRow('product_updates', 'rocket_launch', 'Groupify news', 'New features and improvements, now and then.', prefs.product_updates)}
+                ${renderNotificationRow('direct_messages', 'message-circle', 'Messages and mentions', 'When someone messages you or @mentions you.', prefs.direct_messages)}
+                ${renderNotificationRow('product_updates', 'rocket', 'Groupify news', 'New features and improvements, now and then.', prefs.product_updates)}
               </div>
             </div>
           </section>
@@ -206,7 +207,7 @@ export async function renderSettings(container, route) {
                   <option value="commenter">Commenter</option>
                   <option value="viewer">Viewer</option>
                 </select>
-                <button class="gs-btn gs-btn-primary" type="submit"><span class="material-symbols-outlined">send</span>Send invite</button>
+                <button class="gs-btn gs-btn-primary" type="submit">${iconSvg('send')}Send invite</button>
               </form>
               <p class="gs-role-help" id="gs-role-help">${ROLE_HELP.editor}.</p>` : ''}
             </div>
@@ -217,12 +218,12 @@ export async function renderSettings(container, route) {
               <div class="gs-list">
                 ${invitations.map((invitation) => `
                   <div class="gs-row">
-                    <span class="gs-avatar gs-avatar-md gs-avatar-muted"><span class="material-symbols-outlined">mail</span></span>
+                    <span class="gs-avatar gs-avatar-md gs-avatar-muted">${iconSvg('mail')}</span>
                     <div class="gs-row-main"><strong>${escapeHtml(invitation.email)}</strong><small>${escapeHtml(capitalize(invitation.role))} · invited ${timeSince(invitation.created_at)}${invitation.emailed_at ? ` · emailed ${timeSince(invitation.emailed_at)}` : ''}</small></div>
                     ${isWorkspaceOwner ? `
-                      <button class="gs-btn gs-btn-ghost resend-invitation" data-invitation-id="${invitation.id}" data-email="${escapeHtml(invitation.email)}" data-token="${escapeHtml(invitation.token || '')}" type="button" title="Email the invitation again"><span class="material-symbols-outlined">forward_to_inbox</span>Resend email</button>
-                      <button class="gs-btn gs-btn-ghost copy-invitation" data-token="${escapeHtml(invitation.token || '')}" type="button"><span class="material-symbols-outlined">link</span>Copy link</button>
-                      <button class="gs-icon-btn revoke-invitation" data-invitation-id="${invitation.id}" type="button" title="Cancel invitation" aria-label="Cancel invitation for ${escapeHtml(invitation.email)}"><span class="material-symbols-outlined">close</span></button>` : ''}
+                      <button class="gs-btn gs-btn-ghost resend-invitation" data-invitation-id="${invitation.id}" data-email="${escapeHtml(invitation.email)}" data-token="${escapeHtml(invitation.token || '')}" type="button" title="Email the invitation again">${iconSvg('forward')}Resend email</button>
+                      <button class="gs-btn gs-btn-ghost copy-invitation" data-token="${escapeHtml(invitation.token || '')}" type="button">${iconSvg('link')}Copy link</button>
+                      <button class="gs-icon-btn revoke-invitation" data-invitation-id="${invitation.id}" type="button" title="Cancel invitation" aria-label="Cancel invitation for ${escapeHtml(invitation.email)}">${iconSvg('x')}</button>` : ''}
                   </div>`).join('')}
               </div>
             </div>` : ''}
@@ -242,7 +243,7 @@ export async function renderSettings(container, route) {
                         <select class="member-role-select" data-member-id="${member.id}" aria-label="Role for ${escapeHtml(memberName)}">
                           ${['admin', 'editor', 'commenter', 'viewer'].map((role) => `<option value="${role}" ${member.role === role ? 'selected' : ''}>${capitalize(role)}</option>`).join('')}
                         </select>
-                        <button class="gs-icon-btn remove-member" data-member-id="${member.id}" data-member-name="${escapeHtml(memberName)}" type="button" title="Remove from team" aria-label="Remove ${escapeHtml(memberName)}"><span class="material-symbols-outlined">person_remove</span></button>`
+                        <button class="gs-icon-btn remove-member" data-member-id="${member.id}" data-member-name="${escapeHtml(memberName)}" type="button" title="Remove from team" aria-label="Remove ${escapeHtml(memberName)}">${iconSvg('user-minus')}</button>`
                         : `<span class="gs-role-chip" title="${escapeHtml(ROLE_HELP[member.role] || '')}">${escapeHtml(capitalize(member.role || 'member'))}</span>`}
                     </div>`;
                 }).join('')}
@@ -258,9 +259,9 @@ export async function renderSettings(container, route) {
               <div class="gs-list">
                 ${archivedPages.length === 0 ? '<p class="gs-empty">Nothing archived. Pages you archive will wait here.</p>' : archivedPages.map((page) => `
                   <div class="gs-row">
-                    <span class="gs-page-icon">${escapeHtml(page.icon || '📄')}</span>
+                    <span class="gs-page-icon">${pageIconSvg(page.icon)}</span>
                     <div class="gs-row-main"><strong>${escapeHtml(page.title || 'Untitled')}</strong><small>Archived ${timeSince(page.archived_at)}</small></div>
-                    <button type="button" class="gs-btn gs-btn-ghost restore-page" data-page-id="${page.id}"><span class="material-symbols-outlined">unarchive</span>Restore</button>
+                    <button type="button" class="gs-btn gs-btn-ghost restore-page" data-page-id="${page.id}">${iconSvg('archive-restore')}Restore</button>
                   </div>`).join('')}
               </div>
             </div>
@@ -268,8 +269,8 @@ export async function renderSettings(container, route) {
             <div class="gs-card">
               <div class="gs-card-head"><div><h2>Backup</h2><p>Download the team’s pages and tasks as a file, or add them back from one. Importing never overwrites anything.</p></div></div>
               <div class="gs-actions">
-                <button id="settings-export-backup" class="gs-btn gs-btn-primary" type="button"><span class="material-symbols-outlined">download</span>Download backup</button>
-                <button id="settings-import-backup" class="gs-btn gs-btn-ghost" type="button"><span class="material-symbols-outlined">upload_file</span>Import a backup…</button>
+                <button id="settings-export-backup" class="gs-btn gs-btn-primary" type="button">${iconSvg('download')}Download backup</button>
+                <button id="settings-import-backup" class="gs-btn gs-btn-ghost" type="button">${iconSvg('file-up')}Import a backup…</button>
                 <input id="settings-backup-input" type="file" accept="application/json,.json" hidden />
               </div>
             </div>
@@ -603,7 +604,7 @@ export async function renderSettings(container, route) {
         if (importedPage?.id) {
           pageMap.set(sourcePage.id, importedPage.id);
           const metadata = {
-            icon: typeof sourcePage.icon === 'string' ? sourcePage.icon.slice(0, 8) : '📄',
+            icon: typeof sourcePage.icon === 'string' ? sourcePage.icon.slice(0, 40) : 'file-text',
             cover_url: /^https?:\/\//i.test(sourcePage.cover_url || '') ? sourcePage.cover_url : null,
             is_favorite: Boolean(sourcePage.is_favorite)
           };
@@ -660,7 +661,7 @@ function backupPageDepth(page, pages, seen = new Set()) {
 function renderNotificationRow(key, icon, label, description, checked) {
   return `
     <label class="gs-row gs-switch-row">
-      <span class="gs-row-icon material-symbols-outlined">${icon}</span>
+      ${iconSvg(icon, 'gs-row-icon')}
       <span class="gs-row-main"><strong>${label}</strong><small>${description}</small></span>
       <span class="gs-switch"><input class="notification-toggle" type="checkbox" role="switch" data-key="${key}" ${checked ? 'checked' : ''} /><span aria-hidden="true"></span></span>
     </label>

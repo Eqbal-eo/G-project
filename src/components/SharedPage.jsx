@@ -1,3 +1,4 @@
+import Icon, { PageIcon } from './Icon';
 import { useEffect, useState } from 'react';
 import { fetchSharedPage } from '../lib/pageTools.js';
 import { sanitizeHtml } from '../lib/sanitize.js';
@@ -25,7 +26,7 @@ export default function SharedPage({ token }) {
   if (!state.page) {
     return (
       <div className="shared-page shared-center">
-        <span className="material-symbols-outlined shared-icon">link_off</span>
+        <Icon name="unlink" className="shared-icon" />
         <h1>This page isn’t available</h1>
         <p>{state.error || 'The link may have been turned off, or the page was archived.'}</p>
         <a href="#login">Go to Groupify</a>
@@ -42,7 +43,7 @@ export default function SharedPage({ token }) {
       </header>
       <article className="shared-article">
         {cover ? <img className="shared-cover" src={cover} alt="" /> : null}
-        <div className="shared-emoji">{page.icon || '📄'}</div>
+        <div className="shared-emoji"><PageIcon value={page.icon} /></div>
         <h1>{page.title || 'Untitled'}</h1>
         <p className="shared-meta">Last updated {new Date(page.updated_at).toLocaleDateString(undefined, { dateStyle: 'medium' })}</p>
         <div className="editor-rich-content shared-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(page.html || '') }} />

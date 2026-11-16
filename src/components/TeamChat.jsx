@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { setBreadcrumb } from '../legacy/app.js';
@@ -140,7 +141,7 @@ function TeamChatWorkspace({ workspace, user }) {
   if (!workspaceId) return <div className="empty-state"><h2>Select a workspace to chat</h2></div>;
   return <section className="team-chat" aria-label="Workspace team chat">
     <header className="team-chat-header">
-      <div className="team-chat-heading"><span className="material-symbols-outlined" aria-hidden="true">forum</span><div><p className="team-chat-kicker">WORKSPACE CONVERSATION</p><h1>Team chat</h1></div></div>
+      <div className="team-chat-heading"><Icon name="messages-square" /><div><p className="team-chat-kicker">WORKSPACE CONVERSATION</p><h1>Team chat</h1></div></div>
       <p>{workspace.name} · Members only · Updates every 5 seconds</p>
     </header>
     {connectionError && <div className="team-chat-error" role="alert">{connectionError} <button type="button" onClick={() => setRefresh(value => value + 1)}>Retry</button></div>}
@@ -149,7 +150,7 @@ function TeamChatWorkspace({ workspace, user }) {
       nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
       if (nearBottom.current) setHasNewMessages(false);
     }}>
-      {loading ? <p className="team-chat-loading" role="status">Loading conversation…</p> : !messages.length && !connectionError ? <div className="team-chat-empty"><span className="material-symbols-outlined" aria-hidden="true">chat_bubble_outline</span><h2>Start the conversation</h2><p>Share an update or image with your workspace.</p></div> : null}
+      {loading ? <p className="team-chat-loading" role="status">Loading conversation…</p> : !messages.length && !connectionError ? <div className="team-chat-empty"><Icon name="message-circle" /><h2>Start the conversation</h2><p>Share an update or image with your workspace.</p></div> : null}
       {messages.length === 100 && <p className="team-chat-caption">Showing the latest 100 messages.</p>}
       {messages.map((message, index) => <Fragment key={message.id}>
         {(index === 0 || new Date(messages[index - 1].created_at).toDateString() !== new Date(message.created_at).toDateString()) && <div className="team-chat-day" role="separator" aria-label={dayLabel(message.created_at)}><span>{dayLabel(message.created_at)}</span></div>}
@@ -160,7 +161,7 @@ function TeamChatWorkspace({ workspace, user }) {
         </article>
       </Fragment>)}
     </div>
-    {hasNewMessages && <button className="team-chat-jump" type="button" onClick={jumpToLatest}><span className="material-symbols-outlined" aria-hidden="true">arrow_downward</span> New messages</button>}</div>
+    {hasNewMessages && <button className="team-chat-jump" type="button" onClick={jumpToLatest}><Icon name="arrow-down" /> New messages</button>}</div>
     <form className="team-chat-composer" onSubmit={send}>
       {file && <div className="team-chat-attachment">{preview && <img src={preview} alt="Selected image preview" />}<span>{file.name}</span><button type="button" disabled={sending} onClick={() => { setFile(null); setPreview(''); input.current.value = ''; }}>Remove image</button></div>}
       <label htmlFor="chat-message">Message your team</label>
@@ -170,7 +171,7 @@ function TeamChatWorkspace({ workspace, user }) {
         <small id="team-chat-hint">Enter to send · Shift+Enter for a new line · {text.length}/4000</small>
         <input ref={input} type="file" accept={IMAGE_TYPES.join(',')} onChange={chooseImage} disabled={sending || !ready} hidden tabIndex={-1} />
         <button className="team-chat-attach-button" type="button" aria-label="Attach image" title="Attach image (up to 5 MB)" disabled={sending || !ready} onClick={() => input.current?.click()}>
-          <span className="material-symbols-outlined" aria-hidden="true">attach_file</span>
+          <Icon name="paperclip" />
         </button>
         <button className="modal-btn-primary" type="submit" disabled={sending || !ready || (!text.trim() && !file)}>{sending ? 'Sending…' : 'Send'}</button>
       </div>

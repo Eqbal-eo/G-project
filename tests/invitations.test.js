@@ -94,5 +94,5 @@ test('invitation notifications read naturally and open Home', () => {
   const info = describeNotification({ type: 'workspace_invite', payload: { actor_name: 'Lina Haddad', workspace_name: 'Capstone Crew', role: 'editor' } });
   assert.equal(info.text, 'Lina Haddad invited you to join “Capstone Crew”');
   assert.equal(info.href, 'dashboard');
-  assert.equal(info.icon, 'group_add');
+  assert.equal(info.icon, 'user-plus');
 });

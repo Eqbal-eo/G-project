@@ -3,6 +3,7 @@
 // Milestones & deadline health · Meeting assistant · Decisions & polls ·
 // Resources · Workload & AI rebalance
 // ============================================
+import { iconSvg } from '../../lib/icons.js';
 import { AppState, showToast } from '../app.js';
 import { supabase } from '../../lib/supabase.js';
 import { createPage, invalidateQueryCache } from '../../lib/queries.js';
@@ -23,7 +24,7 @@ import {
 const e = escapeHtml;
 const shortDate = (value) => (value ? new Date(`${String(value).slice(0, 10)}T00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '');
 const personName = (user) => user?.name || user?.email?.split('@')[0] || 'Teammate';
-const unavailableHint = '<div class="project-hint"><span class="material-symbols-outlined">construction</span><div><strong>Not set up yet</strong><p>Run <code>sql/team-tools.sql</code> in Supabase to turn this on.</p></div></div>';
+const unavailableHint = `<div class="project-hint">${iconSvg('construction')}<div><strong>Not set up yet</strong><p>Run <code>sql/team-tools.sql</code> in Supabase to turn this on.</p></div></div>`;
 
 // Hand a prepared request to "Ask AI" (it opens a fresh chat and sends it).
 function askAI(prompt, pageId = null) {
@@ -44,7 +45,7 @@ export async function renderMilestonesCard(el, ctx) {
   el.innerHTML = `
     <div class="project-section-head">
       <h2>Milestones</h2>
-      ${editable ? '<button type="button" class="project-btn" data-add-milestone><span class="material-symbols-outlined">flag</span> Add</button>' : ''}
+      ${editable ? `<button type="button" class="project-btn" data-add-milestone>${iconSvg('flag')} Add</button>` : ''}
     </div>
     ${milestones.length ? `<div class="deadline-health is-${health.status}" role="status">
       <span class="deadline-dot" aria-hidden="true"></span>
@@ -54,7 +55,7 @@ export async function renderMilestonesCard(el, ctx) {
       const done = Boolean(milestone.done_at);
       const late = !done && milestone.due_date < today;
       return `<li class="${done ? 'is-done' : ''} ${late ? 'is-late' : ''}">
-        <button type="button" class="milestone-check" data-toggle-milestone="${e(milestone.id)}" ${editable ? '' : 'disabled'} aria-label="${done ? 'Mark as not reached' : 'Mark as reached'}: ${e(milestone.title)}"><span class="material-symbols-outlined">${done ? 'check_circle' : 'flag'}</span></button>
+        <button type="button" class="milestone-check" data-toggle-milestone="${e(milestone.id)}" ${editable ? '' : 'disabled'} aria-label="${done ? 'Mark as not reached' : 'Mark as reached'}: ${e(milestone.title)}">${iconSvg(done ? 'circle-check' : 'flag')}</button>
         <button type="button" class="milestone-title" data-edit-milestone="${e(milestone.id)}" ${editable ? '' : 'disabled'}>${e(milestone.title)}</button>
         <span class="milestone-date">${late ? 'Late · ' : ''}${e(shortDate(milestone.due_date))}</span>
       </li>`;
@@ -81,7 +82,7 @@ export async function renderMilestonesCard(el, ctx) {
     const milestone = byId(button.dataset.toggleMilestone);
     const { error: toggleError } = await updateMilestone(milestone.id, { done: !milestone.done_at });
     if (toggleError) return showToast(`Could not update the milestone: ${toggleError.message}`, 'error');
-    showToast(milestone.done_at ? 'Milestone reopened' : `“${milestone.title}” reached 🎉`, 'success');
+    showToast(milestone.done_at ? 'Milestone reopened' : `“${milestone.title}” reached`, 'success');
     refresh();
   }));
   el.querySelectorAll('[data-edit-milestone]').forEach((button) => button.addEventListener('click', async () => {
@@ -158,11 +159,11 @@ export async function openMeetingAssistant(ctx) {
   await openCustomDialog({
     label: 'Meeting assistant',
     html: `<div class="modal-container meeting-dialog">
-      <div class="modal-header"><h3>📋 Meeting for ${e(project.title || 'this project')}</h3></div>
+      <div class="modal-header"><h3>${iconSvg('clipboard-list')} Meeting for ${e(project.title || 'this project')}</h3></div>
       <div class="modal-body">
         <p class="meeting-intro">Groupify built this agenda from your blockers, milestones, late work and open polls. Most urgent first.</p>
-        ${agenda.length ? agenda.map((section, index) => `<section class="meeting-section"><h4>${index + 1}. ${e(section.title)}</h4><ul>${section.items.map((item) => `<li>${e(item)}</li>`).join('')}</ul></section>`).join('') : '<p class="tools-empty">Nothing urgent. A quick round of updates is enough today. 🎉</p>'}
-        <p class="meeting-tip"><span class="material-symbols-outlined">auto_awesome</span><span>After the meeting, open the page’s <strong>Ask AI</strong> menu and choose <strong>“Meeting notes → decisions &amp; tasks”</strong>.</span></p>
+        ${agenda.length ? agenda.map((section, index) => `<section class="meeting-section"><h4>${index + 1}. ${e(section.title)}</h4><ul>${section.items.map((item) => `<li>${e(item)}</li>`).join('')}</ul></section>`).join('') : '<p class="tools-empty">Nothing urgent. A quick round of updates is enough today.</p>'}
+        <p class="meeting-tip">${iconSvg('sparkles')}<span>After the meeting, open the page’s <strong>Ask AI</strong> menu and choose <strong>“Meeting notes → decisions &amp; tasks”</strong>.</span></p>
       </div>
       <div class="modal-footer"><button type="button" class="modal-btn-secondary" data-cancel>Close</button>${canRunLive ? '<button type="button" class="modal-btn-secondary" data-live-meeting title="Everyone sees the same agenda timer and adds notes live">Run it live</button>' : ''}<button type="button" class="modal-btn-primary" data-create-meeting>Create meeting page</button></div>
     </div>`,
@@ -188,7 +189,7 @@ export async function openMeetingAssistant(ctx) {
         createButton.disabled = true;
         const { data: page, error } = await createPage(workspaceId, `Meeting · ${dateLabel}`, 'note', { html: markdownToHtml(markdown) }, project.id);
         if (error) { createButton.disabled = false; showToast(`Could not create the page: ${error.message}`, 'error'); return; }
-        await supabase.from('pages').update({ icon: '📋' }).eq('id', page.id);
+        await supabase.from('pages').update({ icon: 'clipboard-list' }).eq('id', page.id);
         invalidateQueryCache('pages');
         window.dispatchEvent(new CustomEvent('motion:pages-changed'));
         finish(true);
@@ -231,20 +232,20 @@ export async function renderDecisionsTab(section, ctx) {
         const winner = closed && winners.length === 1 && winners[0] === index;
         return `<li><button type="button" class="poll-option ${mine ? 'is-mine' : ''} ${winner ? 'is-winner' : ''}" data-vote="${e(poll.id)}" data-option="${index}" ${closed ? 'disabled' : ''} aria-pressed="${mine}">
           <span class="poll-bar" style="width:${share}%"></span>
-          <span class="poll-label">${mine ? '✓ ' : ''}${winner ? '🏆 ' : ''}${e(option)}</span>
+          <span class="poll-label">${mine ? `${iconSvg('check', '', 'aria-label="Your vote"')} ` : ''}${winner ? `${iconSvg('trophy', '', 'aria-label="Winning option"')} ` : ''}${e(option)}</span>
           <span class="poll-count">${counts[index]}</span>
         </button></li>`;
       }).join('')}</ul>
       ${closed ? '' : `<footer>${myVote !== undefined ? `<button type="button" class="tools-link" data-unvote="${e(poll.id)}">Remove my vote</button>` : '<small>Tap an option to vote. You can change it until the poll closes.</small>'}
-        ${manage ? `<button type="button" class="project-btn" data-close-poll="${e(poll.id)}"><span class="material-symbols-outlined">gavel</span> Close & record decision</button>` : ''}</footer>`}
-      ${manage ? `<button type="button" class="team-icon-btn tools-delete" data-delete-poll="${e(poll.id)}" title="Delete poll" aria-label="Delete poll"><span class="material-symbols-outlined">delete</span></button>` : ''}
+        ${manage ? `<button type="button" class="project-btn" data-close-poll="${e(poll.id)}">${iconSvg('gavel')} Close & record decision</button>` : ''}</footer>`}
+      ${manage ? `<button type="button" class="team-icon-btn tools-delete" data-delete-poll="${e(poll.id)}" title="Delete poll" aria-label="Delete poll">${iconSvg('trash')}</button>` : ''}
     </article>`;
   };
 
   section.innerHTML = `
     <div class="project-section-head">
       <div><h2>Decisions</h2><p class="team-intro">Vote on open questions, and keep a record of what the team decided and why, so nobody argues the same thing twice.</p></div>
-      ${editable ? '<div class="project-head-actions"><button type="button" class="project-btn" data-new-poll><span class="material-symbols-outlined">ballot</span> New poll</button><button type="button" class="project-btn primary" data-new-decision><span class="material-symbols-outlined">gavel</span> Record decision</button></div>' : ''}
+      ${editable ? `<div class="project-head-actions"><button type="button" class="project-btn" data-new-poll>${iconSvg('clipboard-list')} New poll</button><button type="button" class="project-btn primary" data-new-decision>${iconSvg('gavel')} Record decision</button></div>` : ''}
     </div>
     <div class="decisions-layout">
       <section>
@@ -254,9 +255,9 @@ export async function renderDecisionsTab(section, ctx) {
       <section>
         <h3 class="tools-subhead">Decision log</h3>
         ${decisions.length ? `<ol class="decision-list">${decisions.map((decision) => `<li>
-          <span class="material-symbols-outlined decision-icon" aria-hidden="true">${decision.poll_id ? 'how_to_vote' : 'gavel'}</span>
+          ${iconSvg(decision.poll_id ? 'vote' : 'gavel', 'decision-icon')}
           <div><strong>${e(decision.title)}</strong>${decision.details ? `<p>${e(decision.details)}</p>` : ''}<small>${e(personName(decision.author))} · ${e(shortDate(decision.created_at))}</small></div>
-          ${canManageItem(decision, { userId: me, role }) ? `<button type="button" class="team-icon-btn" data-delete-decision="${e(decision.id)}" title="Delete decision" aria-label="Delete decision"><span class="material-symbols-outlined">delete</span></button>` : ''}
+          ${canManageItem(decision, { userId: me, role }) ? `<button type="button" class="team-icon-btn" data-delete-decision="${e(decision.id)}" title="Delete decision" aria-label="Delete decision">${iconSvg('trash')}</button>` : ''}
         </li>`).join('')}</ol>` : '<p class="tools-empty">No decisions recorded yet. Close a poll or record one directly.</p>'}
       </section>
     </div>`;
@@ -379,22 +380,22 @@ async function openFile(resource, { download = false } = {}) {
 
 function resourceCard(resource, { me, role }) {
   const isFile = Boolean(resource.file_path);
-  const icon = isFile ? fileIcon(resource.file_name) : resource.url ? 'link' : 'sticky_note_2';
+  const icon = isFile ? fileIcon(resource.file_name) : resource.url ? 'link' : 'sticky-note';
   const heading = isFile
     ? `<button type="button" class="resource-open" data-open-file="${e(resource.id)}" title="Open ${e(resource.file_name)}"><strong>${e(resource.title)}</strong></button><small class="resource-host">${e(resource.file_name)} · ${e(formatBytes(resource.file_size))}</small>`
     : resource.url && isSafeUrl(resource.url)
       ? `<a href="${e(resource.url)}" target="_blank" rel="noopener noreferrer"><strong>${e(resource.title)}</strong></a><small class="resource-host">${e(hostOf(resource.url))}</small>`
       : `<strong>${e(resource.title)}</strong>`;
   return `<article class="resource-card ${isFile ? 'is-file' : ''}">
-    <span class="material-symbols-outlined resource-icon" aria-hidden="true">${icon}</span>
+    ${iconSvg(icon, 'resource-icon')}
     <div class="resource-main">
       ${heading}
       ${resource.note ? `<p>${e(resource.note)}</p>` : ''}
       <small>${resource.tag ? `<span class="resource-tag">${e(resource.tag)}</span> · ` : ''}${e(personName(resource.author))} · ${e(shortDate(resource.created_at))}</small>
     </div>
     <div class="resource-actions">
-      ${isFile ? `<button type="button" class="team-icon-btn" data-download-file="${e(resource.id)}" title="Download" aria-label="Download ${e(resource.file_name)}"><span class="material-symbols-outlined">download</span></button>` : ''}
-      ${canManageItem(resource, { userId: me, role }) ? `<button type="button" class="team-icon-btn" data-delete-resource="${e(resource.id)}" title="Delete" aria-label="Delete ${e(resource.title)}"><span class="material-symbols-outlined">delete</span></button>` : ''}
+      ${isFile ? `<button type="button" class="team-icon-btn" data-download-file="${e(resource.id)}" title="Download" aria-label="Download ${e(resource.file_name)}">${iconSvg('download')}</button>` : ''}
+      ${canManageItem(resource, { userId: me, role }) ? `<button type="button" class="team-icon-btn" data-delete-resource="${e(resource.id)}" title="Delete" aria-label="Delete ${e(resource.title)}">${iconSvg('trash')}</button>` : ''}
     </div>
   </article>`;
 }
@@ -415,8 +416,8 @@ export async function renderResources(el, ctx) {
     <div class="project-section-head">
       <div><h2>Resources</h2><p class="team-intro">Files, links and notes the team needs, in one place.${canUpload ? ' Drop files here to upload them.' : ''}</p></div>
       ${editable ? `<div class="project-head-actions">
-        ${canUpload ? '<button type="button" class="project-btn primary" data-upload-file><span class="material-symbols-outlined">upload_file</span> Upload file</button>' : ''}
-        <button type="button" class="project-btn ${canUpload ? '' : 'primary'}" data-add-resource><span class="material-symbols-outlined">add_link</span> Add link</button>
+        ${canUpload ? `<button type="button" class="project-btn primary" data-upload-file>${iconSvg('file-up')} Upload file</button>` : ''}
+        <button type="button" class="project-btn ${canUpload ? '' : 'primary'}" data-add-resource>${iconSvg('link-2')} Add link</button>
       </div>` : ''}
     </div>
     ${canUpload ? `<input type="file" data-file-input accept="${e(FILE_ACCEPT)}" multiple hidden />` : ''}
@@ -558,7 +559,7 @@ export function renderWorkload(el, ctx) {
   el.innerHTML = `
     <div class="project-section-head">
       <div><h2>Workload</h2><p class="team-intro">Open work per person (half-done tasks count as half). ${unbalanced ? '<strong class="is-warn">Some people have much more than others.</strong>' : 'Looks balanced.'}</p></div>
-      ${rows.length > 1 ? '<button type="button" class="project-btn" data-rebalance><span class="material-symbols-outlined">auto_awesome</span> Suggest a fairer split</button>' : ''}
+      ${rows.length > 1 ? `<button type="button" class="project-btn" data-rebalance>${iconSvg('sparkles')} Suggest a fairer split</button>` : ''}
     </div>
     <ul class="workload-list">${rows.map((row) => `<li class="${row.overloaded ? 'is-heavy' : row.light ? 'is-light' : ''}">
       <span class="workload-name">${e(row.name)}${row.teams.length ? `<small>${e(row.teams.join(', '))}</small>` : ''}</span>

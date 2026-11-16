@@ -3,6 +3,7 @@
 // An overview of you in the current team. Editing happens in Settings › My account.
 // ============================================
 
+import { iconSvg, pageIconSvg } from '../../lib/icons.js';
 import { AppState, setBreadcrumb } from '../app.js';
 import { getUserProfile, getRecentPages, getTasks, getWorkspaceMembers, timeAgo } from '../../lib/queries.js';
 import { escapeHtml } from '../../lib/sanitize.js';
@@ -25,7 +26,7 @@ export async function renderProfile(container) {
 
   const loadError = profileResult.error || pagesResult.error || tasksResult.error;
   if (loadError) {
-    container.innerHTML = `<div class="gs-page"><div class="gs-card gs-error"><span class="material-symbols-outlined">error</span><h3>Your profile could not load</h3><p>${escapeHtml(loadError.message || 'Please try again.')}</p><button id="profile-retry" class="gs-btn gs-btn-primary" type="button">Try again</button></div></div>`;
+    container.innerHTML = `<div class="gs-page"><div class="gs-card gs-error">${iconSvg('circle-alert')}<h3>Your profile could not load</h3><p>${escapeHtml(loadError.message || 'Please try again.')}</p><button id="profile-retry" class="gs-btn gs-btn-primary" type="button">Try again</button></div></div>`;
     container.querySelector('#profile-retry')?.addEventListener('click', () => renderProfile(container));
     return;
   }
@@ -59,14 +60,14 @@ export async function renderProfile(container) {
             ${teamName ? `<span class="gs-role-chip">${escapeHtml(ROLE_LABEL[role] || 'Member')} · ${escapeHtml(teamName)}</span>` : ''}
           </p>
         </div>
-        <a class="gs-btn gs-btn-primary" href="#settings?section=account"><span class="material-symbols-outlined">edit</span>Edit profile</a>
+        <a class="gs-btn gs-btn-primary" href="#settings?section=account">${iconSvg('pencil')}Edit profile</a>
       </section>
 
       ${missingName || missingPhoto ? `
       <a class="gp-nudge" href="#settings?section=account">
-        <span class="material-symbols-outlined">tips_and_updates</span>
+        ${iconSvg('lightbulb')}
         <span>${missingName ? 'Add your name' : 'Add a photo'} so teammates recognise you in tasks and comments.</span>
-        <span class="material-symbols-outlined">arrow_forward</span>
+        ${iconSvg('arrow-right')}
       </a>` : ''}
 
       <section class="gp-stats" aria-label="Your tasks in this team">
@@ -91,7 +92,7 @@ export async function renderProfile(container) {
                 <span class="gs-row-main"><strong>${escapeHtml(task.title || 'Untitled task')}</strong><small>${escapeHtml(task.status === 'in_progress' ? 'In progress' : 'To do')}</small></span>
                 ${task.due_date ? `<span class="gp-due ${late ? 'is-late' : ''}">${late ? 'Overdue · ' : ''}${escapeHtml(new Date(`${task.due_date}T00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</span>` : ''}
               </a>`;
-            }).join('') : '<p class="gs-empty">Nothing assigned to you right now. 🎉</p>'}
+            }).join('') : '<p class="gs-empty">Nothing assigned to you right now.</p>'}
           </div>
         </section>
 
@@ -100,9 +101,9 @@ export async function renderProfile(container) {
           <div class="gs-list">
             ${pages.length ? pages.map((page) => `
               <a class="gs-row" href="#editor/${escapeHtml(page.id)}">
-                <span class="gs-page-icon">${escapeHtml(page.icon || '📄')}</span>
+                <span class="gs-page-icon">${pageIconSvg(page.icon)}</span>
                 <span class="gs-row-main"><strong>${escapeHtml(page.title || 'Untitled')}</strong><small>${escapeHtml(timeAgo(page.updated_at))}</small></span>
-                <span class="material-symbols-outlined gs-row-arrow">chevron_right</span>
+                ${iconSvg('chevron-right', 'gs-row-arrow')}
               </a>`).join('') : '<p class="gs-empty">No pages yet.</p>'}
           </div>
         </section>

@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { Component } from 'react';
 
 export default class ErrorBoundary extends Component {
@@ -21,7 +22,7 @@ export default class ErrorBoundary extends Component {
     return (
       <main className="min-h-screen bg-surface text-on-surface flex items-center justify-center p-6">
         <section className="w-full max-w-md rounded-2xl bg-surface-container-lowest border border-outline-variant/20 p-8 text-center shadow-sm">
-          <span className="material-symbols-outlined text-error text-4xl" aria-hidden="true">error</span>
+          <Icon name="circle-alert" className="text-error text-4xl" />
           <h1 className="mt-4 text-xl font-bold">Groupify needs to restart</h1>
           <p className="mt-2 text-sm text-on-surface-variant">Something unexpected interrupted Groupify. Your saved data is unchanged.</p>
           <button type="button" className="mt-6 px-5 py-2.5 rounded-lg bg-primary text-on-primary text-sm font-semibold" onClick={this.handleReload}>

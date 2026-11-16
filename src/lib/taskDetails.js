@@ -1,3 +1,4 @@
+import { iconSvg } from './icons.js';
 import { supabase } from './supabase.js';
 import { updateTask, createTaskComment } from './queries.js';
 import { attachMentionPicker, extractMentionIds, renderMentionsHtml, memberLabel } from './mentions.js';
@@ -29,7 +30,7 @@ function renderTaskDetails(task, members = [], onSaved = () => {}, { teams: know
   const backdrop = document.createElement('div');
   backdrop.className = 'task-detail-backdrop';
   backdrop.innerHTML = `<section class="task-detail-panel" role="dialog" aria-modal="true" aria-label="Task details">
-    <header><div><small>TASK</small><h2>Details &amp; progress</h2></div><div class="task-detail-head-actions">${task.status !== 'done' ? '<button type="button" class="task-focus-btn" data-focus title="Work on this task with a timer, no distractions">🎯 Focus</button>' : ''}<button type="button" data-close aria-label="Close task details">×</button></div></header>
+    <header><div><small>TASK</small><h2>Details &amp; progress</h2></div><div class="task-detail-head-actions">${task.status !== 'done' ? `<button type="button" class="task-focus-btn" data-focus title="Work on this task with a timer, no distractions">${iconSvg('target')} Focus</button>` : ''}<button type="button" data-close aria-label="Close task details">×</button></div></header>
     <p class="task-detail-lock" data-lock hidden></p>
     <form class="task-detail-form">
       <label>Title<input name="title" value="${esc(task.title || '')}" required maxlength="500" /></label>
@@ -41,7 +42,7 @@ function renderTaskDetails(task, members = [], onSaved = () => {}, { teams: know
       </div>
       <label>Description<textarea name="description" rows="4" placeholder="What needs to be done, and what does “done” look like?">${esc(details.description || '')}</textarea></label>
       <details class="task-detail-more" data-more>
-        <summary><span class="material-symbols-outlined" aria-hidden="true">expand_more</span><strong>More details</strong><small data-more-summary></small></summary>
+        <summary>${iconSvg('chevron-down')}<strong>More details</strong><small data-more-summary></small></summary>
         <div class="task-detail-more-body">
           <div class="task-detail-fields">
             <label>Priority<select name="priority">${['low','medium','high','urgent'].map(value => `<option value="${value}" ${task.priority === value ? 'selected' : ''}>${value[0].toUpperCase() + value.slice(1)}</option>`).join('')}</select></label>
@@ -148,8 +149,8 @@ function renderTaskDetails(task, members = [], onSaved = () => {}, { teams: know
     if (permissions.readOnly || permissions.progressOnly) {
       lock.hidden = false;
       lock.innerHTML = permissions.readOnly
-        ? `<span class="material-symbols-outlined">lock</span> Only ${esc(leaderName)} can edit tasks in <strong>${esc(team?.name || 'this team')}</strong>. You can still comment below.`
-        : `<span class="material-symbols-outlined">lock_open</span> You can update the status and progress. ${esc(leaderName)} manages the rest of this task.`;
+        ? `${iconSvg('lock')} Only ${esc(leaderName)} can edit tasks in <strong>${esc(team?.name || 'this team')}</strong>. You can still comment below.`
+        : `${iconSvg('lock-open')} You can update the status and progress. ${esc(leaderName)} manages the rest of this task.`;
       form.querySelectorAll('input, select, textarea, button').forEach(control => {
         const allowed = permissions.progressOnly && ['status', 'progress'].includes(control.name);
         if (control.type === 'submit') { control.hidden = permissions.readOnly; return; }
@@ -252,7 +253,7 @@ export async function requestNewTask({ members = [], status = 'todo', title = ''
     submitLabel: 'Create task',
     fields: [
       { name: 'title', label: 'Title', value: title, required: true, placeholder: 'What needs to be done?', maxLength: 500 },
-      ...(projects.length ? [{ name: 'projectId', label: 'Project', type: 'select', value: projectId, options: [{ value: '', label: 'No project' }, ...projects.map((project) => ({ value: project.id, label: `${project.icon || '📁'}  ${project.title || 'Untitled project'}` }))] }] : []),
+      ...(projects.length ? [{ name: 'projectId', label: 'Project', type: 'select', value: projectId, options: [{ value: '', label: 'No project' }, ...projects.map((project) => ({ value: project.id, label: project.title || 'Untitled project' }))] }] : []),
       { name: 'status', label: 'Status', type: 'select', value: status, half: true, options: [{ value: 'todo', label: 'To do' }, { value: 'in_progress', label: 'In progress' }, { value: 'done', label: 'Done' }] },
       { name: 'priority', label: 'Priority', type: 'select', value: 'medium', half: true, options: ['low', 'medium', 'high', 'urgent'].map((value) => ({ value, label: value[0].toUpperCase() + value.slice(1) })) },
       { name: 'assigneeId', label: 'Assignee', type: 'select', value: me, half: true, options: [{ value: '', label: 'Unassigned' }, ...members.map((member) => ({ value: member.user_id, label: `${member.user?.name || member.user?.email || 'Member'}${member.user_id === me ? ' (you)' : ''}` }))].concat(me && !members.some((member) => member.user_id === me) ? [{ value: me, label: 'Me' }] : []) },

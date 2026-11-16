@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { AppState, setBreadcrumb, showToast } from '../legacy/app.js';
@@ -17,9 +18,9 @@ import { getCallConnection } from '../lib/videoCalls.js';
 const MeetingCall = lazy(() => import('./MeetingCall.jsx'));
 const POLL_MS = 15000;
 const KIND_META = {
-  note: { label: 'Note', icon: 'notes' },
+  note: { label: 'Note', icon: 'notepad-text' },
   decision: { label: 'Decision', icon: 'gavel' },
-  action: { label: 'Action', icon: 'task_alt' }
+  action: { label: 'Action', icon: 'circle-check-big' }
 };
 
 function reviewKey(meetingId) {
@@ -327,7 +328,7 @@ function MeetingRoom({ meetingId, user }) {
 
   if (loading) return <div className="meeting-view"><p className="meeting-muted" role="status">Loading meeting…</p></div>;
   if (loadError === 'not-found' || (!meeting && !loadError)) {
-    return <div className="project-empty-state"><span className="material-symbols-outlined">event_busy</span><h2>Meeting not found</h2><p>It may have been deleted, or it belongs to another team.</p><a href="#dashboard">Go home</a></div>;
+    return <div className="project-empty-state"><Icon name="calendar-x" /><h2>Meeting not found</h2><p>It may have been deleted, or it belongs to another team.</p><a href="#dashboard">Go home</a></div>;
   }
   if (!meeting) {
     return <div className="meeting-view"><div className="team-chat-error" role="alert">{loadError} <button type="button" onClick={() => { setLoading(true); setRefresh((value) => value + 1); }}>Retry</button></div></div>;
@@ -342,7 +343,7 @@ function MeetingRoom({ meetingId, user }) {
     <section className="meeting-view" aria-label="Meeting">
       <header className="meeting-header">
         <a className="meeting-back" href={`#project/${meeting.project_id}/meetings`}>
-          <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          <Icon name="arrow-left" />
           {project?.title || 'Project'} · Meetings
         </a>
         <div className="meeting-title-row">
@@ -351,11 +352,11 @@ function MeetingRoom({ meetingId, user }) {
           {status !== 'ended' && role && (
             activeCall ? (
               <button type="button" className="project-btn meeting-call-btn" onClick={leaveCall}>
-                <span className="material-symbols-outlined" aria-hidden="true">call_end</span>Leave call
+                <Icon name="phone-off" />Leave call
               </button>
             ) : (
               <button type="button" className="project-btn primary meeting-call-btn" disabled={joining} onClick={joinCall}>
-                <span className="material-symbols-outlined" aria-hidden="true">videocam</span>{joining ? 'Joining…' : 'Join video call'}
+                <Icon name="video" />{joining ? 'Joining…' : 'Join video call'}
               </button>
             )
           )}
@@ -381,7 +382,7 @@ function MeetingRoom({ meetingId, user }) {
               const state = status === 'live' ? (index < currentIndex ? 'is-done' : index === currentIndex ? 'is-current' : '') : status === 'ended' ? 'is-done' : '';
               return (
                 <li key={item.id} className={state} aria-current={state === 'is-current' ? 'step' : undefined}>
-                  <span className="meeting-agenda-index">{state === 'is-done' ? <span className="material-symbols-outlined" aria-hidden="true">check</span> : index + 1}</span>
+                  <span className="meeting-agenda-index">{state === 'is-done' ? <Icon name="check" /> : index + 1}</span>
                   <span className="meeting-agenda-title">{item.title}</span>
                   <small>{item.minutes} min</small>
                 </li>
@@ -390,7 +391,7 @@ function MeetingRoom({ meetingId, user }) {
           </ol>
           {status === 'planned' && canRun && (
             <button type="button" className="project-btn primary meeting-wide-btn" disabled={Boolean(busy) || !agenda.length} onClick={start}>
-              <span className="material-symbols-outlined" aria-hidden="true">play_arrow</span>{busy === 'start' ? 'Starting…' : 'Start meeting'}
+              <Icon name="play" />{busy === 'start' ? 'Starting…' : 'Start meeting'}
             </button>
           )}
         </aside>
@@ -408,11 +409,11 @@ function MeetingRoom({ meetingId, user }) {
               {canRun && <div className="meeting-controls">
                 {!isLast && (
                   <button type="button" className="project-btn" disabled={Boolean(busy)} onClick={next}>
-                    <span className="material-symbols-outlined" aria-hidden="true">skip_next</span>{busy === 'next' ? 'Moving…' : 'Next item'}
+                    <Icon name="skip-forward" />{busy === 'next' ? 'Moving…' : 'Next item'}
                   </button>
                 )}
                 <button type="button" className={`project-btn ${isLast ? 'primary' : ''}`} disabled={Boolean(busy)} onClick={end}>
-                  <span className="material-symbols-outlined" aria-hidden="true">stop_circle</span>{busy === 'end' ? 'Ending…' : 'End meeting'}
+                  <Icon name="circle-stop" />{busy === 'end' ? 'Ending…' : 'End meeting'}
                 </button>
               </div>}
               {canNote ? <form className="meeting-composer" onSubmit={sendNote}>
@@ -431,16 +432,16 @@ function MeetingRoom({ meetingId, user }) {
                   onChange={(event) => setDraft(event.target.value)}
                 />
                 <button type="submit" className="project-btn primary" disabled={!draft.trim()} aria-label="Add note">
-                  <span className="material-symbols-outlined" aria-hidden="true">send</span>
+                  <Icon name="send" />
                 </button>
-              </form> : role ? <p className="meeting-notice"><span className="material-symbols-outlined" aria-hidden="true">visibility</span>You are watching this meeting. Notes can be added by editors and commenters.</p> : null}
+              </form> : role ? <p className="meeting-notice"><Icon name="eye" />You are watching this meeting. Notes can be added by editors and commenters.</p> : null}
               {noteError && <div className="team-chat-error" role="alert">{noteError}</div>}
             </section>
           )}
 
           {status === 'planned' && (
             <div className="project-hint">
-              <span className="material-symbols-outlined">groups</span>
+              <Icon name="users" />
               <div><strong>{canRun ? 'Ready when you are' : 'Not started yet'}</strong><p>{canRun ? 'Start the meeting when the team is here.' : 'An editor or admin starts the meeting.'} Everyone sees the same agenda item and timer, and notes appear live.</p></div>
             </div>
           )}
@@ -448,14 +449,14 @@ function MeetingRoom({ meetingId, user }) {
           {status === 'ended' && (preparing || (canRun && review && !meeting.minutes_page_id) || canPrepare) && (
             <section className="meeting-review" aria-label="Review meeting minutes" aria-busy={preparing}>
               {preparing ? (
-                <p className="meeting-muted project-section" role="status"><span className="material-symbols-outlined meeting-spin" aria-hidden="true">progress_activity</span> Preparing the summary and proposed tasks…</p>
+                <p className="meeting-muted project-section" role="status"><Icon name="loader-circle" className="meeting-spin" /> Preparing the summary and proposed tasks…</p>
               ) : review ? (
                 <ReviewPanel review={review} people={people} busy={busy === 'apply'} onChange={updateReview} onApply={apply} onCancel={() => updateReview(null)} />
               ) : (
                 <div className="meeting-review-empty project-section">
                   <p>Minutes have not been saved for this meeting yet. The teammate who ended it may still be reviewing them, or you can prepare them now.</p>
                   <button type="button" className="project-btn primary" onClick={() => prepareMinutes(meeting, notes)}>
-                    <span className="material-symbols-outlined" aria-hidden="true">auto_awesome</span>Prepare minutes
+                    <Icon name="sparkles" />Prepare minutes
                   </button>
                 </div>
               )}
@@ -491,7 +492,7 @@ function MeetingRoom({ meetingId, user }) {
                       {itemNotes.map((note) => (
                         <li key={note.id} className={`meeting-note is-${note.kind}`}>
                           <span className="meeting-note-kind" title={KIND_META[note.kind]?.label}>
-                            <span className="material-symbols-outlined" aria-hidden="true">{KIND_META[note.kind]?.icon || 'notes'}</span>
+                            <Icon name={KIND_META[note.kind]?.icon || 'notepad-text'} />
                             <span className="sr-only">{KIND_META[note.kind]?.label}:</span>
                           </span>
                           <p>{note.body}</p>
@@ -518,11 +519,11 @@ function ReviewPanel({ review, people, busy, onChange, onApply, onCancel }) {
   return (
     <div className="agent-card meeting-review-card">
       <div className="agent-card-head">
-        <span className="material-symbols-outlined">{review.source === 'ai' ? 'auto_awesome' : 'checklist'}</span>
+        <Icon name={review.source === 'ai' ? 'sparkles' : 'list-checks'} />
         <strong>Review the minutes before saving</strong>
       </div>
       <div className="meeting-review-body">
-      {review.notice && <p className="meeting-notice" role="status"><span className="material-symbols-outlined" aria-hidden="true">info</span>{review.notice}</p>}
+      {review.notice && <p className="meeting-notice" role="status"><Icon name="info" />{review.notice}</p>}
       {review.created?.length > 0 && <p className="meeting-notice">{review.created.length} task{review.created.length === 1 ? ' was' : 's were'} already created in an earlier attempt and will be listed in the minutes.</p>}
 
       <label className="meeting-review-label" htmlFor="meeting-summary">Summary</label>
@@ -569,6 +570,6 @@ function ReviewPanel({ review, people, busy, onChange, onApply, onCancel }) {
 }
 
 export default function MeetingView({ meetingId, user }) {
-  if (!meetingId) return <div className="project-empty-state"><span className="material-symbols-outlined">event_busy</span><h2>Meeting not found</h2><a href="#dashboard">Go home</a></div>;
+  if (!meetingId) return <div className="project-empty-state"><Icon name="calendar-x" /><h2>Meeting not found</h2><a href="#dashboard">Go home</a></div>;
   return <MeetingRoom key={meetingId} meetingId={meetingId} user={user} />;
 }

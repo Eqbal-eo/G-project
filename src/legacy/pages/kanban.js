@@ -1,3 +1,4 @@
+import { iconSvg } from '../../lib/icons.js';
 import { requestConfirmation } from "../../lib/dialogs.js";
 // ============================================
 // MOTION — Kanban Board Page Module (Legacy)
@@ -53,7 +54,7 @@ export async function renderKanban(container, route) {
   let listSort = { key: 'due', dir: 1 };
   let calendarMonth = new Date();
   if (error) {
-    container.innerHTML = `<div class="error-state m-8"><span class="material-symbols-outlined">error</span><h3>Failed to load tasks</h3><p>${escapeHtml(error.message || 'Please try again.')}</p></div>`;
+    container.innerHTML = `<div class="error-state m-8">${iconSvg('circle-alert')}<h3>Failed to load tasks</h3><p>${escapeHtml(error.message || 'Please try again.')}</p></div>`;
     return;
   }
 
@@ -65,9 +66,9 @@ export async function renderKanban(container, route) {
   const members = membersResult.data || [];
 
   const columnConfig = {
-    todo: { label: 'To Do', icon: 'radio_button_unchecked', description: 'Ready to pick up' },
-    in_progress: { label: 'In Progress', icon: 'pending', description: 'Currently moving' },
-    done: { label: 'Done', icon: 'check_circle', description: 'Finished work' }
+    todo: { label: 'To Do', icon: 'circle', description: 'Ready to pick up' },
+    in_progress: { label: 'In Progress', icon: 'circle-ellipsis', description: 'Currently moving' },
+    done: { label: 'Done', icon: 'circle-check', description: 'Finished work' }
   };
   const overdueCount = allTasks.filter((task) => task.due_date && task.status !== 'done' && new Date(`${task.due_date}T23:59:59`) < new Date()).length;
 
@@ -75,22 +76,22 @@ export async function renderKanban(container, route) {
     <section class="motion-kanban">
       <header class="motion-kanban-header" ${scope ? 'hidden' : ''}>
         <div>
-          <div class="motion-kanban-eyebrow"><span class="material-symbols-outlined">view_kanban</span> ${query?.get('assignee') === 'mine' ? 'MY TASKS' : 'ALL TASKS'}</div>
+          <div class="motion-kanban-eyebrow">${iconSvg('square-kanban')} ${query?.get('assignee') === 'mine' ? 'MY TASKS' : 'ALL TASKS'}</div>
           <h2>${query?.get('assignee') === 'mine' ? 'Work assigned to you.' : 'Every task across your team.'}</h2>
           <p>${query?.get('assignee') === 'mine' ? 'Everything you own, across all projects.' : 'Tasks from every project. Open a project to see just its board.'}</p>
         </div>
-        <button class="motion-kanban-primary btn-add-task" data-status="todo" type="button"><span class="material-symbols-outlined">add</span> New task</button>
+        <button class="motion-kanban-primary btn-add-task" data-status="todo" type="button">${iconSvg('plus')} New task</button>
       </header>
 
       <div class="motion-kanban-overview" aria-label="Board overview">
-        <div><span class="motion-kanban-overview-icon total material-symbols-outlined">layers</span><span><strong>${allTasks.length}</strong><small>Total tasks</small></span></div>
-        <div><span class="motion-kanban-overview-icon active material-symbols-outlined">pending</span><span><strong>${columns.in_progress.length}</strong><small>In progress</small></span></div>
-        <div><span class="motion-kanban-overview-icon complete material-symbols-outlined">check_circle</span><span><strong>${columns.done.length}</strong><small>Completed</small></span></div>
-        <div><span class="motion-kanban-overview-icon overdue material-symbols-outlined">schedule</span><span><strong>${overdueCount}</strong><small>Overdue</small></span></div>
+        <div>${iconSvg('layers', 'motion-kanban-overview-icon total')}<span><strong>${allTasks.length}</strong><small>Total tasks</small></span></div>
+        <div>${iconSvg('circle-ellipsis', 'motion-kanban-overview-icon active')}<span><strong>${columns.in_progress.length}</strong><small>In progress</small></span></div>
+        <div>${iconSvg('circle-check', 'motion-kanban-overview-icon complete')}<span><strong>${columns.done.length}</strong><small>Completed</small></span></div>
+        <div>${iconSvg('clock', 'motion-kanban-overview-icon overdue')}<span><strong>${overdueCount}</strong><small>Overdue</small></span></div>
       </div>
 
       <div class="motion-kanban-toolbar">
-        <label class="motion-kanban-search"><span class="material-symbols-outlined">search</span><input id="kanban-search" type="search" placeholder="Search tasks and tags" aria-label="Search tasks and tags" /></label>
+        <label class="motion-kanban-search">${iconSvg('search')}<input id="kanban-search" type="search" placeholder="Search tasks and tags" aria-label="Search tasks and tags" /></label>
         <div class="motion-kanban-filters">
           <select id="kanban-priority-filter" aria-label="Filter by priority">
             <option value="all">All priorities</option>
@@ -115,11 +116,11 @@ export async function renderKanban(container, route) {
       </div>
       <div class="task-view-bar">
         <div class="task-view-switch" role="tablist" aria-label="Task view">
-          ${[['board', 'view_kanban', 'Board'], ['list', 'table_rows', 'List'], ['calendar', 'calendar_month', 'Calendar'], ['timeline', 'view_timeline', 'Timeline']].map(([id, icon, label]) => `<button type="button" role="tab" data-view="${id}" aria-selected="false"><span class="material-symbols-outlined">${icon}</span>${label}</button>`).join('')}
+          ${[['board', 'square-kanban', 'Board'], ['list', 'rows-3', 'List'], ['calendar', 'calendar-days', 'Calendar'], ['timeline', 'chart-gantt', 'Timeline']].map(([id, icon, label]) => `<button type="button" role="tab" data-view="${id}" aria-selected="false">${iconSvg(icon)}${label}</button>`).join('')}
         </div>
-        <button type="button" class="task-fields-btn" id="kanban-manage-fields"><span class="material-symbols-outlined">tune</span> Fields${customFields.length ? ` · ${customFields.length}` : ''}</button>
+        <button type="button" class="task-fields-btn" id="kanban-manage-fields">${iconSvg('sliders-horizontal')} Fields${customFields.length ? ` · ${customFields.length}` : ''}</button>
       </div>
-      <div class="motion-kanban-subbar"><p id="kanban-filter-summary" role="status">Showing all ${allTasks.length} tasks</p><button id="kanban-clear-filters" type="button" hidden>Clear filters</button><button id="btn-export-calendar" type="button"><span class="material-symbols-outlined">event</span> Export calendar</button></div>
+      <div class="motion-kanban-subbar"><p id="kanban-filter-summary" role="status">Showing all ${allTasks.length} tasks</p><button id="kanban-clear-filters" type="button" hidden>Clear filters</button><button id="btn-export-calendar" type="button">${iconSvg('calendar')} Export calendar</button></div>
       <nav class="motion-kanban-lane-nav" aria-label="Jump to board column">${Object.entries(columnConfig).map(([status, config]) => `<button type="button" data-jump="${status}">${config.label} <span data-nav-count="${status}">${columns[status].length}</span></button>`).join('')}</nav>
 
       <div class="motion-kanban-scroll" id="kanban-scroll">
@@ -128,12 +129,12 @@ export async function renderKanban(container, route) {
           .map(
             ([status, tasks]) => `
           <div class="motion-kanban-column" data-column="${status}">
-            <div class="motion-kanban-column-header"><span class="motion-kanban-column-icon ${status} material-symbols-outlined">${columnConfig[status].icon}</span><div><h3>${columnConfig[status].label} <span data-count="${status}">${tasks.length}</span></h3><p>${columnConfig[status].description}</p></div></div>
+            <div class="motion-kanban-column-header">${iconSvg(columnConfig[status].icon, `motion-kanban-column-icon ${status}`)}<div><h3>${columnConfig[status].label} <span data-count="${status}">${tasks.length}</span></h3><p>${columnConfig[status].description}</p></div></div>
             <div class="motion-kanban-cards" data-cards="${status}">
-              ${tasks.length === 0 ? `<div class="motion-kanban-empty"><span class="material-symbols-outlined">${columnConfig[status].icon}</span><strong>Nothing here yet</strong><p>${status === 'todo' ? 'Add a task to get started.' : status === 'in_progress' ? 'Move a task here when you begin.' : 'Finished tasks will appear here.'}</p></div>` : tasks.map((t) => renderTaskCard(t)).join('')}
+              ${tasks.length === 0 ? `<div class="motion-kanban-empty">${iconSvg(columnConfig[status].icon)}<strong>Nothing here yet</strong><p>${status === 'todo' ? 'Add a task to get started.' : status === 'in_progress' ? 'Move a task here when you begin.' : 'Finished tasks will appear here.'}</p></div>` : tasks.map((t) => renderTaskCard(t)).join('')}
               <div class="motion-kanban-no-match" hidden>No tasks match your filters.</div>
             </div>
-            <button class="motion-kanban-add btn-add-task" data-status="${status}" type="button"><span class="material-symbols-outlined">add</span> Add task</button>
+            <button class="motion-kanban-add btn-add-task" data-status="${status}" type="button">${iconSvg('plus')} Add task</button>
           </div>
         `
           )
@@ -490,18 +491,18 @@ function renderTaskCard(task) {
 
   return `
     <article class="task-card motion-kanban-card" draggable="true" data-task-id="${task.id}" data-task-title="${escapeHtml(String(task.title || '').toLowerCase())}" data-task-tags="${escapeHtml((task.tags || []).join(' ').toLowerCase())}" data-task-priority="${priority}" data-task-due="${task.due_date || ''}" data-task-overdue="${isOverdue}" data-task-assignee="${task.assignee_id || ''}" aria-label="Task ${safeTitle}; drag to move">
-      <div class="motion-kanban-card-top"><span class="motion-kanban-priority ${priority}"><span class="material-symbols-outlined">flag</span>${priority}</span><span class="motion-kanban-grip material-symbols-outlined" aria-hidden="true">drag_indicator</span></div>
+      <div class="motion-kanban-card-top"><span class="motion-kanban-priority ${priority}">${iconSvg('flag')}${priority}</span>${iconSvg('grip-vertical', 'motion-kanban-grip')}</div>
       <h4 class="${isDone ? 'is-done' : ''}"><button type="button" class="task-open-details" data-task-id="${task.id}" aria-label="Open task ${safeTitle}">${safeTitle}</button></h4>
       ${task.details?.description ? `<p class="motion-kanban-description">${escapeHtml(task.details.description.slice(0, 100))}</p>` : ''}
       ${task.tags?.length ? `<div class="motion-kanban-tags">${task.tags.slice(0, 3).map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}</div>` : ''}
       <div class="motion-kanban-meta">
-        ${task.due_date ? `<span class="motion-kanban-due ${isOverdue ? 'is-overdue' : ''}"><span class="material-symbols-outlined">event</span>${isOverdue ? 'Overdue · ' : ''}${dueLabel}</span>` : '<span class="motion-kanban-due muted"><span class="material-symbols-outlined">event</span>No due date</span>'}
-        ${checklist?.length ? `<span><span class="material-symbols-outlined">checklist</span>${checklist.filter((item) => item.done).length}/${checklist.length}</span>` : ''}
+        ${task.due_date ? `<span class="motion-kanban-due ${isOverdue ? 'is-overdue' : ''}">${iconSvg('calendar')}${isOverdue ? 'Overdue · ' : ''}${dueLabel}</span>` : `<span class="motion-kanban-due muted">${iconSvg('calendar')}No due date</span>`}
+        ${checklist?.length ? `<span>${iconSvg('list-checks')}${checklist.filter((item) => item.done).length}/${checklist.length}</span>` : ''}
         ${safeAssigneeAvatar ? `<img class="motion-kanban-avatar" src="${safeAssigneeAvatar}" alt="${safeAssigneeName}" title="${safeAssigneeName}" />` : task.assignee?.name ? `<span class="motion-kanban-avatar initials" title="${safeAssigneeName}">${escapeHtml(task.assignee.name.split(' ').map((word) => word[0]).join('').slice(0, 2).toUpperCase())}</span>` : ''}
       </div>
-      <div class="motion-kanban-card-actions"><button class="task-move" data-task-id="${task.id}" data-move-to="${nextStatus}" type="button"><span class="material-symbols-outlined">${isDone ? 'restart_alt' : 'arrow_forward'}</span>${nextLabel}</button><button class="task-edit" data-task-id="${task.id}" type="button" aria-label="Edit ${safeTitle}"><span class="material-symbols-outlined">edit</span></button><button class="task-delete" data-task-id="${task.id}" type="button" aria-label="Delete ${safeTitle}"><span class="material-symbols-outlined">delete</span></button></div>
-      ${task.page_id ? `<button type="button" class="task-open-page" data-page-id="${escapeHtml(task.page_id)}"><span class="material-symbols-outlined">description</span> Open linked page</button>` : ''}
-      ${isDone ? '<span class="motion-kanban-done-mark material-symbols-outlined" aria-hidden="true">check_circle</span>' : ''}
+      <div class="motion-kanban-card-actions"><button class="task-move" data-task-id="${task.id}" data-move-to="${nextStatus}" type="button">${iconSvg(isDone ? 'rotate-ccw' : 'arrow-right')}${nextLabel}</button><button class="task-edit" data-task-id="${task.id}" type="button" aria-label="Edit ${safeTitle}">${iconSvg('pencil')}</button><button class="task-delete" data-task-id="${task.id}" type="button" aria-label="Delete ${safeTitle}">${iconSvg('trash')}</button></div>
+      ${task.page_id ? `<button type="button" class="task-open-page" data-page-id="${escapeHtml(task.page_id)}">${iconSvg('file-text')} Open linked page</button>` : ''}
+      ${isDone ? `${iconSvg('circle-check', 'motion-kanban-done-mark')}` : ''}
     </article>
   `;
 }

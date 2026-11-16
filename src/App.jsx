@@ -1,3 +1,5 @@
+import { iconSvg } from './lib/icons.js';
+import Icon, { PageIcon } from './components/Icon';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, showToast, handleSignOut } from './legacy/app.js';
 import { requestConfirmation } from './lib/dialogs.js';
@@ -137,7 +139,7 @@ function LegacyRenderer({ renderer, routeKey, route }) {
         console.error('Legacy render error:', err);
         ref.current.innerHTML = `
           <div class="error-state" style="margin:2rem;">
-            <span class="material-symbols-outlined" style="font-size:2.5rem; margin-bottom:0.5rem;">error</span>
+            ${iconSvg('circle-alert', '', 'style="font-size:2.5rem; margin-bottom:0.5rem;"')}
             <h3 style="font-weight:600; margin-bottom:0.25rem;">Something went wrong</h3>
             <p style="font-size:0.875rem; opacity:0.7;">${escapeHtml(err?.message || String(err))}</p>
           </div>
@@ -173,7 +175,7 @@ function SearchPalette({ isOpen, query, setQuery, results, loading, onClose, onS
         onClick={(event) => event.stopPropagation()}
       >
         <div className="command-palette-search">
-          <span className="material-symbols-outlined" aria-hidden="true">search</span>
+          <Icon name="search" />
           <input
             autoFocus
             value={query}
@@ -209,16 +211,16 @@ function SearchPalette({ isOpen, query, setQuery, results, loading, onClose, onS
               <p className="command-palette-empty">Search projects, pages and tasks — or jump straight in:</p>
               <div className="command-palette-actions">
                 <button type="button" className="command-palette-result" onClick={() => onAction('new-project')}>
-                  <span className="material-symbols-outlined">create_new_folder</span><span className="command-palette-result-copy"><strong>New project</strong><small>Plan, tasks and discussion in one place</small></span>
+                  <Icon name="folder-plus" /><span className="command-palette-result-copy"><strong>New project</strong><small>Plan, tasks and discussion in one place</small></span>
                 </button>
                 <button type="button" className="command-palette-result" onClick={() => onAction('new-task')}>
-                  <span className="material-symbols-outlined">add_task</span><span className="command-palette-result-copy"><strong>New task</strong><small>Add work and choose an owner</small></span>
+                  <Icon name="list-plus" /><span className="command-palette-result-copy"><strong>New task</strong><small>Add work and choose an owner</small></span>
                 </button>
                 <button type="button" className="command-palette-result" onClick={() => onAction('new-page')}>
-                  <span className="material-symbols-outlined">note_add</span><span className="command-palette-result-copy"><strong>New page</strong><small>Create from a template</small></span>
+                  <Icon name="file-plus" /><span className="command-palette-result-copy"><strong>New page</strong><small>Create from a template</small></span>
                 </button>
                 <button type="button" className="command-palette-result" onClick={() => onAction('kanban?assignee=mine')}>
-                  <span className="material-symbols-outlined">task_alt</span><span className="command-palette-result-copy"><strong>My tasks</strong><small>Everything assigned to you</small></span>
+                  <Icon name="circle-check-big" /><span className="command-palette-result-copy"><strong>My tasks</strong><small>Everything assigned to you</small></span>
                 </button>
               </div>
             </>
@@ -231,14 +233,12 @@ function SearchPalette({ isOpen, query, setQuery, results, loading, onClose, onS
               type="button"
               onClick={() => onSelect(result)}
             >
-              <span className="material-symbols-outlined" aria-hidden="true">
-                {result.type === 'task' ? 'check_circle' : result.type === 'project' ? 'folder' : 'description'}
-              </span>
+              <Icon name={result.type === 'task' ? 'circle-check' : result.type === 'project' ? 'folder' : 'file-text'} />
               <span className="command-palette-result-copy">
                 <strong>{result.title || 'Untitled'}</strong>
                 <small>{result.type === 'task' ? 'Task' : result.type === 'project' ? 'Project' : 'Page'}</small>
               </span>
-              <span className="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+              <Icon name="arrow-right" />
             </button>
           ))}
         </div>
@@ -269,7 +269,7 @@ function PageCreationDialog({ isOpen, onClose, onSubmit }) {
     brief: { label: 'Project brief', pageType: 'document', content: { html: '<h2>Project brief</h2><p><strong>Objective:</strong> </p><h3>Context</h3><p></p><h3>Scope</h3><ul><li></li></ul><h3>Success metrics</h3><ul><li></li></ul>' } },
     board: { label: 'Kanban board', pageType: 'kanban', content: { html: '<h2>Project board</h2><p>Use the Kanban view to track this work from idea to done.</p>' } },
     database: { label: 'Project database', pageType: 'database', content: { html: '<h2>Project database</h2><p>Add pages below as rows and filter them by type or status.</p>' } },
-    ...Object.fromEntries(teamTemplates.map((item) => [`team:${item.id}`, { label: `★ ${item.title} (team template)`, pageType: 'note', content: { html: item.html || '' } }]))
+    ...Object.fromEntries(teamTemplates.map((item) => [`team:${item.id}`, { label: `${item.title} (team template)`, pageType: 'note', content: { html: item.html || '' } }]))
   };
 
   const selected = templates[template];
@@ -512,9 +512,7 @@ function SidebarNotesTree({ pages, searchQuery, onPageMoved }) {
               className="p-0.5 -ml-1 text-on-surface-variant/70 hover:text-on-surface flex items-center justify-center flex-shrink-0"
               title={isExpanded ? 'Collapse folder' : 'Expand folder'}
             >
-              <span className={`material-symbols-outlined text-[15px] note-folder-arrow ${isExpanded ? 'is-expanded rotate-90' : ''}`}>
-                chevron_right
-              </span>
+              <Icon name="chevron-right" className={`text-[15px] note-folder-arrow ${isExpanded ? 'is-expanded rotate-90' : ''}`} />
             </button>
           ) : (
             <span className="w-3.5 h-3.5 flex-shrink-0 -ml-1" />
@@ -525,13 +523,9 @@ function SidebarNotesTree({ pages, searchQuery, onPageMoved }) {
             className="flex items-center gap-1.5 flex-1 min-w-0 text-inherit hover:text-on-surface no-underline"
           >
             {hasChildren ? (
-              <span className="material-symbols-outlined text-amber-500 text-[15px] flex-shrink-0">
-                {isExpanded ? 'folder_open' : 'folder'}
-              </span>
+              <Icon name={isExpanded ? 'folder-open' : 'folder'} className="text-amber-500 text-[15px] flex-shrink-0" />
             ) : (
-              <span className="material-symbols-outlined text-[14px] opacity-70 flex-shrink-0">
-                {node.page_type === 'kanban' ? 'view_kanban' : node.page_type === 'database' ? 'local_library' : 'description'}
-              </span>
+              <Icon name={node.page_type === 'kanban' ? 'square-kanban' : node.page_type === 'database' ? 'library' : 'file-text'} className="text-[14px] opacity-70 flex-shrink-0" />
             )}
             <span className={`truncate flex-1 ${isNested ? 'text-[11px] font-normal' : 'text-xs font-medium'}`}>
               {node.title || 'Untitled'}
@@ -563,7 +557,7 @@ function SidebarNotesTree({ pages, searchQuery, onPageMoved }) {
           }`}
         title="Drop here to move page to root level"
       >
-        <span className="material-symbols-outlined text-xs">drive_file_move</span>
+        <Icon name="folder-input" className="text-xs" />
         <span className="truncate">Drop here to move to the top level</span>
       </div>
 
@@ -1328,7 +1322,7 @@ export default function App() {
           title="Hide sidebar (Ctrl/⌘ + \)"
           onClick={hideSidebar}
         >
-          <span className="material-symbols-outlined">{isDesktop ? 'left_panel_close' : 'close'}</span>
+          <Icon name={isDesktop ? 'panel-left-close' : 'x'} />
         </button>
         <div className="sidebar-brand">
           <a href="#dashboard" className="sidebar-logo" aria-label="Groupify home"><GroupifyLogo height={24} color="#F5F7F8" /></a>
@@ -1343,7 +1337,7 @@ export default function App() {
               title={AppState.workspaces.length > 1 ? 'Switch team or create a new one' : 'Create another team'}
             >
               <span className="truncate">{workspaceName}</span>
-              <span className="material-symbols-outlined" aria-hidden="true">unfold_more</span>
+              <Icon name="chevrons-up-down" />
             </button>
             {teamMenuOpen ? (
               <div className="sidebar-team-popover" role="menu" aria-label="Teams">
@@ -1356,12 +1350,12 @@ export default function App() {
                     aria-checked={workspace.id === AppState.workspace?.id}
                     onClick={() => { setTeamMenuOpen(false); if (workspace.id !== AppState.workspace?.id) handleWorkspaceChange({ target: { value: workspace.id } }); }}
                   >
-                    <span className="material-symbols-outlined" aria-hidden="true">{workspace.id === AppState.workspace?.id ? 'check' : 'group'}</span>
+                    <Icon name={workspace.id === AppState.workspace?.id ? 'check' : 'users'} />
                     <span className="truncate">{workspace.name}</span>
                   </button>
                 ))}
                 <button type="button" role="menuitem" className="is-new" onClick={() => { setTeamMenuOpen(false); setNewWorkspaceModalOpen(true); }}>
-                  <span className="material-symbols-outlined" aria-hidden="true">add</span>
+                  <Icon name="plus" />
                   <span>New team…</span>
                 </button>
               </div>
@@ -1371,26 +1365,26 @@ export default function App() {
         </div>
 
         <button type="button" className="sidebar-search" onClick={openSearch} aria-label="Search (Ctrl+K)">
-          <span className="material-symbols-outlined">search</span>
+          <Icon name="search" />
           <span>Search</span>
           <kbd>⌘K</kbd>
         </button>
 
         <nav className="sidebar-nav" aria-label="Main">
           {[
-            { key: 'home', href: '#dashboard', icon: 'home', label: 'Home', hint: 'Your day: what’s due, your projects and team activity', active: route.path === 'dashboard' },
-            { key: 'mine', href: '#kanban?assignee=mine', icon: 'task_alt', label: 'My tasks', hint: 'Every task assigned to you, across all projects', active: route.path === 'kanban' && route.query.get('assignee') === 'mine' },
-            { key: 'chat', href: '#chat', icon: 'forum', label: 'Team chat', hint: 'Talk with your whole team in one place', active: route.path === 'chat' },
-            { key: 'ai', href: '#ai-chat', icon: 'auto_awesome', label: 'Ask AI', hint: 'Ask questions, or let the AI plan projects and create tasks for you to approve', active: route.path === 'ai-chat' }
+            { key: 'home', href: '#dashboard', icon: 'house', label: 'Home', hint: 'Your day: what’s due, your projects and team activity', active: route.path === 'dashboard' },
+            { key: 'mine', href: '#kanban?assignee=mine', icon: 'circle-check-big', label: 'My tasks', hint: 'Every task assigned to you, across all projects', active: route.path === 'kanban' && route.query.get('assignee') === 'mine' },
+            { key: 'chat', href: '#chat', icon: 'messages-square', label: 'Team chat', hint: 'Talk with your whole team in one place', active: route.path === 'chat' },
+            { key: 'ai', href: '#ai-chat', icon: 'sparkles', label: 'Ask AI', hint: 'Ask questions, or let the AI plan projects and create tasks for you to approve', active: route.path === 'ai-chat' }
           ].map((item) => (
             <a key={item.key} href={item.href} title={item.hint} className={`sidebar-link ${item.active ? 'is-active' : ''}`} aria-current={item.active ? 'page' : undefined}>
-              <span className="material-symbols-outlined">{item.icon}</span>
+              <Icon name={item.icon} />
               <span>{item.label}</span>
               {item.key === 'mine' && myOpenTaskCount > 0 ? <span className="sidebar-count">{myOpenTaskCount}</span> : null}
             </a>
           ))}
           <button type="button" className={`sidebar-link sidebar-focus ${focusSession && !focusSession.finished ? 'is-running' : ''}`} onClick={pickAndFocus} title="Work on one task with a timer, no distractions">
-            <span className="material-symbols-outlined">timer</span>
+            <Icon name="timer" />
             <span>{focusSession && !focusSession.finished ? 'Focusing…' : 'Focus'}</span>
             {focusSession && !focusSession.finished ? <span className="sidebar-focus-dot" aria-hidden="true" /> : null}
           </button>
@@ -1408,7 +1402,7 @@ export default function App() {
                 }}
               >
                 <div className="notion-ai-avatar-circle">
-                  <span className="material-symbols-outlined text-xl">auto_awesome</span>
+                  <Icon name="sparkles" className="text-xl" />
                 </div>
                 <span>Groupify AI</span>
               </button>
@@ -1420,7 +1414,7 @@ export default function App() {
                 title="Start new conversation with AI"
               >
                 <div className="notion-ai-add-circle">
-                  <span className="material-symbols-outlined text-xl">add</span>
+                  <Icon name="plus" className="text-xl" />
                 </div>
                 <span>New agent</span>
               </button>
@@ -1435,14 +1429,14 @@ export default function App() {
                   title="Search chats"
                   onClick={() => setAiChatSearchOpen((prev) => !prev)}
                 >
-                  <span className="material-symbols-outlined text-sm">search</span>
+                  <Icon name="search" className="text-sm" />
                 </button>
                 <button
                   type="button"
                   title="New chat"
                   onClick={handleStartNewAIChat}
                 >
-                  <span className="material-symbols-outlined text-sm">add</span>
+                  <Icon name="plus" className="text-sm" />
                 </button>
               </div>
             </div>
@@ -1481,7 +1475,7 @@ export default function App() {
                       tabIndex={0}
                     >
                       <div className="notion-ai-chat-item-main">
-                        <span className="material-symbols-outlined text-sm text-on-surface-variant">chat_bubble_outline</span>
+                        <Icon name="message-circle" className="text-sm text-on-surface-variant" />
                         <span className="notion-ai-chat-item-title" title={chat.title}>{chat.title || 'Untitled chat'}</span>
                       </div>
                       <div className="flex items-center gap-1">
@@ -1501,7 +1495,7 @@ export default function App() {
                             }
                           }}
                         >
-                          <span className="material-symbols-outlined text-xs">close</span>
+                          <Icon name="x" className="text-xs" />
                         </button>
                       </div>
                     </div>
@@ -1516,20 +1510,20 @@ export default function App() {
             <div className="sidebar-section-head">
               <span>Projects</span>
               <button type="button" onClick={() => startNewProject()} aria-label="New project" title="New project">
-                <span className="material-symbols-outlined">add</span>
+                <Icon name="plus" />
               </button>
             </div>
             {projects.length ? projects.map((project) => {
               const active = activeProjectId === project.id;
               return (
                 <a key={project.id} href={`#project/${project.id}`} className={`sidebar-link sidebar-project ${active ? 'is-active' : ''}`} aria-current={active ? 'page' : undefined}>
-                  <span className="sidebar-emoji">{project.icon || '📁'}</span>
+                  <PageIcon value={project.icon} fallback="folder" className="sidebar-emoji" />
                   <span className="truncate">{project.title || 'Untitled project'}</span>
                 </a>
               );
             }) : (
               <button type="button" className="sidebar-empty-cta" onClick={() => startNewProject()}>
-                <span className="material-symbols-outlined">add</span>
+                <Icon name="plus" />
                 Create your first project
               </button>
             )}
@@ -1539,7 +1533,7 @@ export default function App() {
             <div className="sidebar-section-head" title="Pages that aren’t part of a project: meeting notes, ideas, drafts">
               <span>Notes</span>
               <button type="button" onClick={() => setNewPageModalOpen(true)} aria-label="New page" title="New page (Ctrl+N)">
-                <span className="material-symbols-outlined">add</span>
+                <Icon name="plus" />
               </button>
             </div>
             {otherPages.length ? (
@@ -1548,22 +1542,22 @@ export default function App() {
               <p className="sidebar-hint">Meeting notes, ideas and drafts that aren’t part of a project live here.</p>
             )}
             <details className="sidebar-more-menu">
-              <summary title="All pages, all tasks and the table view"><span className="material-symbols-outlined" aria-hidden="true">more_horiz</span>More</summary>
-              <a href="#notes" title="Every page in your team, in projects or not"><span className="material-symbols-outlined" aria-hidden="true">description</span>All pages</a>
-              <a href="#kanban" title="Every task in your team, as a board, list, calendar or timeline"><span className="material-symbols-outlined" aria-hidden="true">view_kanban</span>All tasks</a>
-              <a href="#database" title="Tasks and pages in a spreadsheet-style table"><span className="material-symbols-outlined" aria-hidden="true">table_view</span>Table view</a>
+              <summary title="All pages, all tasks and the table view"><Icon name="ellipsis" />More</summary>
+              <a href="#notes" title="Every page in your team, in projects or not"><Icon name="file-text" />All pages</a>
+              <a href="#kanban" title="Every task in your team, as a board, list, calendar or timeline"><Icon name="square-kanban" />All tasks</a>
+              <a href="#database" title="Tasks and pages in a spreadsheet-style table"><Icon name="table" />Table view</a>
             </details>
           </section>
         </div>
 
         <div className="sidebar-footer">
           <a href="#settings?section=team" className="sidebar-link" title="See your teammates and invite new people">
-            <span className="material-symbols-outlined">group</span>
+            <Icon name="users" />
             <span>Team{teamSize > 1 ? ` · ${teamSize}` : ''}</span>
             <span className="sidebar-invite">Invite</span>
           </a>
           <a href="#settings" className={`sidebar-link ${route.path === 'settings' ? 'is-active' : ''}`}>
-            <span className="material-symbols-outlined">settings</span>
+            <Icon name="settings" />
             <span>Settings</span>
           </a>
           <a href="#profile" className="sidebar-user" aria-label="Your profile">
@@ -1586,7 +1580,7 @@ export default function App() {
               aria-expanded={sidebarShown}
               aria-controls="sidebar"
             >
-              <span className="material-symbols-outlined">menu</span>
+              <Icon name="menu" />
             </button>
 
             <div id="breadcrumb" className="flex items-center gap-2 text-sm text-on-surface-variant">
@@ -1596,7 +1590,7 @@ export default function App() {
                 title="Home"
                 className="inline-flex items-center justify-center rounded p-1 hover:bg-surface-container-high focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
               >
-                <span className="material-symbols-outlined text-sm" aria-hidden="true">home</span>
+                <Icon name="house" className="text-sm" />
               </a>
               <span>/</span>
               <span
@@ -1616,9 +1610,7 @@ export default function App() {
               title="Search (⌘K)"
               aria-label="Search your team"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>
-                search
-              </span>
+              <Icon name="search" style={{ fontSize: '1.25rem' }} />
               <span className="workspace-search-label">Search anything</span>
               <kbd className="workspace-search-shortcut">⌘ K</kbd>
             </button>
@@ -1629,7 +1621,7 @@ export default function App() {
               title="How Groupify works (?)"
               aria-label="Help: how Groupify works"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>help</span>
+              <Icon name="circle-question-mark" style={{ fontSize: '1.25rem' }} />
             </button>
 
             <button
@@ -1637,9 +1629,7 @@ export default function App() {
               onClick={toggleTheme}
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>
-                {theme === 'dark' ? 'light_mode' : 'dark_mode'}
-              </span>
+              <Icon name={theme === 'dark' ? 'sun' : 'moon'} style={{ fontSize: '1.25rem' }} />
             </button>
 
             {/* Notification Bell */}
@@ -1650,9 +1640,7 @@ export default function App() {
                 title="Notifications"
                 aria-label="Open notifications"
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>
-                  notifications
-                </span>
+                <Icon name="bell" style={{ fontSize: '1.25rem' }} />
                 {notifications.some((notification) => !notification.read_at) && (
                   <span className="notification-badge">
                     {notifications.filter((notification) => !notification.read_at).length > 9
@@ -1687,9 +1675,7 @@ export default function App() {
                   <div className="py-2">
                     {notifications.length === 0 && recentActivity.length === 0 ? (
                       <div className="px-4 py-6 text-center">
-                        <span className="material-symbols-outlined text-on-surface-variant/30" style={{ fontSize: '2rem' }}>
-                          notifications_off
-                        </span>
+                        <Icon name="bell-off" className="text-on-surface-variant/30" style={{ fontSize: '2rem' }} />
                         <p className="text-xs text-on-surface-variant mt-2">No recent activity</p>
                       </div>
                     ) : notifications.length > 0 ? (
@@ -1713,9 +1699,7 @@ export default function App() {
                             }}
                           >
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${notification.type === 'mention' ? 'bg-primary-container' : 'bg-surface-container-high'}`}>
-                              <span className={`material-symbols-outlined text-sm ${notification.type === 'mention' ? 'text-primary' : 'text-on-surface-variant'}`}>
-                                {info.icon}
-                              </span>
+                              <Icon name={info.icon} className={`text-sm ${notification.type === 'mention' ? 'text-primary' : 'text-on-surface-variant'}`} />
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="notification-text text-sm font-medium text-on-surface">
@@ -1741,7 +1725,7 @@ export default function App() {
                           }}
                         >
                           <div className="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center flex-shrink-0">
-                            <span className="text-lg">{page.icon || '📄'}</span>
+                            <PageIcon value={page.icon} className="text-lg" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-on-surface truncate">{page.title || 'Untitled'}</p>
@@ -1804,17 +1788,17 @@ export default function App() {
               <span>{AppState.profile?.email || AppState.user?.email || ''}</span>
             </div>
             <button type="button" role="menuitem" onClick={avatarMenuEdit}>
-              <span className="material-symbols-outlined">edit</span>Edit profile
+              <Icon name="pencil" />Edit profile
             </button>
             <button type="button" role="menuitem" className="is-danger" onClick={avatarMenuLogout}>
-              <span className="material-symbols-outlined">logout</span>Log out
+              <Icon name="log-out" />Log out
             </button>
           </div>
         ) : null}
 
         {isOffline ? (
           <div className="mx-4 mt-3 rounded-lg border border-error/30 bg-error-container/30 px-4 py-2 text-xs text-on-error-container flex items-center gap-2" role="status">
-            <span className="material-symbols-outlined text-sm" aria-hidden="true">cloud_off</span>
+            <Icon name="cloud-off" className="text-sm" />
             You are offline. Changes may not sync until your connection returns.
           </div>
         ) : null}
@@ -1884,7 +1868,7 @@ export default function App() {
       />
       {helpNudge && !helpOpen ? (
         <div className="help-nudge" role="status">
-          <span className="help-nudge-icon" aria-hidden="true">👋</span>
+          <Icon name="circle-question-mark" className="help-nudge-icon" />
           <div><strong>New to Groupify?</strong><p>See how projects, teams and tasks fit together. It takes a minute.</p></div>
           <div className="help-nudge-actions">
             <button type="button" className="gs-btn gs-btn-primary" onClick={() => dismissHelpNudge(true)}>Show me</button>

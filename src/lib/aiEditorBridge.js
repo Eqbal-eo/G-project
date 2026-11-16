@@ -1,3 +1,4 @@
+import { iconSvg } from './icons.js';
 import { showToast } from '../legacy/app.js';
 import { markdownInline } from './markdown.js';
 import { normalizeLanguage } from './codeBlockText.js';
@@ -146,7 +147,7 @@ export function markdownToEditorHtml(markdown) {
     if (trimmed.startsWith('> [!NOTE]') || trimmed.startsWith('> [!TIP]') || trimmed.startsWith('> [!IMPORTANT]')) {
       flushList();
       const text = trimmed.replace(/^>\s*\[![A-Z]+\]\s*/, '');
-      blocks.push(`<aside class="editor-callout"><span class="editor-callout-icon">💡</span><div class="editor-callout-text">${formatInline(text)}</div></aside>`);
+      blocks.push(`<aside class="editor-callout"><span class="editor-callout-icon">${iconSvg('lightbulb')}</span><div class="editor-callout-text">${formatInline(text)}</div></aside>`);
       continue;
     }
     if (trimmed.startsWith('> ')) {

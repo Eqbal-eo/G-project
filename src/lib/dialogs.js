@@ -1,3 +1,4 @@
+import { pageIconSvg } from './icons.js';
 // App dialogs also work in browsers that do not implement native prompt/confirm.
 function showDialog(message, defaultValue, confirmation) {
   return new Promise((resolve) => {
@@ -190,7 +191,7 @@ export function requestChoice({ title, placeholder = 'Search…', items = [], em
       let active = 0;
       const render = () => {
         list.innerHTML = visible.length
-          ? visible.slice(0, 50).map((item, index) => `<button type="button" role="option" aria-selected="${index === active}" class="modal-choice-item ${index === active ? 'is-active' : ''}" data-index="${index}"><span class="modal-choice-icon">${escapeAttr(item.icon || '📄')}</span><span>${escapeAttr(item.label)}</span>${item.hint ? `<small>${escapeAttr(item.hint)}</small>` : ''}</button>`).join('')
+          ? visible.slice(0, 50).map((item, index) => `<button type="button" role="option" aria-selected="${index === active}" class="modal-choice-item ${index === active ? 'is-active' : ''}" data-index="${index}"><span class="modal-choice-icon">${pageIconSvg(item.icon)}</span><span>${escapeAttr(item.label)}</span>${item.hint ? `<small>${escapeAttr(item.hint)}</small>` : ''}</button>`).join('')
           : `<p class="modal-choice-empty">${escapeAttr(emptyText)}</p>`;
         list.querySelector('.is-active')?.scrollIntoView({ block: 'nearest' });
       };

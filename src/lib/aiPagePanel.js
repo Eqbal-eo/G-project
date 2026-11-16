@@ -1,3 +1,4 @@
+import { iconSvg } from './icons.js';
 import { validateAIPlan, aiBlockHtml } from './aiBlocks.js';
 import { escapeHtml as esc } from './sanitize.js';
 import { generatePageDraft } from './pageAI.js';
@@ -16,11 +17,11 @@ export function openAIPagePanel({pageId, pageTitle, pageText, initialPrompt = ''
     </header>
     <p class="ai-panel-help">Ask to create a table, task checklist, draft content, or edit page blocks. The AI will generate them directly for preview and insertion.</p>
     <div class="ai-prompt-suggestions" aria-label="Prompt ideas">
-      <button data-idea="Create a table organizing project milestones, deadlines, and status">📊 Project milestones table</button>
-      <button data-idea="Create a comprehensive comparison table with columns and rows">📊 Comparison table</button>
-      <button data-idea="Write a detailed task checklist to get started on the project">📋 Task checklist</button>
-      <button data-idea="Summarize the content of this page and suggest next steps">💡 Summary &amp; next steps</button>
-      <button data-idea="Add a section explaining code with detailed syntax and sample code">💻 Code explanation</button>
+      <button data-idea="Create a table organizing project milestones, deadlines, and status">${iconSvg('table')} Project milestones table</button>
+      <button data-idea="Create a comprehensive comparison table with columns and rows">${iconSvg('table-2')} Comparison table</button>
+      <button data-idea="Write a detailed task checklist to get started on the project">${iconSvg('list-checks')} Task checklist</button>
+      <button data-idea="Summarize the content of this page and suggest next steps">${iconSvg('lightbulb')} Summary &amp; next steps</button>
+      <button data-idea="Add a section explaining code with detailed syntax and sample code">${iconSvg('code')} Code explanation</button>
     </div>
     <label>What would you like to create or update on this page?
       <textarea data-prompt rows="4" maxlength="4000" placeholder="e.g. Create a table for graduation project milestones with due dates and status, or add a checklist..."></textarea>

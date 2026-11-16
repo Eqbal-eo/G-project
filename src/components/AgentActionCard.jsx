@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useState } from 'react';
 import { updateMessageInChat } from '../lib/aiChatStore.js';
 import { describeAction, executeAgentActions } from '../lib/agent.js';
@@ -23,7 +24,7 @@ export default function AgentActionCard({ chatId, message, onApplied = null }) {
   return (
     <div className={`agent-card is-${state}`}>
       <div className="agent-card-head">
-        <span className="material-symbols-outlined">{state === 'applied' ? 'task_alt' : state === 'cancelled' ? 'block' : 'bolt'}</span>
+        <Icon name={state === 'applied' ? 'circle-check-big' : state === 'cancelled' ? 'ban' : 'zap'} />
         <strong>{state === 'applied' ? 'Applied' : state === 'cancelled' ? 'Cancelled' : state === 'failed' ? 'Could not apply' : `${message.actions.length} proposed change${message.actions.length === 1 ? '' : 's'}`}</strong>
       </div>
       <ul>
@@ -32,7 +33,7 @@ export default function AgentActionCard({ chatId, message, onApplied = null }) {
           const result = message.results?.[index];
           return (
             <li key={index} className={result ? (result.ok ? 'is-ok' : 'is-error') : ''}>
-              <span className="material-symbols-outlined">{result ? (result.ok ? 'check_circle' : 'error') : info.icon}</span>
+              <Icon name={result ? (result.ok ? 'circle-check' : 'circle-alert') : info.icon} />
               <div>
                 {result?.ok && result.href ? <a href={result.href}>{info.text}</a> : <span>{info.text}</span>}
                 {info.detail ? <small>{info.detail}</small> : null}

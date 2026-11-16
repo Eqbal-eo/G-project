@@ -1,3 +1,4 @@
+import { iconSvg } from './icons.js';
 import { escapeHtml as esc } from './sanitize.js';
 
 export { AI_BLOCK_TYPES, validateAIPlan } from '../../supabase/functions/_shared/aiContract.js';
@@ -11,7 +12,7 @@ export function aiBlockHtml(block) {
   if(block.type === 'todo') return `<ul class="editor-todo-list">${lines.map(line=>`<li><label><input type="checkbox" /> <span>${esc(line)}</span></label></li>`).join('')}</ul>`;
   if(block.type === 'code') return `<pre><code>${esc(text)}</code></pre>`;
   if(block.type === 'quote') return `<blockquote>${htmlText}</blockquote>`;
-  if(block.type === 'callout') return `<aside class="editor-callout"><span>💡</span><span>${htmlText}</span></aside>`;
+  if(block.type === 'callout') return `<aside class="editor-callout"><span class="editor-callout-icon">${iconSvg('lightbulb')}</span><span>${htmlText}</span></aside>`;
   if(block.type === 'toggle') return `<details class="editor-toggle"><summary>${esc(lines[0])}</summary><p>${esc(lines.slice(1).join('\n')).replaceAll('\n','<br>')}</p></details>`;
   if(block.type === 'divider') return '<hr />';
   return `<p>${htmlText}</p>`;

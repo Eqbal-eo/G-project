@@ -1,3 +1,4 @@
+import { iconSvg, pageIconSvg } from '../../lib/icons.js';
 import { requestInput, requestConfirmation } from "../../lib/dialogs.js";
 // ============================================
 // MOTION — Database Table Page Module (Legacy)
@@ -12,13 +13,13 @@ export async function renderDatabase(container) {
 
   const workspaceId = AppState.workspace?.id;
   if (!workspaceId) {
-    container.innerHTML = `<div class="empty-state" style="min-height:60vh;"><span class="material-symbols-outlined">folder_off</span><h3>No team yet</h3><p>Create a team first.</p></div>`;
+    container.innerHTML = `<div class="empty-state" style="min-height:60vh;">${iconSvg('folder-x')}<h3>No team yet</h3><p>Create a team first.</p></div>`;
     return;
   }
 
   const { data: pages, error } = await getPages(workspaceId);
   if (error) {
-    container.innerHTML = `<div class="error-state m-8"><span class="material-symbols-outlined">error</span><h3>Failed to load data</h3><p>${escapeHtml(error.message || 'Please try again.')}</p></div>`;
+    container.innerHTML = `<div class="error-state m-8">${iconSvg('circle-alert')}<h3>Failed to load data</h3><p>${escapeHtml(error.message || 'Please try again.')}</p></div>`;
     return;
   }
 
@@ -40,16 +41,16 @@ export async function renderDatabase(container) {
           </div>
           <div class="flex flex-wrap gap-2">
             <button id="btn-export-csv" class="px-4 py-2.5 bg-surface-container-high text-on-surface rounded-lg font-semibold flex items-center gap-2 transition-colors hover:bg-surface-container-highest">
-              <span class="material-symbols-outlined text-sm">download</span>
+              ${iconSvg('download', 'text-sm')}
               Export CSV
             </button>
             <button id="btn-import-csv" class="px-4 py-2.5 bg-surface-container-high text-on-surface rounded-lg font-semibold flex items-center gap-2 transition-colors hover:bg-surface-container-highest">
-              <span class="material-symbols-outlined text-sm">upload_file</span>
+              ${iconSvg('file-up', 'text-sm')}
               Import CSV
             </button>
             <input id="db-import-input" type="file" accept=".csv,text/csv" hidden />
             <button id="btn-new-row" class="px-5 py-2.5 bg-primary text-on-primary rounded-lg font-semibold flex items-center gap-2 transition-transform active:scale-95">
-              <span class="material-symbols-outlined">add</span>
+              ${iconSvg('plus')}
               New Row
             </button>
           </div>
@@ -57,7 +58,7 @@ export async function renderDatabase(container) {
         <div class="flex items-center justify-between gap-4 p-2 bg-surface-container-low rounded-xl">
           <div class="flex flex-wrap items-center gap-2 w-full">
             <label class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high/60 rounded-lg text-sm text-on-surface-variant flex-1 min-w-[12rem]">
-              <span class="material-symbols-outlined text-base">search</span>
+              ${iconSvg('search', 'text-base')}
               <input id="db-search" class="min-w-0 flex-1 bg-transparent border-none outline-none text-on-surface placeholder:text-on-surface-variant/60" placeholder="Find pages..." type="search" />
             </label>
             <select id="db-type-filter" class="px-3 py-1.5 bg-surface-container-high/60 rounded-lg border-none outline-none text-sm text-on-surface-variant">
@@ -116,7 +117,7 @@ export async function renderDatabase(container) {
               <tr>
                 <td colspan="8" class="px-6 py-12 text-center text-on-surface-variant text-sm">
                   <div class="empty-state">
-                    <span class="material-symbols-outlined">table_chart</span>
+                    ${iconSvg('table-2')}
                     <h3>No data yet</h3>
                     <p>Add your first row to start building your database.</p>
                   </div>
@@ -131,7 +132,7 @@ export async function renderDatabase(container) {
               <tr class="hover:bg-surface-container-low transition-colors group cursor-pointer" data-page-id="${page.id}" data-page-title="${escapeHtml(String(page.title || '').toLowerCase())}" data-page-type="${escapeHtml(page.page_type || 'note')}" data-page-status="${escapeHtml(properties.status)}" data-page-tags="${escapeHtml(properties.tags.join(' ').toLowerCase())}" data-page-priority="${escapeHtml(properties.priority)}" data-page-favorite="${page.is_favorite ? 'true' : 'false'}" data-page-updated="${page.updated_at || ''}">
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-on-surface-variant">${page.is_favorite ? 'star' : 'description'}</span>
+                    ${page.is_favorite ? iconSvg('star', 'text-on-surface-variant icon-filled') : pageIconSvg(page.icon, { className: 'text-on-surface-variant' })}
                     <span class="font-semibold text-on-surface">${escapeHtml(page.title || 'Untitled')}</span>
                   </div>
                 </td>
@@ -151,11 +152,11 @@ export async function renderDatabase(container) {
                   </div>
                 </td>
                 <td class="px-6 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  <button type="button" class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary btn-edit-page mr-2" data-page-id="${page.id}" aria-label="Rename ${escapeHtml(page.title || 'page')}">edit</button>
-                  <button type="button" class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary btn-edit-properties mr-2" data-page-id="${page.id}" aria-label="Edit properties for ${escapeHtml(page.title || 'page')}">tune</button>
-                  <button type="button" class="material-symbols-outlined ${page.is_favorite ? 'text-tertiary' : 'text-outline-variant'} cursor-pointer hover:text-primary btn-toggle-favorite mr-2" data-page-id="${page.id}" data-favorite="${page.is_favorite ? 'true' : 'false'}" aria-label="${page.is_favorite ? 'Remove from favorites' : 'Add to favorites'}">${page.is_favorite ? 'star' : 'star_outline'}</button>
-                  <button type="button" class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-primary btn-archive-page mr-2" data-page-id="${page.id}" aria-label="Archive ${escapeHtml(page.title || 'page')}">archive</button>
-                  <button type="button" class="material-symbols-outlined text-outline-variant cursor-pointer hover:text-error btn-delete-page" data-page-id="${page.id}" aria-label="Delete ${escapeHtml(page.title || 'page')}">delete</button>
+                  <button type="button" class="table-icon-btn text-outline-variant cursor-pointer hover:text-primary btn-edit-page mr-2" data-page-id="${page.id}" aria-label="Rename ${escapeHtml(page.title || 'page')}">${iconSvg('pencil')}</button>
+                  <button type="button" class="table-icon-btn text-outline-variant cursor-pointer hover:text-primary btn-edit-properties mr-2" data-page-id="${page.id}" aria-label="Edit properties for ${escapeHtml(page.title || 'page')}">${iconSvg('sliders-horizontal')}</button>
+                  <button type="button" class="table-icon-btn ${page.is_favorite ? 'text-tertiary' : 'text-outline-variant'} cursor-pointer hover:text-primary btn-toggle-favorite mr-2" data-page-id="${page.id}" data-favorite="${page.is_favorite ? 'true' : 'false'}" aria-label="${page.is_favorite ? 'Remove from favorites' : 'Add to favorites'}">${iconSvg('star', page.is_favorite ? 'icon-filled' : '')}</button>
+                  <button type="button" class="table-icon-btn text-outline-variant cursor-pointer hover:text-primary btn-archive-page mr-2" data-page-id="${page.id}" aria-label="Archive ${escapeHtml(page.title || 'page')}">${iconSvg('archive')}</button>
+                  <button type="button" class="table-icon-btn text-outline-variant cursor-pointer hover:text-error btn-delete-page" data-page-id="${page.id}" aria-label="Delete ${escapeHtml(page.title || 'page')}">${iconSvg('trash')}</button>
                 </td>
               </tr>
             `;
@@ -166,7 +167,7 @@ export async function renderDatabase(container) {
             <tr class="hover:bg-surface-container-low/30 transition-colors">
               <td class="px-6 py-4" colspan="8">
                 <button id="btn-inline-new" class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface text-sm transition-colors">
-                  <span class="material-symbols-outlined text-sm">add</span>
+                  ${iconSvg('plus', 'text-sm')}
                   New
                 </button>
               </td>

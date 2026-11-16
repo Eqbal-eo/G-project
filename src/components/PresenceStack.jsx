@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useEffect, useRef, useState } from 'react';
 import { joinFocus } from '../lib/focusZone.js';
 
@@ -15,9 +16,9 @@ const PLACES = {
 
 function focusText(focus, now) {
   if (!focus) return '';
-  if (focus.paused) return `🎯 Focusing on “${focus.title}” · paused`;
+  if (focus.paused) return `Focusing on “${focus.title}” · paused`;
   const minutes = Math.max(0, Math.ceil((Number(focus.ends_at) - now) / 60000));
-  return `🎯 Focusing on “${focus.title}” · ${minutes} min left`;
+  return `Focusing on “${focus.title}” · ${minutes} min left`;
 }
 
 function describePlace(person) {
@@ -77,7 +78,7 @@ export default function PresenceStack({ people, currentUserId, currentPageId }) 
         {visible.map((person) => (
           <span key={person.user_id} className={`presence-ring ${person.page_id && person.page_id === currentPageId ? 'is-here' : ''} ${person.focus ? 'is-focusing' : ''}`} title={person.focus ? focusText(person.focus, now) : undefined}>
             <Avatar person={person} />
-            {person.focus ? <span className="presence-focus-badge" aria-hidden="true">🎯</span> : null}
+            {person.focus ? <span className="presence-focus-badge" aria-hidden="true"><Icon name="target" /></span> : null}
           </span>
         ))}
         {others.length > visible.length ? <span className="presence-more">+{others.length - visible.length}</span> : null}
@@ -101,7 +102,7 @@ export default function PresenceStack({ people, currentUserId, currentPageId }) 
                   <strong>{person.name}</strong>
                   <small>{person.focus ? focusText(person.focus, now) : person.page_id && person.page_id === currentPageId ? 'On this page with you' : describePlace(person)}</small>
                 </span>
-                {!person.focus && person.page_id && person.page_id !== currentPageId ? <span className="material-symbols-outlined presence-go" aria-hidden="true">arrow_forward</span> : null}
+                {!person.focus && person.page_id && person.page_id !== currentPageId ? <Icon name="arrow-right" className="presence-go" /> : null}
               </button>
               {person.focus && !person.focus.paused && Number(person.focus.ends_at) - now > 120000 ? (
                 <button type="button" className="presence-join" onClick={() => { setOpen(false); joinFocus({ endsAt: Number(person.focus.ends_at), withName: person.name }); }} title={`Focus at the same time as ${person.name}`}>Join</button>

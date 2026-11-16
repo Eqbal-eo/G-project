@@ -1,3 +1,4 @@
+import { iconSvg, setIcon, pageIconSvg } from '../../lib/icons.js';
 import { requestInput, requestConfirmation } from "../../lib/dialogs.js";
 // ============================================
 // MOTION — Notes Page Module (Legacy)
@@ -13,14 +14,14 @@ export async function renderNotes(container) {
   const workspaceId = AppState.workspace?.id;
   if (!workspaceId) {
     container.innerHTML =
-      `<div class="empty-state" style="min-height:60vh;"><span class="material-symbols-outlined">folder_off</span><h3>No team found</h3><p>Please create a team first.</p></div>`;
+      `<div class="empty-state" style="min-height:60vh;">${iconSvg('folder-x')}<h3>No team found</h3><p>Please create a team first.</p></div>`;
     return;
   }
 
   const { data: pages, error } = await getPages(workspaceId);
   if (error) {
     container.innerHTML =
-      `<div class="error-state m-8"><span class="material-symbols-outlined">error</span><h3>Failed to load pages</h3><p>${escapeHtml(error.message || 'Please try again.')}</p></div>`;
+      `<div class="error-state m-8">${iconSvg('circle-alert')}<h3>Failed to load pages</h3><p>${escapeHtml(error.message || 'Please try again.')}</p></div>`;
     return;
   }
 
@@ -51,11 +52,11 @@ export async function renderNotes(container) {
             <span class="text-[10px] text-on-surface-variant" id="notes-visible-count">${pages.length}</span>
           </div>
           <button id="btn-new-note-page" class="p-1 hover:bg-surface-container-high rounded transition-colors" title="New Note">
-            <span class="material-symbols-outlined text-sm">add</span>
+            ${iconSvg('plus', 'text-sm')}
           </button>
         </div>
         <label class="mx-3 mb-2 flex items-center gap-2 px-3 py-2 bg-surface-container rounded-lg text-xs text-on-surface-variant">
-          <span class="material-symbols-outlined text-sm">search</span>
+          ${iconSvg('search', 'text-sm')}
           <input id="notes-search" class="min-w-0 flex-1 bg-transparent border-none outline-none text-on-surface placeholder:text-on-surface-variant/60" type="search" placeholder="Find notes..." />
         </label>
         <div class="mx-3 mb-2 flex items-center justify-between gap-2">
@@ -78,7 +79,7 @@ export async function renderNotes(container) {
             aria-label="Drop here to move a page to the root level"
             title="Drop here to move page to root level"
           >
-            <span class="material-symbols-outlined text-sm opacity-70">drive_file_move</span>
+            ${iconSvg('folder-input', 'text-sm opacity-70')}
             <span class="truncate">Root pages (Drop here to un-nest)</span>
           </div>
 
@@ -94,27 +95,27 @@ export async function renderNotes(container) {
         ${
           currentPage
             ? renderNoteEditor(currentPage, userName)
-            : `<div class="empty-state" style="min-height:60vh;"><span class="material-symbols-outlined">edit_note</span><h3>Select or create a note</h3><p>Choose a page from the sidebar to start editing.</p></div>`
+            : `<div class="empty-state" style="min-height:60vh;">${iconSvg('notebook-pen')}<h3>Select or create a note</h3><p>Choose a page from the sidebar to start editing.</p></div>`
         }
       </div>
     </div>
 
     <div class="fixed bottom-8 left-1/2 -translate-x-1/2 glass-panel border border-outline-variant/20 rounded-full px-6 py-3 flex items-center gap-6 shadow-2xl z-50">
       <button data-note-tool="text" class="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" type="button">
-        <span class="material-symbols-outlined">text_fields</span>
+        ${iconSvg('type')}
         Type
       </button>
       <div class="w-[1px] h-4 bg-outline-variant/30"></div>
       <button data-note-tool="list" class="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" type="button">
-        <span class="material-symbols-outlined">format_list_bulleted</span>
+        ${iconSvg('list')}
         List
       </button>
       <button data-note-tool="media" class="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" type="button">
-        <span class="material-symbols-outlined">image</span>
+        ${iconSvg('image')}
         Media
       </button>
       <button data-note-tool="link" class="flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors" type="button">
-        <span class="material-symbols-outlined">add_link</span>
+        ${iconSvg('link-2')}
         Link
       </button>
     </div>
@@ -228,12 +229,12 @@ export async function renderNotes(container) {
         if (isHidden) {
           childContainer.classList.remove('hidden');
           arrowIcon?.classList.add('rotate-90', 'is-expanded');
-          if (folderIcon) folderIcon.textContent = 'folder_open';
+          setIcon(folderIcon, 'folder-open');
           expSet.add(folderId);
         } else {
           childContainer.classList.add('hidden');
           arrowIcon?.classList.remove('rotate-90', 'is-expanded');
-          if (folderIcon) folderIcon.textContent = 'folder';
+          setIcon(folderIcon, 'folder');
           expSet.delete(folderId);
         }
         saveExpandedFolderSet(expSet);
@@ -260,7 +261,7 @@ export async function renderNotes(container) {
         if (childContainer && childContainer.classList.contains('hidden')) {
           childContainer.classList.remove('hidden');
           arrowIcon?.classList.add('rotate-90', 'is-expanded');
-          if (folderIcon) folderIcon.textContent = 'folder_open';
+          setIcon(folderIcon, 'folder-open');
           const expSet = getExpandedFolderSet();
           expSet.add(pageId);
           saveExpandedFolderSet(expSet);
@@ -478,9 +479,7 @@ function renderNoteTree(nodes, pages, currentSelectedId, expandedSet, depth = 0)
                 title="${isExpanded ? 'Collapse folder' : 'Expand folder'}"
                 aria-label="${isExpanded ? 'Collapse folder' : 'Expand folder'}"
               >
-                <span class="material-symbols-outlined text-[17px] note-folder-arrow ${isExpanded ? 'is-expanded rotate-90' : ''}">
-                  chevron_right
-                </span>
+                ${iconSvg('chevron-right', `text-[17px] note-folder-arrow ${isExpanded ? 'is-expanded rotate-90' : ''}`)}
               </button>
             `
                 : `
@@ -493,16 +492,12 @@ function renderNoteTree(nodes, pages, currentSelectedId, expandedSet, depth = 0)
               ${
                 hasChildren
                   ? `
-                <span class="material-symbols-outlined ${iconSizeClass} text-amber-500 folder-state-icon flex-shrink-0">
-                  ${isExpanded ? 'folder_open' : 'folder'}
-                </span>
+                ${iconSvg(isExpanded ? 'folder-open' : 'folder', `${iconSizeClass} text-amber-500 folder-state-icon flex-shrink-0`)}
               `
                   : node.icon
                   ? `<span class="${iconSizeClass}">${escapeHtml(node.icon)}</span>`
                   : `
-                <span class="material-symbols-outlined ${iconSizeClass} opacity-70 flex-shrink-0">
-                  ${node.page_type === 'kanban' ? 'view_kanban' : node.page_type === 'database' ? 'local_library' : 'description'}
-                </span>
+                ${iconSvg(node.page_type === 'kanban' ? 'square-kanban' : node.page_type === 'database' ? 'library' : 'file-text', `${iconSizeClass} opacity-70 flex-shrink-0`)}
               `
               }
             </span>
@@ -523,7 +518,7 @@ function renderNoteTree(nodes, pages, currentSelectedId, expandedSet, depth = 0)
               data-favorite="${node.is_favorite ? 'true' : 'false'}"
               aria-label="${node.is_favorite ? 'Remove from favorites' : 'Add to favorites'}"
             >
-              <span class="material-symbols-outlined text-sm">${node.is_favorite ? 'star' : 'star_outline'}</span>
+              ${iconSvg('star', node.is_favorite ? 'text-sm icon-filled' : 'text-sm')}
             </button>
           </div>
 
@@ -630,7 +625,7 @@ function renderNoteEditor(page, userName) {
   const draft = readNoteDraft(page.id);
   const contentHtml = sanitizeHtml(draft ? draft.html : page.content?.html || '<p class="text-on-surface-variant">Start writing here...</p>');
   const safeTitle = escapeHtml((draft ? draft.title : page.title) || 'Untitled');
-  const safeIcon = escapeHtml(page.icon || '📄');
+  const safeIcon = pageIconSvg(page.icon);
   const safeUserName = escapeHtml(userName);
 
   return `
@@ -645,20 +640,20 @@ function renderNoteEditor(page, userName) {
           </h1>
           <div class="flex items-center gap-6 text-on-surface-variant text-sm">
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">person</span>
+              ${iconSvg('user', 'text-sm')}
               <span>${safeUserName}</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">schedule</span>
+              ${iconSvg('clock', 'text-sm')}
               <span>${timeAgo(page.updated_at)}</span>
             </div>
             <div class="flex items-center gap-2 text-primary" aria-live="polite">
-              <span class="material-symbols-outlined text-sm">${draft ? 'cloud_off' : 'cloud_done'}</span>
+              ${iconSvg(draft ? 'cloud-off' : 'cloud-check', 'text-sm')}
               <span id="notes-save-status">${draft ? 'Local draft recovered' : 'Saved'}</span>
             </div>
           </div>
           <button id="note-archive" class="mt-5 inline-flex items-center gap-1.5 text-xs font-semibold text-on-surface-variant hover:text-primary transition-colors" type="button">
-            <span class="material-symbols-outlined text-sm">archive</span>
+            ${iconSvg('archive', 'text-sm')}
             Archive note
           </button>
         </header>

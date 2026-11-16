@@ -846,7 +846,7 @@
   opacity: 1;
 }
 
-.editor-add-block-button .material-symbols-outlined {
+.editor-add-block-button .icon {
   font-size: 1rem;
 }
 
@@ -883,7 +883,7 @@
   transition: opacity .15s ease, visibility .15s ease, background-color .15s ease;
 }
 
-.editor-block-drag-handle .material-symbols-outlined {
+.editor-block-drag-handle .icon {
   font-size: 1.1rem;
 }
 
@@ -956,7 +956,7 @@
   color: var(--error);
 }
 
-.editor-block-context-menu .material-symbols-outlined {
+.editor-block-context-menu .icon {
   font-size: 1rem;
 }
 
@@ -1003,7 +1003,7 @@
   color: var(--on-surface-variant);
 }
 
-.editor-block-menu-search .material-symbols-outlined {
+.editor-block-menu-search .icon {
   font-size: 1.05rem;
 }
 
@@ -1057,7 +1057,7 @@
   background: var(--primary-container);
 }
 
-.editor-block-menu-group>button>.material-symbols-outlined,
+.editor-block-menu-group>button>.icon,
 .editor-block-icon {
   display: inline-flex;
   width: 1.7rem;
@@ -1254,7 +1254,7 @@
   line-height: 1.35;
 }
 
-.editor-comments-heading>.material-symbols-outlined {
+.editor-comments-heading>.icon {
   color: var(--primary);
 }
 
@@ -1755,7 +1755,7 @@ html.dark #page-content {
 
 .team-chat-heading { display: flex; align-items: center; gap: 13px; }
 
-.team-chat-heading > .material-symbols-outlined {
+.team-chat-heading > .icon {
   display: grid;
   place-items: center;
   width: 46px;
@@ -1812,7 +1812,7 @@ html.dark #page-content {
   text-align: center;
 }
 
-.team-chat-empty > .material-symbols-outlined {
+.team-chat-empty > .icon {
   display: inline-grid;
   place-items: center;
   width: 56px;
@@ -1860,7 +1860,7 @@ html.dark #page-content {
   white-space: nowrap;
 }
 
-.team-chat-jump .material-symbols-outlined { font-size: 18px; }
+.team-chat-jump .icon { font-size: 18px; }
 .team-chat-jump:hover { filter: brightness(1.08); }
 
 .team-chat-message {
@@ -2627,7 +2627,7 @@ html.dark .notion-ai-new-btn:hover {
 .code-block-toolbar button.is-done { color: #448361; }
 .code-block-lang { padding: 0 6px 0 9px; }
 .code-block-icon { justify-content: center; width: 28px; }
-.code-block-toolbar .material-symbols-outlined { font-size: 16px; }
+.code-block-toolbar .icon { font-size: 16px; }
 .code-lang-menu {
   position: absolute;
   top: calc(100% + 6px);
@@ -2835,7 +2835,7 @@ html.dark .notion-ai-new-btn:hover {
   transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
   user-select: none;
 }
-.notion-table-add .material-symbols-outlined { font-size: 16px; pointer-events: none; }
+.notion-table-add .icon { font-size: 16px; pointer-events: none; }
 .notion-table-add-col { grid-area: add-col; align-self: stretch; min-height: 28px; }
 .notion-table-add-row { grid-area: add-row; height: 22px; }
 .notion-table-block:hover .notion-table-add,
@@ -2962,8 +2962,8 @@ html.dark .notion-ai-new-btn:hover {
   cursor: grabbing;
 }
 
-.notion-gutter-btn .material-symbols-outlined,
-.notion-block-gutter-handle .editor-block-drag-handle .material-symbols-outlined {
+.notion-gutter-btn .icon,
+.notion-block-gutter-handle .editor-block-drag-handle .icon {
   font-size: 18px;
 }
 
@@ -3166,8 +3166,8 @@ html.dark .notion-ai-new-btn:hover {
   background: var(--surface-container-high);
 }
 
-.mst-block-menu .material-symbols-outlined,
-.mst-ai-menu .material-symbols-outlined {
+.mst-block-menu .icon,
+.mst-ai-menu .icon {
   font-size: 16px;
   color: var(--on-surface-variant);
 }
@@ -3659,12 +3659,12 @@ html.dark .notion-ai-new-btn:hover {
 .editor-related { margin-top: 2rem; padding: 1rem 1.1rem; border: 1px solid var(--outline-variant); border-radius: 0.9rem; background: var(--surface-container-lowest); }
 .editor-related-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem; }
 .editor-related-head h2 { display: flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; font-weight: 700; color: var(--on-surface); }
-.editor-related-head h2 .material-symbols-outlined { font-size: 1.1rem; color: var(--primary); }
+.editor-related-head h2 .icon { font-size: 1.1rem; color: var(--primary); }
 .editor-related-head h2 small { font-size: 0.72rem; font-weight: 600; color: var(--on-surface-variant); padding: 0 0.4rem; border-radius: 999px; background: var(--surface-container-high); }
 .editor-related-actions { display: flex; gap: 0.4rem; }
 .editor-related-actions button { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.65rem; border-radius: 0.5rem; border: 1px solid var(--outline-variant); background: transparent; color: var(--on-surface); font-size: 0.75rem; font-weight: 600; cursor: pointer; }
 .editor-related-actions button:hover { background: var(--surface-container-high); }
-.editor-related-actions .material-symbols-outlined { font-size: 1rem; }
+.editor-related-actions .icon { font-size: 1rem; }
 .editor-related-list { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 2px; }
 .editor-related-list li { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.35rem; border-radius: 0.45rem; font-size: 0.85rem; }
 .editor-related-list li:hover { background: var(--surface-container-low); }
@@ -3672,7 +3672,7 @@ html.dark .notion-ai-new-btn:hover {
 .editor-related-list a:hover { color: var(--primary); text-decoration: underline; }
 .editor-related-list a.is-done { color: var(--on-surface-variant); text-decoration: line-through; }
 .editor-related-list .editor-linked-task-toggle { display: grid; place-items: center; border: 0; background: transparent; color: var(--primary); cursor: pointer; padding: 0; }
-.editor-related-list .editor-linked-task-toggle .material-symbols-outlined { font-size: 1.15rem; }
+.editor-related-list .editor-linked-task-toggle .icon { font-size: 1.15rem; }
 .editor-related-meta { margin-left: auto; font-size: 0.7rem; color: var(--on-surface-variant); white-space: nowrap; }
 .editor-related-meta + .editor-related-meta { margin-left: 0.5rem; }
 .editor-related-empty { margin-top: 0.5rem; font-size: 0.78rem; color: var(--on-surface-variant); }
@@ -3684,11 +3684,11 @@ html.dark .notion-ai-new-btn:hover {
 .motion-sidebar { gap: 0.25rem; }
 .sidebar-search { display: flex; align-items: center; gap: 0.5rem; width: 100%; margin: 0 0 0.75rem; padding: 0.45rem 0.65rem; border: 1px solid var(--outline-variant); border-radius: 0.6rem; background: var(--surface-container-low); color: var(--on-surface-variant); font-size: 0.8rem; cursor: pointer; }
 .sidebar-search:hover { border-color: var(--primary); color: var(--on-surface); }
-.sidebar-search .material-symbols-outlined { font-size: 1.05rem; }
+.sidebar-search .icon { font-size: 1.05rem; }
 .sidebar-search kbd { margin-left: auto; font: inherit; font-size: 0.68rem; opacity: 0.7; }
 .sidebar-nav { display: flex; flex-direction: column; gap: 1px; margin-bottom: 0.5rem; }
 .sidebar-link { display: flex; align-items: center; gap: 0.6rem; width: 100%; padding: 0.42rem 0.65rem; border: 0; border-radius: 0.5rem; background: transparent; color: var(--on-surface-variant); font-size: 0.85rem; text-align: left; cursor: pointer; text-decoration: none; min-width: 0; }
-.sidebar-link .material-symbols-outlined { font-size: 1.15rem; }
+.sidebar-link .icon { font-size: 1.15rem; }
 .sidebar-link:hover { background: var(--surface-container-high); color: var(--on-surface); }
 .sidebar-link.is-active { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); font-weight: 600; }
 .sidebar-count { margin-left: auto; min-width: 1.25rem; padding: 0 0.35rem; border-radius: 999px; background: var(--primary); color: var(--on-primary); font-size: 0.68rem; font-weight: 700; text-align: center; }
@@ -3697,7 +3697,7 @@ html.dark .notion-ai-new-btn:hover {
 .sidebar-section-head { display: flex; align-items: center; justify-content: space-between; padding: 0 0.65rem 0.3rem; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-surface-variant); }
 .sidebar-section-head button { display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border: 0; border-radius: 0.35rem; background: transparent; color: var(--on-surface-variant); cursor: pointer; }
 .sidebar-section-head button:hover { background: var(--surface-container-high); color: var(--primary); }
-.sidebar-section-head .material-symbols-outlined { font-size: 1rem; }
+.sidebar-section-head .icon { font-size: 1rem; }
 .sidebar-emoji { width: 1.15rem; text-align: center; flex: none; }
 .sidebar-project .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sidebar-empty-cta { display: flex; align-items: center; gap: 0.4rem; width: 100%; padding: 0.55rem 0.65rem; border: 1px dashed var(--outline-variant); border-radius: 0.55rem; background: transparent; color: var(--primary); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
@@ -3716,7 +3716,7 @@ html.dark .notion-ai-new-btn:hover {
 .motion-sidebar.is-ai-chat .notion-ai-agent-chip { flex-direction: row; gap: 0.45rem; padding: 0.2rem 0.55rem 0.2rem 0.2rem; border-radius: 999px; font-size: 0.78rem; }
 .motion-sidebar.is-ai-chat .notion-ai-agent-chip > span { white-space: nowrap; }
 .motion-sidebar.is-ai-chat .notion-ai-avatar-circle, .motion-sidebar.is-ai-chat .notion-ai-add-circle { flex: none; width: 26px; height: 26px; }
-.motion-sidebar.is-ai-chat .notion-ai-avatar-circle .material-symbols-outlined, .motion-sidebar.is-ai-chat .notion-ai-add-circle .material-symbols-outlined { font-size: 16px; }
+.motion-sidebar.is-ai-chat .notion-ai-avatar-circle .icon, .motion-sidebar.is-ai-chat .notion-ai-add-circle .icon { font-size: 16px; }
 .motion-sidebar.is-ai-chat .notion-ai-chat-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin-bottom: 0.25rem; }
 .motion-sidebar.is-ai-chat .sidebar-scroll { flex: 0 8 auto; min-height: 4.75rem; max-height: 18vh; border-top: 1px solid var(--outline-variant); padding-top: 0.25rem; }
 .motion-sidebar.is-ai-chat .sidebar-scroll .sidebar-section:first-child { margin-top: 0.4rem; }
@@ -3741,16 +3741,16 @@ html.dark .notion-ai-new-btn:hover {
 .project-more { margin-left: 0.3rem; font-size: 0.72rem; color: var(--on-surface-variant); }
 .project-invite { display: grid; place-items: center; width: 26px; height: 26px; margin-left: 0.4rem; border-radius: 999px; border: 1px dashed var(--outline-variant); color: var(--on-surface-variant); }
 .project-invite:hover { color: var(--primary); border-color: var(--primary); }
-.project-invite .material-symbols-outlined { font-size: 0.95rem; }
+.project-invite .icon { font-size: 0.95rem; }
 .project-tabs { display: flex; gap: 0.25rem; margin-top: 1rem; border-bottom: 1px solid var(--outline-variant); overflow-x: auto; scrollbar-width: none; }
 .project-tabs a { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.55rem 0.8rem; margin-bottom: -1px; border-bottom: 2px solid transparent; color: var(--on-surface-variant); font-size: 0.85rem; font-weight: 600; white-space: nowrap; text-decoration: none; }
-.project-tabs a .material-symbols-outlined { font-size: 1.05rem; }
+.project-tabs a .icon { font-size: 1.05rem; }
 .project-tabs a:hover { color: var(--on-surface); }
 .project-tabs a.is-active { color: var(--primary); border-bottom-color: var(--primary); }
 .editor-layout .project-bar { margin-top: -1.5rem; margin-bottom: 2rem; }
 .project-alerts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
 .project-alert { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.7rem; border-radius: 999px; background: var(--surface-container-high); color: var(--on-surface-variant); font-size: 0.78rem; font-weight: 600; }
-.project-alert .material-symbols-outlined { font-size: 1rem; }
+.project-alert .icon { font-size: 1rem; }
 .project-alert.danger { background: color-mix(in srgb, var(--error) 14%, transparent); color: var(--error); }
 .project-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
 .project-side { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
@@ -3760,7 +3760,7 @@ html.dark .notion-ai-new-btn:hover {
 .project-head-actions { display: flex; align-items: center; gap: 0.6rem; }
 .project-link { font-size: 0.78rem; font-weight: 600; color: var(--primary); white-space: nowrap; }
 .project-btn { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.7rem; border-radius: 0.5rem; border: 1px solid var(--outline-variant); background: transparent; color: var(--on-surface); font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.project-btn .material-symbols-outlined { font-size: 1rem; }
+.project-btn .icon { font-size: 1rem; }
 .project-btn:hover { background: var(--surface-container-high); }
 .project-btn.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
 .project-btn.primary:hover { opacity: 0.9; }
@@ -3769,7 +3769,7 @@ html.dark .notion-ai-new-btn:hover {
 .project-task:hover { background: var(--surface-container-low); }
 .project-task-check { display: grid; place-items: center; border: 0; background: transparent; color: var(--on-surface-variant); cursor: pointer; padding: 0; }
 .project-task-check:hover { color: var(--primary); }
-.project-task-check .material-symbols-outlined { font-size: 1.2rem; }
+.project-task-check .icon { font-size: 1.2rem; }
 .project-task-title { min-width: 0; border: 0; background: transparent; color: var(--on-surface); font-size: 0.875rem; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0; }
 .project-task-title:hover { color: var(--primary); text-decoration: underline; }
 .project-task-meta { font-size: 0.72rem; color: var(--on-surface-variant); white-space: nowrap; }
@@ -3784,11 +3784,11 @@ html.dark .notion-ai-new-btn:hover {
 .project-mini-pages small, .project-page-tree small { margin-left: auto; white-space: nowrap; }
 .project-page-tree li { padding-left: calc(var(--depth, 0) * 1.25rem); }
 .project-hint { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.75rem; border-radius: 0.7rem; background: var(--surface-container-low); }
-.project-hint > .material-symbols-outlined { color: var(--primary); }
+.project-hint > .icon { color: var(--primary); }
 .project-hint strong { display: block; font-size: 0.85rem; color: var(--on-surface); }
 .project-hint p { margin-top: 0.15rem; font-size: 0.78rem; color: var(--on-surface-variant); }
 .project-empty-state { max-width: 28rem; margin: 15vh auto; text-align: center; color: var(--on-surface-variant); }
-.project-empty-state .material-symbols-outlined { font-size: 2.5rem; }
+.project-empty-state .icon { font-size: 2.5rem; }
 .project-empty-state h2 { margin: 0.5rem 0 0.25rem; font-size: 1.2rem; font-weight: 700; color: var(--on-surface); }
 .project-empty-state a { display: inline-block; margin-top: 1rem; color: var(--primary); font-weight: 600; }
 .project-board .motion-kanban { padding-top: 0; }
@@ -3829,8 +3829,8 @@ html.dark .notion-ai-new-btn:hover {
 .home-checklist .project-progress-track { width: 100%; }
 .home-checklist ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.5rem; margin-top: 0.85rem; }
 .home-checklist li { display: flex; align-items: flex-start; gap: 0.55rem; padding: 0.6rem; border-radius: 0.6rem; background: var(--surface-container-low); }
-.home-checklist li > .material-symbols-outlined { font-size: 1.15rem; color: var(--on-surface-variant); }
-.home-checklist li.is-done > .material-symbols-outlined { color: var(--primary); }
+.home-checklist li > .icon { font-size: 1.15rem; color: var(--on-surface-variant); }
+.home-checklist li.is-done > .icon { color: var(--primary); }
 .home-checklist li.is-done strong { text-decoration: line-through; color: var(--on-surface-variant); }
 .home-checklist li div { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .home-checklist strong { font-size: 0.82rem; color: var(--on-surface); }
@@ -3860,14 +3860,14 @@ html.dark .notion-ai-new-btn:hover {
 /* AI agent proposed actions */
 .agent-card { margin-top: 0.75rem; border: 1px solid var(--outline-variant); border-radius: 0.75rem; background: var(--surface-container-low); overflow: hidden; }
 .agent-card-head { display: flex; align-items: center; gap: 0.45rem; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--outline-variant); font-size: 0.8rem; color: var(--on-surface); }
-.agent-card-head .material-symbols-outlined { font-size: 1.05rem; color: var(--primary); }
-.agent-card.is-applied .agent-card-head .material-symbols-outlined { color: #16a34a; }
+.agent-card-head .icon { font-size: 1.05rem; color: var(--primary); }
+.agent-card.is-applied .agent-card-head .icon { color: #16a34a; }
 .agent-card.is-cancelled, .agent-card.is-failed { opacity: 0.75; }
 .agent-card ul { display: flex; flex-direction: column; padding: 0.35rem; gap: 1px; }
 .agent-card li { display: flex; align-items: flex-start; gap: 0.55rem; padding: 0.4rem 0.45rem; border-radius: 0.45rem; font-size: 0.82rem; }
-.agent-card li > .material-symbols-outlined { font-size: 1.05rem; color: var(--on-surface-variant); margin-top: 1px; }
-.agent-card li.is-ok > .material-symbols-outlined { color: #16a34a; }
-.agent-card li.is-error > .material-symbols-outlined, .agent-error { color: var(--error); }
+.agent-card li > .icon { font-size: 1.05rem; color: var(--on-surface-variant); margin-top: 1px; }
+.agent-card li.is-ok > .icon { color: #16a34a; }
+.agent-card li.is-error > .icon, .agent-error { color: var(--error); }
 .agent-card li div { display: flex; flex-direction: column; min-width: 0; }
 .agent-card li a { color: var(--primary); font-weight: 600; }
 .agent-card li small { font-size: 0.72rem; color: var(--on-surface-variant); }
@@ -3880,11 +3880,11 @@ html.dark .notion-ai-new-btn:hover {
 .task-view-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin: 0.75rem 0 0.25rem; }
 .task-view-switch { display: inline-flex; padding: 3px; gap: 2px; border-radius: 0.65rem; background: var(--surface-container-high); }
 .task-view-switch button { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.75rem; border: 0; border-radius: 0.5rem; background: transparent; color: var(--on-surface-variant); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-.task-view-switch button .material-symbols-outlined { font-size: 1rem; }
+.task-view-switch button .icon { font-size: 1rem; }
 .task-view-switch button.is-active { background: var(--surface-container-lowest); color: var(--on-surface); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 .task-fields-btn { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.7rem; border: 1px solid var(--outline-variant); border-radius: 0.5rem; background: transparent; color: var(--on-surface-variant); font-size: 0.78rem; font-weight: 600; cursor: pointer; }
 .task-fields-btn:hover { color: var(--primary); border-color: var(--primary); }
-.task-fields-btn .material-symbols-outlined { font-size: 1rem; }
+.task-fields-btn .icon { font-size: 1rem; }
 .task-altview { margin-top: 0.75rem; }
 .task-view-empty { padding: 2rem 1rem; text-align: center; font-size: 0.85rem; color: var(--on-surface-variant); border: 1px dashed var(--outline-variant); border-radius: 0.8rem; }
 .task-muted { color: var(--on-surface-variant); opacity: 0.6; }
@@ -3969,15 +3969,15 @@ html.dark .notion-ai-new-btn:hover {
 .page-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.9rem; }
 .page-actions > button, .page-menu-wrap > button { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.32rem 0.65rem; border: 1px solid var(--outline-variant); border-radius: 0.5rem; background: var(--surface-container-lowest); color: var(--on-surface-variant); font-size: 0.78rem; font-weight: 600; cursor: pointer; }
 .page-actions > button:hover, .page-menu-wrap > button:hover, .page-menu-wrap > button[aria-expanded="true"] { color: var(--primary); border-color: var(--primary); }
-.page-actions .material-symbols-outlined { font-size: 1rem; }
+.page-actions .icon { font-size: 1rem; }
 #page-ai-btn { color: var(--primary); }
 .page-menu-wrap { position: relative; }
 .page-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 70; min-width: 15rem; padding: 0.3rem; border: 1px solid var(--outline-variant); border-radius: 0.7rem; background: var(--surface-container-lowest, var(--surface)); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18); }
 .page-menu-wrap:last-of-type .page-menu { left: auto; right: 0; }
 .page-menu button { display: flex; align-items: center; gap: 0.55rem; width: 100%; padding: 0.45rem 0.6rem; border: 0; border-radius: 0.45rem; background: transparent; color: var(--on-surface); font-size: 0.82rem; text-align: left; cursor: pointer; }
 .page-menu button:hover, .page-menu button:focus-visible { background: var(--surface-container-high); outline: none; }
-.page-menu button .material-symbols-outlined { font-size: 1.05rem; color: var(--on-surface-variant); }
-.page-menu button.is-danger, .page-menu button.is-danger .material-symbols-outlined { color: var(--error); }
+.page-menu button .icon { font-size: 1.05rem; color: var(--on-surface-variant); }
+.page-menu button.is-danger, .page-menu button.is-danger .icon { color: var(--error); }
 .page-menu hr { margin: 0.3rem 0.4rem; border: 0; border-top: 1px solid var(--outline-variant); }
 
 .page-tool-panel { width: min(520px, calc(100vw - 32px)); max-height: min(86vh, 760px); display: flex; flex-direction: column; }
@@ -3989,7 +3989,7 @@ html.dark .notion-ai-new-btn:hover {
 .share-block { padding: 0.25rem 0 0.9rem; }
 .share-block + .share-block { border-top: 1px solid var(--outline-variant); padding-top: 0.9rem; }
 .share-row { display: flex; align-items: center; gap: 0.75rem; }
-.share-row > .material-symbols-outlined { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 0.6rem; background: var(--surface-container-high); color: var(--primary); font-size: 1.15rem; flex: none; }
+.share-row > .icon { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 0.6rem; background: var(--surface-container-high); color: var(--primary); font-size: 1.15rem; flex: none; }
 .share-row > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .share-row strong { font-size: 0.88rem; color: var(--on-surface); }
 .share-row small { font-size: 0.75rem; color: var(--on-surface-variant); }
@@ -4035,7 +4035,7 @@ html.dark .notion-ai-new-btn:hover {
 .agent-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.6rem; font-size: 0.72rem; color: var(--on-surface-variant); }
 .agent-sources a { display: inline-flex; align-items: center; gap: 0.25rem; max-width: 14rem; padding: 0.15rem 0.5rem; border: 1px solid var(--outline-variant); border-radius: 999px; color: var(--on-surface); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agent-sources a:hover { border-color: var(--primary); color: var(--primary); }
-.agent-sources .material-symbols-outlined { font-size: 0.9rem; }
+.agent-sources .icon { font-size: 0.9rem; }
 
 /* Inline @mentions in page text */
 .inline-mention { display: inline-block; padding: 0 0.3em; border-radius: 0.35em; font-weight: 600; white-space: nowrap; }
@@ -4053,9 +4053,9 @@ html.dark .notion-ai-new-btn:hover {
 .comment-filter button { padding: 0.2rem 0.6rem; border: 1px solid var(--outline-variant); border-radius: 999px; background: transparent; color: var(--on-surface-variant); font-size: 0.72rem; font-weight: 600; cursor: pointer; }
 .comment-filter button.is-active { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
 .comment-filter .comment-next { display: inline-flex; align-items: center; gap: 0.2rem; margin-left: auto; border-style: dashed; }
-.comment-filter .comment-next .material-symbols-outlined { font-size: 0.9rem; }
+.comment-filter .comment-next .icon { font-size: 0.9rem; }
 .home-due-alert { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; padding: 0.7rem 0.9rem; border-radius: 0.8rem; border: 1px solid color-mix(in srgb, #f59e0b 45%, transparent); background: color-mix(in srgb, #f59e0b 12%, var(--surface-container-lowest)); color: var(--on-surface); font-size: 0.85rem; }
-.home-due-alert .material-symbols-outlined { color: #d97706; }
+.home-due-alert .icon { color: #d97706; }
 .home-digest { margin-bottom: 1.25rem; }
 .home-digest h2 { margin-bottom: 0.5rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--on-surface-variant); }
 .home-digest-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.6rem; }
@@ -4093,13 +4093,13 @@ html.dark .notion-ai-new-btn:hover {
 .motion-block-menu .mbm-turn { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 0 2px; }
 .motion-block-menu .mbm-turn button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border: 1px solid var(--outline-variant); border-radius: 8px; background: var(--surface); color: var(--on-surface); font-size: 10.5px; cursor: pointer; text-align: center; }
 .motion-block-menu .mbm-turn button:hover, .motion-block-menu .mbm-turn button:focus-visible { border-color: var(--primary); color: var(--primary); outline: none; }
-.motion-block-menu .mbm-turn .material-symbols-outlined { font-size: 19px; }
+.motion-block-menu .mbm-turn .icon { font-size: 19px; }
 .motion-block-menu > button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--on-surface); font-size: 13px; text-align: left; cursor: pointer; }
 .motion-block-menu > button:hover, .motion-block-menu > button:focus-visible { background: var(--surface-container-high); outline: none; }
-.motion-block-menu > button .material-symbols-outlined { font-size: 18px; color: var(--on-surface-variant); }
+.motion-block-menu > button .icon { font-size: 18px; color: var(--on-surface-variant); }
 .motion-block-menu > button kbd { margin-left: auto; font: inherit; font-size: 11px; color: var(--on-surface-variant); }
-.motion-block-menu > button.mbm-ai, .motion-block-menu > button.mbm-ai .material-symbols-outlined { color: var(--primary); }
-.motion-block-menu > button.is-danger, .motion-block-menu > button.is-danger .material-symbols-outlined { color: var(--error); }
+.motion-block-menu > button.mbm-ai, .motion-block-menu > button.mbm-ai .icon { color: var(--primary); }
+.motion-block-menu > button.is-danger, .motion-block-menu > button.is-danger .icon { color: var(--error); }
 .motion-block-menu hr { margin: 6px 4px; border: 0; border-top: 1px solid var(--outline-variant); }
 
 /* Clearer block types inside the page */
@@ -4111,3 +4111,32 @@ html.dark .notion-ai-new-btn:hover {
 .notion-editor-root .ql-editor li[data-list="checked"] > .ql-ui::before, .notion-editor-root .ql-editor li[data-list="unchecked"] > .ql-ui::before { cursor: pointer; }
 .notion-editor-root .ql-editor li[data-list="checked"] { color: var(--on-surface-variant); text-decoration: line-through; }
 .block-context-selected { background: color-mix(in srgb, var(--primary) 10%, transparent); border-radius: 6px; }
+
+/* Icons drawn inside a coloured tile: the tile is the icon box itself, so padding keeps the
+   drawing at its font size (the old icon font centred its glyph the same way). */
+.editor-block-menu-group > button > .icon { padding: calc(0.35rem - 1px); }
+.team-chat-heading > .icon { padding: 10.5px; }
+.team-chat-empty > .icon { padding: 14px; }
+.share-row > .icon { padding: 0.525rem; }
+.motion-slash-menu svg.msm-icon { padding: 8px; }
+.help-ideas .icon { padding: 7.5px; }
+.gs-row-icon { padding: 8.5px; }
+.motion-kanban-overview-icon { padding: 8.5px; }
+.motion-kanban-column-icon { padding: 7px; }
+@media (max-width: 480px) {
+  .motion-kanban-overview-icon { padding: 7px; }
+}
+/* Page and project icons used to be emoji characters; they are icons now. Like the emoji,
+   they take the font size of the box around them. */
+.page-icon { font-size: inherit; color: var(--on-surface-variant); }
+.focus-badge .icon, .focus-done-badge .icon, .presence-focus-badge .icon, .editor-callout-icon .icon,
+.checkin-mood .icon, .modal-choice-icon .icon, .home-template-icon .icon, .help-nudge-icon .icon { font-size: inherit; }
+.page-icon-btn .icon, .shared-emoji .icon { color: var(--on-surface-variant); }
+.editor-callout-icon .icon { color: #d4a72c; vertical-align: -0.15em; }
+.quick-action-icon { font-size: 14px; vertical-align: -2px; }
+.checkin-moods button .icon { font-size: 22px; }
+.checkin-mood .icon, .checkin-summary .icon { color: var(--primary); }
+.focus-badge .icon { color: #fff; }
+.presence-focus-badge .icon { color: var(--primary); background: var(--surface); border-radius: 999px; }
+.table-icon-btn { display: inline-grid; place-items: center; padding: 0; border: 0; background: transparent; font-size: 20px; vertical-align: middle; }
+

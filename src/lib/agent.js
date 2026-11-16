@@ -173,22 +173,22 @@ export function describeAction(action, refs, createdTitles = new Map()) {
   const name = (ref) => refs.get(ref)?.title || createdTitles.get(ref) || 'new item';
   switch (action.type) {
     case 'create_project':
-      return { icon: 'create_new_folder', text: `Create project “${action.title}”`, detail: PROJECT_TEMPLATES[action.template]?.label || '' };
+      return { icon: 'folder-plus', text: `Create project “${action.title}”`, detail: PROJECT_TEMPLATES[action.template]?.label || '' };
     case 'create_page':
-      return { icon: 'note_add', text: `Create page “${action.title}”`, detail: action.project ? `in ${name(action.project)}` : '' };
+      return { icon: 'file-plus', text: `Create page “${action.title}”`, detail: action.project ? `in ${name(action.project)}` : '' };
     case 'append_to_page':
-      return { icon: 'edit_note', text: `Add text to “${name(action.page)}”`, detail: `${action.content.split('\n').filter(Boolean).length} line(s)` };
+      return { icon: 'notebook-pen', text: `Add text to “${name(action.page)}”`, detail: `${action.content.split('\n').filter(Boolean).length} line(s)` };
     case 'create_team': {
       const bits = [`in ${name(action.project)}`, action.leader && `led by ${name(action.leader)}`, action.members?.length && `${action.members.length} member${action.members.length === 1 ? '' : 's'}`].filter(Boolean);
-      return { icon: 'group_add', text: `Create team “${action.name}”`, detail: bits.join(' · ') };
+      return { icon: 'user-plus', text: `Create team “${action.name}”`, detail: bits.join(' · ') };
     }
     case 'update_team': {
       const bits = [action.name && `rename to “${action.name}”`, action.leader && `leader → ${name(action.leader)}`, action.members && `${action.members.length} member(s)`].filter(Boolean);
-      return { icon: 'groups', text: `Update team “${name(action.team)}”`, detail: bits.join(' · ') };
+      return { icon: 'users', text: `Update team “${name(action.team)}”`, detail: bits.join(' · ') };
     }
     case 'create_task': {
       const bits = [action.team ? `team ${name(action.team)}` : action.project && `in ${name(action.project)}`, action.owner && `owner ${name(action.owner)}`, action.due && `due ${action.due}`, action.priority && PRIORITY_LABEL[action.priority], Number.isFinite(action.progress) && action.progress > 0 && `${action.progress}%`, action.steps?.length && `${action.steps.length} steps`].filter(Boolean);
-      return { icon: 'add_task', text: `Create task “${action.title}”`, detail: bits.join(' · ') };
+      return { icon: 'list-plus', text: `Create task “${action.title}”`, detail: bits.join(' · ') };
     }
     case 'update_task': {
       const bits = [
@@ -200,18 +200,18 @@ export function describeAction(action, refs, createdTitles = new Map()) {
         Number.isFinite(action.progress) && `progress → ${action.progress}%`,
         action.team && (action.team === 'none' ? 'remove from team' : `team → ${name(action.team)}`)
       ].filter(Boolean);
-      return { icon: 'edit', text: `Update task “${name(action.task)}”`, detail: bits.join(' · ') };
+      return { icon: 'pencil', text: `Update task “${name(action.task)}”`, detail: bits.join(' · ') };
     }
     case 'comment':
-      return { icon: 'comment', text: `Comment on “${name(action.page || action.task)}”`, detail: action.text.slice(0, 90) + (action.text.length > 90 ? '…' : '') };
+      return { icon: 'message-square-text', text: `Comment on “${name(action.page || action.task)}”`, detail: action.text.slice(0, 90) + (action.text.length > 90 ? '…' : '') };
     case 'create_milestone':
       return { icon: 'flag', text: `Add milestone “${action.title}”`, detail: `${action.due} · ${name(action.project)}` };
     case 'create_decision':
       return { icon: 'gavel', text: `Record decision “${action.title}”`, detail: action.details ? action.details.slice(0, 90) + (action.details.length > 90 ? '…' : '') : `in ${name(action.project)}` };
     case 'open':
-      return { icon: 'open_in_new', text: `Open ${['home', 'my-tasks', 'all-tasks', 'team-chat', 'settings', 'team'].includes(action.target) ? action.target.replace('-', ' ') : `“${name(action.target)}”`}`, detail: '' };
+      return { icon: 'external-link', text: `Open ${['home', 'my-tasks', 'all-tasks', 'team-chat', 'settings', 'team'].includes(action.target) ? action.target.replace('-', ' ') : `“${name(action.target)}”`}`, detail: '' };
     default:
-      return { icon: 'help', text: action.type, detail: '' };
+      return { icon: 'circle-question-mark', text: action.type, detail: '' };
   }
 }
 

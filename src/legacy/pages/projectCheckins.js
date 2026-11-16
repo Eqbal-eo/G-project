@@ -2,6 +2,7 @@
 // GROUPIFY — Project › Team › Weekly check-ins
 // Once a week: what I did, what's next, what's blocking me (+ mood).
 // ============================================
+import { iconSvg } from '../../lib/icons.js';
 import { AppState, showToast } from '../app.js';
 import { supabase } from '../../lib/supabase.js';
 import { invalidateQueryCache } from '../../lib/queries.js';
@@ -41,11 +42,11 @@ export async function renderCheckinsTab(section, ctx) {
   const { data: checkins, error, unavailable } = await getCheckins({ projectId: project.id, weeks: [week] });
   if (!section.isConnected) return;
   if (unavailable) {
-    section.innerHTML = '<div class="project-hint"><span class="material-symbols-outlined">construction</span><div><strong>Check-ins aren’t set up yet</strong><p>Run <code>sql/checkins.sql</code> in Supabase to turn on weekly check-ins.</p></div></div>';
+    section.innerHTML = `<div class="project-hint">${iconSvg('construction')}<div><strong>Check-ins aren’t set up yet</strong><p>Run <code>sql/checkins.sql</code> in Supabase to turn on weekly check-ins.</p></div></div>`;
     return;
   }
   if (error) {
-    section.innerHTML = `<div class="project-hint"><span class="material-symbols-outlined">error</span><div><strong>Check-ins could not load</strong><p>${escapeHtml(error.message)}</p></div></div>`;
+    section.innerHTML = `<div class="project-hint">${iconSvg('circle-alert')}<div><strong>Check-ins could not load</strong><p>${escapeHtml(error.message)}</p></div></div>`;
     return;
   }
 
@@ -69,14 +70,14 @@ export async function renderCheckinsTab(section, ctx) {
         <header>
           ${face(user)}
           <div class="checkin-card-who"><strong>${escapeHtml(personName(user))}${own ? ' <em>(you)</em>' : ''}</strong><small>${escapeHtml(new Date(checkin.updated_at).toLocaleString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' }))}</small></div>
-          ${mood ? `<span class="checkin-mood" title="${escapeHtml(mood.label)}">${mood.emoji}</span>` : ''}
-          ${own && isCurrent ? '<button type="button" class="team-icon-btn" data-edit-checkin title="Edit your check-in" aria-label="Edit your check-in"><span class="material-symbols-outlined">edit</span></button>' : ''}
+          ${mood ? `<span class="checkin-mood" title="${escapeHtml(mood.label)}">${iconSvg(mood.icon, '', `aria-label="${escapeHtml(mood.label)}"`)}</span>` : ''}
+          ${own && isCurrent ? `<button type="button" class="team-icon-btn" data-edit-checkin title="Edit your check-in" aria-label="Edit your check-in">${iconSvg('pencil')}</button>` : ''}
         </header>
         ${checkin.done ? `<div class="checkin-answer"><span>Done</span><p>${paragraph(checkin.done)}</p></div>` : ''}
         ${checkin.next ? `<div class="checkin-answer"><span>Next</span><p>${paragraph(checkin.next)}</p></div>` : ''}
         ${checkin.blockers ? (isBlockerSolved(checkin)
-          ? `<div class="checkin-answer is-solved"><span>✓ Blocker solved${checkin.resolver ? ` by ${escapeHtml(personName(checkin.resolver))}` : ''} · ${escapeHtml(new Date(checkin.blocker_resolved_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</span><p><s>${paragraph(checkin.blockers)}</s></p>${checkin.blocker_resolution ? `<p class="checkin-solution">${paragraph(checkin.blocker_resolution)}</p>` : ''}${canSolve(checkin) ? `<button type="button" class="checkin-solve-btn is-reopen" data-reopen="${escapeHtml(checkin.id)}">Reopen</button>` : ''}</div>`
-          : `<div class="checkin-answer is-blocker"><span>🚧 Blocked by</span><p>${paragraph(checkin.blockers)}</p>${canSolve(checkin) ? `<button type="button" class="checkin-solve-btn" data-solve="${escapeHtml(checkin.id)}"><span class="material-symbols-outlined">check_circle</span>Mark solved</button>` : ''}</div>`) : ''}
+          ? `<div class="checkin-answer is-solved"><span>${iconSvg('circle-check')} Blocker solved${checkin.resolver ? ` by ${escapeHtml(personName(checkin.resolver))}` : ''} · ${escapeHtml(new Date(checkin.blocker_resolved_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }))}</span><p><s>${paragraph(checkin.blockers)}</s></p>${checkin.blocker_resolution ? `<p class="checkin-solution">${paragraph(checkin.blocker_resolution)}</p>` : ''}${canSolve(checkin) ? `<button type="button" class="checkin-solve-btn is-reopen" data-reopen="${escapeHtml(checkin.id)}">Reopen</button>` : ''}</div>`
+          : `<div class="checkin-answer is-blocker"><span>${iconSvg('construction')} Blocked by</span><p>${paragraph(checkin.blockers)}</p>${canSolve(checkin) ? `<button type="button" class="checkin-solve-btn" data-solve="${escapeHtml(checkin.id)}">${iconSvg('circle-check')}Mark solved</button>` : ''}</div>`) : ''}
       </article>`;
   };
 
@@ -85,7 +86,7 @@ export async function renderCheckinsTab(section, ctx) {
       <div class="checkin-form-head">
         <div><h3>${mine ? 'Edit your check-in' : 'Your check-in for this week'}</h3><p>Two minutes. Your team and leader will see it.</p></div>
         <div class="checkin-moods" role="radiogroup" aria-label="How is your week going?">
-          ${[3, 2, 1].map((value) => `<button type="button" role="radio" data-mood="${value}" aria-checked="${mine?.mood === value}" title="${MOODS[value].label}">${MOODS[value].emoji}</button>`).join('')}
+          ${[3, 2, 1].map((value) => `<button type="button" role="radio" data-mood="${value}" aria-checked="${mine?.mood === value}" title="${MOODS[value].label}" aria-label="${MOODS[value].label}">${iconSvg(MOODS[value].icon)}</button>`).join('')}
         </div>
       </div>
       <label><span>What did you get done?</span><textarea name="done" rows="3" maxlength="2000" placeholder="e.g. Finished the login page and reviewed Sara’s design">${escapeHtml(mine?.done || '')}</textarea></label>
@@ -101,22 +102,22 @@ export async function renderCheckinsTab(section, ctx) {
     <div class="project-section-head">
       <div><h2>Weekly check-ins</h2><p class="team-intro">Once a week everyone shares what they did, what’s next and what’s blocking them. Blockers show up in the Progress report.</p></div>
       <div class="checkin-week">
-        <button type="button" class="team-icon-btn" data-week="-1" aria-label="Previous week"><span class="material-symbols-outlined">chevron_left</span></button>
+        <button type="button" class="team-icon-btn" data-week="-1" aria-label="Previous week">${iconSvg('chevron-left')}</button>
         <strong>${isCurrent ? 'This week' : 'Week of'} · ${escapeHtml(weekLabel(week))}</strong>
-        <button type="button" class="team-icon-btn" data-week="1" ${isCurrent ? 'disabled' : ''} aria-label="Next week"><span class="material-symbols-outlined">chevron_right</span></button>
+        <button type="button" class="team-icon-btn" data-week="1" ${isCurrent ? 'disabled' : ''} aria-label="Next week">${iconSvg('chevron-right')}</button>
       </div>
     </div>
     <div class="checkin-summary">
       <span><strong>${checkins.length}</strong>${expected.size ? ` of ${new Set([...expected, ...answered]).size}` : ''} checked in</span>
-      ${blockers.length ? `<span class="is-blocker">🚧 <strong>${blockers.length}</strong> blocker${blockers.length === 1 ? '' : 's'}</span>` : '<span>No blockers</span>'}
-      ${moodCounts.length ? `<span>${moodCounts.map((item) => `${MOODS[item.value].emoji} ${item.count}`).join(' · ')}</span>` : ''}
+      ${blockers.length ? `<span class="is-blocker">${iconSvg('construction')} <strong>${blockers.length}</strong> blocker${blockers.length === 1 ? '' : 's'}</span>` : '<span>No blockers</span>'}
+      ${moodCounts.length ? `<span>${moodCounts.map((item) => `${iconSvg(MOODS[item.value].icon, '', `aria-label="${MOODS[item.value].label}"`)} ${item.count}`).join(' · ')}</span>` : ''}
     </div>
     ${editing ? form : ''}
     <div class="checkin-grid">
       ${mine && !editing ? answerCard(mine, true) : ''}
       ${others.map((checkin) => answerCard(checkin)).join('')}
     </div>
-    ${!checkins.length && !editing ? `<div class="team-empty-state"><span class="material-symbols-outlined">event_note</span><h3>No check-ins for this week</h3><p>Nobody shared a check-in for ${escapeHtml(weekLabel(week))}.</p></div>` : ''}
+    ${!checkins.length && !editing ? `<div class="team-empty-state">${iconSvg('calendar-days')}<h3>No check-ins for this week</h3><p>Nobody shared a check-in for ${escapeHtml(weekLabel(week))}.</p></div>` : ''}
     ${waiting.length && isCurrent ? `<div class="checkin-waiting"><span>Still to check in:</span>${waiting.map((id) => `<span class="checkin-chip">${face(memberById.get(id)?.user, 20)}${escapeHtml(personName(memberById.get(id)?.user, 'Former member'))}${id === me ? ' (you)' : ''}</span>`).join('')}</div>` : ''}`;
 
   const rerender = () => renderCheckinsTab(section, ctx);
@@ -126,7 +127,7 @@ export async function renderCheckinsTab(section, ctx) {
     button.disabled = true;
     const { error: solveError } = await setBlockerSolved(button.dataset.solve, true, note);
     if (solveError) { button.disabled = false; showToast(`Could not mark it solved: ${solveError.message}`, 'error'); return; }
-    showToast('Blocker marked as solved ✓', 'success');
+    showToast('Blocker marked as solved', 'success');
     rerender();
   }));
   section.querySelectorAll('[data-reopen]').forEach((button) => button.addEventListener('click', async () => {
@@ -160,7 +161,7 @@ export async function renderCheckinsTab(section, ctx) {
       submit.disabled = false;
       if (saveError) { showToast(`Could not save your check-in: ${saveError.message}`, 'error'); return; }
       section.__editing = false;
-      showToast(values.blockers ? 'Check-in shared. Your blocker is visible to the team.' : 'Check-in shared ✓', 'success');
+      showToast(values.blockers ? 'Check-in shared. Your blocker is visible to the team.' : 'Check-in shared', 'success');
       rerender();
     });
     formEl.querySelector('[data-delete-checkin]')?.addEventListener('click', async () => {

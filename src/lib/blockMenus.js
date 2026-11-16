@@ -3,6 +3,7 @@
 //  - Markdown shortcuts ("# ", "- ", "[] ", "> ", "```", "---" …)
 //  - Block actions menu (drag handle / right-click): Turn into, Duplicate, Move, Copy, Ask AI, Delete
 // Every change uses source 'user' so autosave and live co-editing pick it up.
+import { iconSvg } from './icons.js';
 import Quill from 'quill';
 
 const Delta = Quill.import('delta');
@@ -12,14 +13,14 @@ const LINE_RESET = { header: false, list: false, blockquote: false, 'code-block'
 
 // type → how to apply it to the current line
 export const BLOCK_TYPES = {
-  text: { label: 'Text', icon: 'notes', line: LINE_RESET },
-  h1: { label: 'Heading 1', icon: 'format_h1', line: { ...LINE_RESET, header: 1 } },
-  h2: { label: 'Heading 2', icon: 'format_h2', line: { ...LINE_RESET, header: 2 } },
-  h3: { label: 'Heading 3', icon: 'format_h3', line: { ...LINE_RESET, header: 3 } },
-  bullet: { label: 'Bulleted list', icon: 'format_list_bulleted', line: { ...LINE_RESET, list: 'bullet' } },
-  ordered: { label: 'Numbered list', icon: 'format_list_numbered', line: { ...LINE_RESET, list: 'ordered' } },
-  todo: { label: 'To-do list', icon: 'check_box', line: { ...LINE_RESET, list: 'unchecked' } },
-  quote: { label: 'Quote', icon: 'format_quote', line: { ...LINE_RESET, blockquote: true } },
+  text: { label: 'Text', icon: 'notepad-text', line: LINE_RESET },
+  h1: { label: 'Heading 1', icon: 'heading-1', line: { ...LINE_RESET, header: 1 } },
+  h2: { label: 'Heading 2', icon: 'heading-2', line: { ...LINE_RESET, header: 2 } },
+  h3: { label: 'Heading 3', icon: 'heading-3', line: { ...LINE_RESET, header: 3 } },
+  bullet: { label: 'Bulleted list', icon: 'list', line: { ...LINE_RESET, list: 'bullet' } },
+  ordered: { label: 'Numbered list', icon: 'list-ordered', line: { ...LINE_RESET, list: 'ordered' } },
+  todo: { label: 'To-do list', icon: 'square-check', line: { ...LINE_RESET, list: 'unchecked' } },
+  quote: { label: 'Quote', icon: 'quote', line: { ...LINE_RESET, blockquote: true } },
   code: { label: 'Code', icon: 'code', line: { ...LINE_RESET, 'code-block': true } }
 };
 
@@ -33,10 +34,10 @@ const BUILTIN_COMMANDS = [
   { id: 'ordered', group: 'Lists', desc: 'List with numbers', keywords: 'ol numbered 123', hint: '1.' },
   { id: 'todo', group: 'Lists', desc: 'Track tasks with checkboxes', keywords: 'checkbox check task checklist', hint: '[]' },
   { id: 'callout', group: 'Media & layout', icon: 'lightbulb', label: 'Callout', desc: 'Highlighted note with an icon', keywords: 'note tip info warning' },
-  { id: 'toggle', group: 'Media & layout', icon: 'expand_circle_right', label: 'Toggle', desc: 'Collapsible section', keywords: 'collapse details expand' },
-  { id: 'table', group: 'Media & layout', icon: 'table_chart', label: 'Table', desc: '3 × 3 table you can edit', keywords: 'grid rows columns' },
+  { id: 'toggle', group: 'Media & layout', icon: 'circle-chevron-right', label: 'Toggle', desc: 'Collapsible section', keywords: 'collapse details expand' },
+  { id: 'table', group: 'Media & layout', icon: 'table-2', label: 'Table', desc: '3 × 3 table you can edit', keywords: 'grid rows columns' },
   { id: 'code', group: 'Media & layout', desc: 'Code snippet', keywords: 'pre snippet program', hint: '```' },
-  { id: 'divider', group: 'Media & layout', icon: 'horizontal_rule', label: 'Divider', desc: 'Line between sections', keywords: 'hr line separator rule', hint: '---' }
+  { id: 'divider', group: 'Media & layout', icon: 'minus', label: 'Divider', desc: 'Line between sections', keywords: 'hr line separator rule', hint: '---' }
 ].map((command) => ({ ...BLOCK_TYPES[command.id], ...command }));
 
 // Caret position right after the last insert in a change (the editor's reported
@@ -134,7 +135,7 @@ export function createSlashMenu(quill, { extraCommands = [] } = {}) {
       const heading = !query && command.group !== lastGroup ? `<div class="msm-header">${escapeHtml(command.group)}</div>` : '';
       lastGroup = command.group;
       return `${heading}<button type="button" role="option" class="msm-item ${index === active ? 'active' : ''}" aria-selected="${index === active}" data-index="${index}">
-        <span class="material-symbols-outlined msm-icon">${escapeHtml(command.icon)}</span>
+        ${iconSvg(escapeHtml(command.icon), 'msm-icon')}
         <span class="msm-content"><strong>${escapeHtml(command.label)}</strong><small>${escapeHtml(command.desc || '')}</small></span>
         ${command.hint ? `<kbd class="msm-hint">${escapeHtml(command.hint)}</kbd>` : ''}
       </button>`;
@@ -374,15 +375,15 @@ export function createBlockActionsMenu(quill, { onAskAI = null } = {}) {
   function render(isLineBlock) {
     menu.innerHTML = `
       ${isLineBlock ? `<div class="mbm-label">Turn into</div>
-      <div class="mbm-turn">${turnIntoTypes.map((type) => `<button type="button" role="menuitem" data-turn="${type}" title="${BLOCK_TYPES[type].label}"><span class="material-symbols-outlined">${BLOCK_TYPES[type].icon}</span><span>${BLOCK_TYPES[type].label}</span></button>`).join('')}</div>
+      <div class="mbm-turn">${turnIntoTypes.map((type) => `<button type="button" role="menuitem" data-turn="${type}" title="${BLOCK_TYPES[type].label}">${iconSvg(BLOCK_TYPES[type].icon)}<span>${BLOCK_TYPES[type].label}</span></button>`).join('')}</div>
       <hr />` : ''}
-      ${onAskAI ? '<button type="button" role="menuitem" data-act="ai" class="mbm-ai"><span class="material-symbols-outlined">auto_awesome</span>Ask AI about this block</button>' : ''}
-      <button type="button" role="menuitem" data-act="duplicate"><span class="material-symbols-outlined">content_copy</span>Duplicate<kbd>Ctrl D</kbd></button>
-      <button type="button" role="menuitem" data-act="up"><span class="material-symbols-outlined">arrow_upward</span>Move up<kbd>Alt ↑</kbd></button>
-      <button type="button" role="menuitem" data-act="down"><span class="material-symbols-outlined">arrow_downward</span>Move down<kbd>Alt ↓</kbd></button>
-      <button type="button" role="menuitem" data-act="copy"><span class="material-symbols-outlined">content_paste</span>Copy text</button>
+      ${onAskAI ? `<button type="button" role="menuitem" data-act="ai" class="mbm-ai">${iconSvg('sparkles')}Ask AI about this block</button>` : ''}
+      <button type="button" role="menuitem" data-act="duplicate">${iconSvg('copy')}Duplicate<kbd>Ctrl D</kbd></button>
+      <button type="button" role="menuitem" data-act="up">${iconSvg('arrow-up')}Move up<kbd>Alt ↑</kbd></button>
+      <button type="button" role="menuitem" data-act="down">${iconSvg('arrow-down')}Move down<kbd>Alt ↓</kbd></button>
+      <button type="button" role="menuitem" data-act="copy">${iconSvg('clipboard-paste')}Copy text</button>
       <hr />
-      <button type="button" role="menuitem" data-act="delete" class="is-danger"><span class="material-symbols-outlined">delete</span>Delete<kbd>Del</kbd></button>`;
+      <button type="button" role="menuitem" data-act="delete" class="is-danger">${iconSvg('trash')}Delete<kbd>Del</kbd></button>`;
   }
 
   function moveBlock(direction) {

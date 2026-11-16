@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { updateTask } from '../lib/queries.js';
@@ -7,6 +8,9 @@ import {
   FOCUS_EVENT, FOCUS_JOIN_EVENT, FOCUS_SETUP_EVENT, FOCUS_LENGTHS, getFocus, startFocus, updateFocus, pauseFocus, resumeFocus,
   extendFocus, endFocus, remainingMs, formatClock, playChime
 } from '../lib/focusZone.js';
+
+// The browser tab title while a focus session runs starts with this.
+const FOCUS_TITLE_PREFIX = 'Focus · ';
 
 function Ring({ fraction, size = 260, stroke = 10 }) {
   const radius = (size - stroke) / 2;
@@ -75,11 +79,11 @@ export default function FocusZone() {
   // Browser tab title shows the countdown.
   useEffect(() => {
     if (!session || session.finished) {
-      if (document.title.startsWith('🎯')) document.title = originalTitle.current;
+      if (document.title.startsWith(FOCUS_TITLE_PREFIX)) document.title = originalTitle.current;
       return;
     }
-    if (!document.title.startsWith('🎯')) originalTitle.current = document.title;
-    document.title = `🎯 ${session.pausedAt ? 'Paused' : formatClock(left)} · ${session.title}`;
+    if (!document.title.startsWith(FOCUS_TITLE_PREFIX)) originalTitle.current = document.title;
+    document.title = `${FOCUS_TITLE_PREFIX}${session.pausedAt ? 'Paused' : formatClock(left)} · ${session.title}`;
   }, [session, left]);
 
   // Open the setup card from a task, or from "Join" on a teammate.
@@ -155,7 +159,7 @@ export default function FocusZone() {
     const { error } = await updateTask(task.id, { progress: value, status });
     setSaving(false);
     if (error) { showToast(`Could not save progress: ${error.message}`, 'error'); return; }
-    showToast(markDone || value >= 100 ? `“${task.title}” is done 🎉` : `Progress saved: ${value}%`, 'success');
+    showToast(markDone || value >= 100 ? `“${task.title}” is done` : `Progress saved: ${value}%`, 'success');
     window.dispatchEvent(new CustomEvent('motion:pages-changed'));
     window.dispatchEvent(new CustomEvent('groupify:refresh-page'));
     if (again && value < 100) startFocus({ task, minutes: session?.minutes || 25 });
@@ -169,7 +173,7 @@ export default function FocusZone() {
       <div className="focus-backdrop" role="dialog" aria-modal="true" aria-label="Start a focus session" onMouseDown={(event) => { if (event.target === event.currentTarget) setSetup(null); }}>
         <div className="focus-setup" ref={panelRef} tabIndex={-1}>
           <div className="focus-setup-head">
-            <span className="focus-badge">🎯</span>
+            <span className="focus-badge"><Icon name="target" /></span>
             <div>
               <h2>{joining ? `Focus with ${setup.withName || 'your teammate'}` : 'Start a focus session'}</h2>
               <p>{joining ? `You’ll finish together in ${setup.joinMinutes} min. Pick the task you’ll work on.` : 'One task, no distractions. Your team will see you’re focusing.'}</p>
@@ -188,7 +192,7 @@ export default function FocusZone() {
                 >
                   {setup.tasks.length ? <optgroup label="My tasks">{setup.tasks.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</optgroup> : null}
                   {setup.unassigned.length ? <optgroup label="Not assigned to anyone yet">{setup.unassigned.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</optgroup> : null}
-                  <option value="__free__">✏️ Something else (no task)…</option>
+                  <option value="__free__">Something else (no task)…</option>
                 </select>
               </label>
               {setup.free ? (
@@ -203,7 +207,7 @@ export default function FocusZone() {
               {!setup.tasks.length && !setup.free ? <p className="focus-setup-note">You have no tasks assigned yet. Pick one nobody owns, or focus on something else.</p> : null}
             </>
           ) : (
-            <p className="focus-setup-task"><span className="material-symbols-outlined">task_alt</span>{setup.task?.title || 'Untitled task'}</p>
+            <p className="focus-setup-task"><Icon name="circle-check-big" />{setup.task?.title || 'Untitled task'}</p>
           )}
           {!joining ? (
             <div className="focus-lengths" role="radiogroup" aria-label="Session length">
@@ -224,7 +228,7 @@ export default function FocusZone() {
                 setSetup(null);
               }}
             >
-              <span className="material-symbols-outlined">play_arrow</span>{joining ? 'Join session' : 'Start focusing'}
+              <Icon name="play" />{joining ? 'Join session' : 'Start focusing'}
             </button>
           </div>
         </div>
@@ -254,8 +258,8 @@ export default function FocusZone() {
       <header className="focus-top">
         <span className="focus-brand"><GroupifyMark size={18} color="#F5F7F8" dot="#2E7CA9" /> Focus Zone</span>
         <div className="focus-top-actions">
-          {!session.finished ? <button type="button" className="focus-icon" onClick={minimize} title="Minimize (Esc)" aria-label="Minimize"><span className="material-symbols-outlined">close_fullscreen</span></button> : null}
-          <button type="button" className="focus-icon" onClick={() => { if (session.finished) finish(); else endFocus(); }} title="End session" aria-label="End session"><span className="material-symbols-outlined">close</span></button>
+          {!session.finished ? <button type="button" className="focus-icon" onClick={minimize} title="Minimize (Esc)" aria-label="Minimize"><Icon name="minimize-2" /></button> : null}
+          <button type="button" className="focus-icon" onClick={() => { if (session.finished) finish(); else endFocus(); }} title="End session" aria-label="End session"><Icon name="x" /></button>
         </div>
       </header>
 
@@ -272,10 +276,10 @@ export default function FocusZone() {
           <h1 className="focus-title">{session.title}</h1>
           <div className="focus-controls">
             {session.pausedAt
-              ? <button type="button" className="focus-btn primary" onClick={resumeFocus}><span className="material-symbols-outlined">play_arrow</span>Resume</button>
-              : <button type="button" className="focus-btn" onClick={pauseFocus}><span className="material-symbols-outlined">pause</span>Pause</button>}
-            <button type="button" className="focus-btn" onClick={() => extendFocus(5)}><span className="material-symbols-outlined">more_time</span>+5 min</button>
-            <button type="button" className="focus-btn" onClick={() => updateFocus({ finished: true, finishedAt: Date.now(), minimized: false })}><span className="material-symbols-outlined">flag</span>I’m done</button>
+              ? <button type="button" className="focus-btn primary" onClick={resumeFocus}><Icon name="play" />Resume</button>
+              : <button type="button" className="focus-btn" onClick={pauseFocus}><Icon name="pause" />Pause</button>}
+            <button type="button" className="focus-btn" onClick={() => extendFocus(5)}><Icon name="alarm-clock-plus" />+5 min</button>
+            <button type="button" className="focus-btn" onClick={() => updateFocus({ finished: true, finishedAt: Date.now(), minimized: false })}><Icon name="flag" />I’m done</button>
           </div>
           {checklist.length ? (
             <ul className="focus-steps" aria-label="Checklist">
@@ -290,7 +294,7 @@ export default function FocusZone() {
         </main>
       ) : (
         <main className="focus-main focus-done">
-          <span className="focus-done-badge" aria-hidden="true">🎉</span>
+          <span className="focus-done-badge" aria-hidden="true"><Icon name="party-popper" /></span>
           <h1 className="focus-title">Nice focus!</h1>
           <p className="focus-label">{Math.max(1, Math.round(((session.finishedAt || session.endsAt) - session.startedAt) / 60000))} min on “{session.title}”</p>
           {session.taskId ? (
@@ -300,15 +304,15 @@ export default function FocusZone() {
                 <input id="focus-progress" type="range" min="0" max="100" step="5" value={progress} onChange={(event) => setProgress(Number(event.target.value))} />
               </div>
               <div className="focus-controls">
-                <button type="button" className="focus-btn primary" disabled={saving} onClick={() => finish({ markDone: true })}><span className="material-symbols-outlined">check_circle</span>Mark task done</button>
-                <button type="button" className="focus-btn" disabled={saving} onClick={() => finish()}><span className="material-symbols-outlined">save</span>Save progress</button>
-                <button type="button" className="focus-btn" disabled={saving} onClick={() => finish({ again: true })}><span className="material-symbols-outlined">replay</span>Save & another round</button>
+                <button type="button" className="focus-btn primary" disabled={saving} onClick={() => finish({ markDone: true })}><Icon name="circle-check" />Mark task done</button>
+                <button type="button" className="focus-btn" disabled={saving} onClick={() => finish()}><Icon name="save" />Save progress</button>
+                <button type="button" className="focus-btn" disabled={saving} onClick={() => finish({ again: true })}><Icon name="rotate-ccw" />Save & another round</button>
               </div>
             </>
           ) : (
             <div className="focus-controls">
-              <button type="button" className="focus-btn primary" onClick={() => finish()}><span className="material-symbols-outlined">check_circle</span>Finish</button>
-              <button type="button" className="focus-btn" onClick={() => finish({ again: true })}><span className="material-symbols-outlined">replay</span>Another round</button>
+              <button type="button" className="focus-btn primary" onClick={() => finish()}><Icon name="circle-check" />Finish</button>
+              <button type="button" className="focus-btn" onClick={() => finish({ again: true })}><Icon name="rotate-ccw" />Another round</button>
             </div>
           )}
           <p className="focus-hint">Tip: take a 5-minute break before the next round.</p>

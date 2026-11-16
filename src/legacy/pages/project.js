@@ -1,6 +1,7 @@
 // ============================================
 // MOTION — Project view (Overview · Plan · Teams · Check-ins · Decisions · Tasks · Library)
 // ============================================
+import { iconSvg, pageIconSvg } from '../../lib/icons.js';
 import { AppState, setBreadcrumb, showToast } from '../app.js';
 import { getPages, getTasks, getWorkspaceMembers, createTask, toggleTask, timeAgo } from '../../lib/queries.js';
 import { supabase } from '../../lib/supabase.js';
@@ -24,22 +25,22 @@ import { loaderHtml } from '../../lib/loader.js';
 // Six main tabs. Team and Library have sections; their own addresses
 // (#project/<id>/checkins, /meetings and /lessons) open the right section.
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: 'space_dashboard', hint: 'What’s next, what’s late, and the progress report' },
-  { id: 'plan', label: 'Plan & discussion', icon: 'forum', hint: 'The project plan page, with comments from the team' },
-  { id: 'tasks', label: 'Tasks', icon: 'view_kanban', hint: 'All tasks in this project as a board, list, calendar or timeline' },
-  { id: 'teams', label: 'Team', icon: 'groups', hint: 'Teams with leaders, everyone’s workload, and weekly check-ins' },
-  { id: 'decisions', label: 'Decisions', icon: 'how_to_vote', hint: 'Quick polls and a log of what the team decided and why' },
-  { id: 'pages', label: 'Library', icon: 'local_library', hint: 'Pages, links, files and YouTube lessons for this project' }
+  { id: 'overview', label: 'Overview', icon: 'layout-dashboard', hint: 'What’s next, what’s late, and the progress report' },
+  { id: 'plan', label: 'Plan & discussion', icon: 'messages-square', hint: 'The project plan page, with comments from the team' },
+  { id: 'tasks', label: 'Tasks', icon: 'square-kanban', hint: 'All tasks in this project as a board, list, calendar or timeline' },
+  { id: 'teams', label: 'Team', icon: 'users', hint: 'Teams with leaders, everyone’s workload, and weekly check-ins' },
+  { id: 'decisions', label: 'Decisions', icon: 'vote', hint: 'Quick polls and a log of what the team decided and why' },
+  { id: 'pages', label: 'Library', icon: 'library', hint: 'Pages, links, files and YouTube lessons for this project' }
 ];
 const SECTIONS = {
   teams: [
-    { id: 'teams', label: 'Teams & workload', icon: 'groups', hint: 'Split the work into teams, each with a leader and progress' },
-    { id: 'checkins', label: 'Weekly check-ins', icon: 'event_note', hint: 'Weekly: what everyone did, what’s next, what’s blocking them' },
-    { id: 'meetings', label: 'Live meetings', icon: 'groups_3', hint: 'Run a meeting together: shared agenda timer, live notes, and minutes that become tasks' }
+    { id: 'teams', label: 'Teams & workload', icon: 'users', hint: 'Split the work into teams, each with a leader and progress' },
+    { id: 'checkins', label: 'Weekly check-ins', icon: 'calendar-days', hint: 'Weekly: what everyone did, what’s next, what’s blocking them' },
+    { id: 'meetings', label: 'Live meetings', icon: 'users-round', hint: 'Run a meeting together: shared agenda timer, live notes, and minutes that become tasks' }
   ],
   pages: [
-    { id: 'pages', label: 'Pages & files', icon: 'description', hint: 'Pages, links, files and notes for this project' },
-    { id: 'lessons', label: 'YouTube lessons', icon: 'smart_display', hint: 'YouTube lectures turned into timestamped notes you can search and ask about' }
+    { id: 'pages', label: 'Pages & files', icon: 'file-text', hint: 'Pages, links, files and notes for this project' },
+    { id: 'lessons', label: 'YouTube lessons', icon: 'monitor-play', hint: 'YouTube lectures turned into timestamped notes you can search and ask about' }
   ]
 };
 const PARENT_TAB = { checkins: 'teams', meetings: 'teams', lessons: 'pages' };
@@ -65,20 +66,20 @@ export function renderProjectBar({ project, activeTab, progress = null, members 
     <div class="project-bar">
       <div class="project-bar-top">
         <a class="project-bar-title" href="#project/${escapeHtml(project.id)}">
-          <span class="project-bar-icon">${escapeHtml(project.icon || '📁')}</span>
+          <span class="project-bar-icon">${pageIconSvg(project.icon, { fallback: 'folder' })}</span>
           <span><small>PROJECT</small><strong>${escapeHtml(project.title || 'Untitled project')}</strong></span>
         </a>
         ${progress ? `<div class="project-progress" title="${progress.done} of ${progress.total} tasks done">
           <div class="project-progress-track"><span style="width:${progress.percent}%"></span></div>
           <small>${progress.total ? `${progress.done}/${progress.total} tasks done` : 'No tasks yet'}</small>
         </div>` : ''}
-        ${members.length ? `<div class="project-members">${members.slice(0, 5).map((member) => avatar(member, 26)).join('')}${members.length > 5 ? `<span class="project-more">+${members.length - 5}</span>` : ''}<a href="#settings?section=team" class="project-invite" title="Invite teammates"><span class="material-symbols-outlined">person_add</span></a></div>` : ''}
+        ${members.length ? `<div class="project-members">${members.slice(0, 5).map((member) => avatar(member, 26)).join('')}${members.length > 5 ? `<span class="project-more">+${members.length - 5}</span>` : ''}<a href="#settings?section=team" class="project-invite" title="Invite teammates">${iconSvg('user-plus')}</a></div>` : ''}
       </div>
       <nav class="project-tabs" aria-label="Project sections">
-        ${TABS.map((tab) => `<a href="${tabHref(project.id, tab.id)}" title="${tab.hint}" class="${tab.id === mainTab ? 'is-active' : ''}" ${tab.id === mainTab ? 'aria-current="page"' : ''}><span class="material-symbols-outlined">${tab.icon}</span>${tab.label}</a>`).join('')}
+        ${TABS.map((tab) => `<a href="${tabHref(project.id, tab.id)}" title="${tab.hint}" class="${tab.id === mainTab ? 'is-active' : ''}" ${tab.id === mainTab ? 'aria-current="page"' : ''}>${iconSvg(tab.icon)}${tab.label}</a>`).join('')}
       </nav>
       ${showSections && SECTIONS[mainTab] ? `<nav class="project-subtabs" aria-label="${mainTab === 'teams' ? 'Team' : 'Library'} sections">
-        ${SECTIONS[mainTab].map((section) => `<a href="${tabHref(project.id, section.id)}" title="${section.hint}" class="${section.id === activeTab ? 'is-active' : ''}" ${section.id === activeTab ? 'aria-current="page"' : ''}><span class="material-symbols-outlined">${section.icon}</span>${section.label}</a>`).join('')}
+        ${SECTIONS[mainTab].map((section) => `<a href="${tabHref(project.id, section.id)}" title="${section.hint}" class="${section.id === activeTab ? 'is-active' : ''}" ${section.id === activeTab ? 'aria-current="page"' : ''}>${iconSvg(section.icon)}${section.label}</a>`).join('')}
       </nav>` : ''}
     </div>`;
 }
@@ -112,7 +113,7 @@ async function renderProjectView(container, route) {
   const project = pages.find((page) => page.id === projectId);
   if (!project || !isProject(project)) {
     setBreadcrumb('Project not found');
-    container.innerHTML = `<div class="project-empty-state"><span class="material-symbols-outlined">folder_off</span><h2>Project not found</h2><p>It may have been archived, or it belongs to another team.</p><a href="#dashboard">Go home</a></div>`;
+    container.innerHTML = `<div class="project-empty-state">${iconSvg('folder-x')}<h2>Project not found</h2><p>It may have been archived, or it belongs to another team.</p><a href="#dashboard">Go home</a></div>`;
     return;
   }
   setBreadcrumb(project.title || 'Untitled project');
@@ -175,12 +176,12 @@ async function renderProjectView(container, route) {
     }
     const renderTree = (parentId, depth) => (children.get(parentId) || [])
       .sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')))
-      .map((page) => `<li style="--depth:${depth}"><a href="#editor/${escapeHtml(page.id)}"><span>${escapeHtml(page.icon || '📄')}</span><strong>${escapeHtml(page.title || 'Untitled')}</strong><small>Edited ${escapeHtml(timeAgo(page.updated_at))}</small></a></li>${renderTree(page.id, depth + 1)}`)
+      .map((page) => `<li style="--depth:${depth}"><a href="#editor/${escapeHtml(page.id)}">${pageIconSvg(page.icon)}<strong>${escapeHtml(page.title || 'Untitled')}</strong><small>Edited ${escapeHtml(timeAgo(page.updated_at))}</small></a></li>${renderTree(page.id, depth + 1)}`)
       .join('');
     container.innerHTML = `<div class="project-view">${bar}
       <section class="project-section">
-        <div class="project-section-head"><h2>Pages in this project</h2><button type="button" class="project-btn primary" data-new-page><span class="material-symbols-outlined">note_add</span> New page</button></div>
-        ${projectPages.length ? `<ul class="project-page-tree">${renderTree(project.id, 0)}</ul>` : `<div class="project-hint"><span class="material-symbols-outlined">description</span><div><strong>No pages yet</strong><p>Add pages for meeting notes, research or drafts. The project plan lives in “Plan &amp; discussion”.</p></div></div>`}
+        <div class="project-section-head"><h2>Pages in this project</h2><button type="button" class="project-btn primary" data-new-page>${iconSvg('file-plus')} New page</button></div>
+        ${projectPages.length ? `<ul class="project-page-tree">${renderTree(project.id, 0)}</ul>` : `<div class="project-hint">${iconSvg('file-text')}<div><strong>No pages yet</strong><p>Add pages for meeting notes, research or drafts. The project plan lives in “Plan &amp; discussion”.</p></div></div>`}
       </section>
       <section class="project-section project-resources"></section></div>`;
     container.querySelector('[data-new-page]')?.addEventListener('click', () => startNewPageIn(project.id));
@@ -208,7 +209,7 @@ async function renderProjectView(container, route) {
 
   const taskRow = (task) => `
     <li class="project-task ${isOverdue(task) ? 'is-overdue' : ''}">
-      <button type="button" class="project-task-check" data-toggle="${escapeHtml(task.id)}" aria-label="Mark “${escapeHtml(task.title)}” as done"><span class="material-symbols-outlined">radio_button_unchecked</span></button>
+      <button type="button" class="project-task-check" data-toggle="${escapeHtml(task.id)}" aria-label="Mark “${escapeHtml(task.title)}” as done">${iconSvg('circle')}</button>
       <button type="button" class="project-task-title" data-open="${escapeHtml(task.id)}">${escapeHtml(task.title)}</button>
       <span class="project-task-meta">${task.assignee?.name ? escapeHtml(task.assignee.name) : '<em>Unassigned</em>'}</span>
       <span class="project-task-meta ${isOverdue(task) ? 'is-overdue' : ''}">${task.due_date ? (isOverdue(task) ? 'Overdue · ' : 'Due ') + escapeHtml(task.due_date) : ''}</span>
@@ -218,21 +219,21 @@ async function renderProjectView(container, route) {
   const iCheckedIn = weekCheckins.some((checkin) => checkin.user_id === AppState.user?.id);
   const weekBlockers = blockersOf(weekCheckins);
   const checkinNote = checkinsOff ? '' : `<a class="project-checkin-pill ${!iCheckedIn && checkinPeople.has(AppState.user?.id) ? 'is-due' : ''}" href="${tabHref(project.id, 'checkins')}">
-      <span class="material-symbols-outlined">event_note</span>
+      ${iconSvg('calendar-days')}
       ${!iCheckedIn && checkinPeople.has(AppState.user?.id) ? '<strong>Your weekly check-in is due</strong>' : `<span>${weekCheckins.length}${checkinPeople.size ? `/${new Set([...checkinPeople, ...weekCheckins.map((c) => c.user_id)]).size}` : ''} checked in this week</span>`}
-      ${weekBlockers.length ? `<span class="is-blocker">🚧 ${weekBlockers.length} blocker${weekBlockers.length === 1 ? '' : 's'}</span>` : ''}
+      ${weekBlockers.length ? `<span class="is-blocker">${iconSvg('construction')} ${weekBlockers.length} blocker${weekBlockers.length === 1 ? '' : 's'}</span>` : ''}
     </a>`;
   const reports = projectPages.filter((page) => /^Progress report/.test(page.title || '')).sort((a, b) => String(b.created_at || b.updated_at).localeCompare(String(a.created_at || a.updated_at)));
   container.innerHTML = `<div class="project-view">${bar}
     <div class="project-report-row">
-      <button type="button" class="project-btn primary" data-report><span class="material-symbols-outlined">monitoring</span> Progress report</button>
-      <button type="button" class="project-btn" data-meeting title="An agenda built from blockers, deadlines and open polls"><span class="material-symbols-outlined">groups_3</span> Plan a meeting</button>
+      <button type="button" class="project-btn primary" data-report>${iconSvg('activity')} Progress report</button>
+      <button type="button" class="project-btn" data-meeting title="An agenda built from blockers, deadlines and open polls">${iconSvg('users-round')} Plan a meeting</button>
       ${reports[0] ? `<a class="project-link" href="#editor/${escapeHtml(reports[0].id)}">Last report: ${escapeHtml(timeAgo(reports[0].created_at || reports[0].updated_at))} →</a>` : '<span class="project-report-hint">One click: a summary of progress, teams, overdue work and who did what, for your team or supervisor.</span>'}
       ${checkinNote}
     </div>
     ${overdue.length || unassigned.length ? `<div class="project-alerts">
-      ${overdue.length ? `<span class="project-alert danger"><span class="material-symbols-outlined">schedule</span>${overdue.length} overdue</span>` : ''}
-      ${unassigned.length ? `<span class="project-alert"><span class="material-symbols-outlined">person_off</span>${unassigned.length} without an owner — assign them so nothing slips</span>` : ''}
+      ${overdue.length ? `<span class="project-alert danger">${iconSvg('clock')}${overdue.length} overdue</span>` : ''}
+      ${unassigned.length ? `<span class="project-alert">${iconSvg('user-x')}${unassigned.length} without an owner — assign them so nothing slips</span>` : ''}
     </div>` : ''}
     ${teams.length ? `<a class="project-teams-strip" href="${tabHref(project.id, 'teams')}" aria-label="Open teams">${teams.map((team) => {
       const stats = teamStats(team, tasks);
@@ -240,20 +241,20 @@ async function renderProjectView(container, route) {
     }).join('')}<span class="project-link">Teams →</span></a>` : ''}
     <div class="project-grid">
       <section class="project-section">
-        <div class="project-section-head"><h2>Next up</h2><div class="project-head-actions"><button type="button" class="project-btn primary" data-add-task><span class="material-symbols-outlined">add_task</span> Add task</button><a class="project-link" href="${tabHref(project.id, 'tasks')}">Board →</a></div></div>
-        ${openTasks.length ? `<ul class="project-task-list">${openTasks.slice(0, 8).map(taskRow).join('')}</ul>` : `<div class="project-hint"><span class="material-symbols-outlined">task_alt</span><div><strong>${tasks.length ? 'All tasks are done 🎉' : 'No tasks yet'}</strong><p>${tasks.length ? 'Add the next piece of work, or celebrate.' : 'Break the plan into tasks and give each one an owner.'}</p></div></div>`}
+        <div class="project-section-head"><h2>Next up</h2><div class="project-head-actions"><button type="button" class="project-btn primary" data-add-task>${iconSvg('list-plus')} Add task</button><a class="project-link" href="${tabHref(project.id, 'tasks')}">Board →</a></div></div>
+        ${openTasks.length ? `<ul class="project-task-list">${openTasks.slice(0, 8).map(taskRow).join('')}</ul>` : `<div class="project-hint">${iconSvg('circle-check-big')}<div><strong>${tasks.length ? 'All tasks are done' : 'No tasks yet'}</strong><p>${tasks.length ? 'Add the next piece of work, or celebrate.' : 'Break the plan into tasks and give each one an owner.'}</p></div></div>`}
       </section>
       <div class="project-side">
         <section class="project-section project-milestones"><div class="project-section-head"><h2>Milestones</h2></div></section>
         <section class="project-section">
           <div class="project-section-head"><h2>Latest discussion</h2><a class="project-link" href="${tabHref(project.id, 'plan')}">Open →</a></div>
-          ${comments?.length ? `<ul class="project-feed">${comments.map((comment) => `<li><a href="#editor/${escapeHtml(comment.page_id)}"><strong>${escapeHtml(comment.author?.name || 'Teammate')}</strong> on ${escapeHtml(pageTitle(comment.page_id))}<p>${escapeHtml(String(comment.content || '').replace(/^\[RESOLVED\] /, '').slice(0, 120))}</p><small>${escapeHtml(timeAgo(comment.created_at))}</small></a></li>`).join('')}</ul>` : `<div class="project-hint"><span class="material-symbols-outlined">forum</span><div><strong>No discussion yet</strong><p>Open the plan and leave a comment. @mention a teammate to bring them in.</p></div></div>`}
+          ${comments?.length ? `<ul class="project-feed">${comments.map((comment) => `<li><a href="#editor/${escapeHtml(comment.page_id)}"><strong>${escapeHtml(comment.author?.name || 'Teammate')}</strong> on ${escapeHtml(pageTitle(comment.page_id))}<p>${escapeHtml(String(comment.content || '').replace(/^\[RESOLVED\] /, '').slice(0, 120))}</p><small>${escapeHtml(timeAgo(comment.created_at))}</small></a></li>`).join('')}</ul>` : `<div class="project-hint">${iconSvg('messages-square')}<div><strong>No discussion yet</strong><p>Open the plan and leave a comment. @mention a teammate to bring them in.</p></div></div>`}
         </section>
         <section class="project-section">
-          <div class="project-section-head"><h2>Pages</h2><div class="project-head-actions"><button type="button" class="project-btn" data-new-page><span class="material-symbols-outlined">note_add</span> New</button><a class="project-link" href="${tabHref(project.id, 'pages')}">All →</a></div></div>
+          <div class="project-section-head"><h2>Pages</h2><div class="project-head-actions"><button type="button" class="project-btn" data-new-page>${iconSvg('file-plus')} New</button><a class="project-link" href="${tabHref(project.id, 'pages')}">All →</a></div></div>
           <ul class="project-mini-pages">
-            <li><a href="#editor/${escapeHtml(project.id)}"><span>🗺️</span><strong>Project plan</strong><small>Edited ${escapeHtml(timeAgo(project.updated_at))}</small></a></li>
-            ${recentPages.map((page) => `<li><a href="#editor/${escapeHtml(page.id)}"><span>${escapeHtml(page.icon || '📄')}</span><strong>${escapeHtml(page.title || 'Untitled')}</strong><small>Edited ${escapeHtml(timeAgo(page.updated_at))}</small></a></li>`).join('')}
+            <li><a href="#editor/${escapeHtml(project.id)}">${iconSvg('map', 'page-icon')}<strong>Project plan</strong><small>Edited ${escapeHtml(timeAgo(project.updated_at))}</small></a></li>
+            ${recentPages.map((page) => `<li><a href="#editor/${escapeHtml(page.id)}">${pageIconSvg(page.icon)}<strong>${escapeHtml(page.title || 'Untitled')}</strong><small>Edited ${escapeHtml(timeAgo(page.updated_at))}</small></a></li>`).join('')}
           </ul>
         </section>
       </div>
@@ -317,7 +318,7 @@ async function renderProjectView(container, route) {
   container.querySelectorAll('[data-toggle]').forEach((button) => button.addEventListener('click', async () => {
     const { error } = await toggleTask(button.dataset.toggle, true);
     if (error) return showToast(`Could not update task: ${error.message}`, 'error');
-    showToast('Task done ✓', 'success');
+    showToast('Task done', 'success');
     refresh();
   }));
   container.querySelectorAll('[data-open]').forEach((button) => button.addEventListener('click', () => {
@@ -341,10 +342,10 @@ async function renderLessonsTab(container, { bar, project, workspaceId, role }) 
     ? `<div class="team-chat-error" role="alert">${escapeHtml(isMissingLessonsTable(error) ? LESSON_SETUP_MESSAGE : `Could not load lessons: ${error.message}`)}</div>`
     : lessons.length
       ? `<ul class="meeting-list lesson-list">${lessons.map(row).join('')}</ul>`
-      : `<div class="project-hint"><span class="material-symbols-outlined">smart_display</span><div><strong>No lessons yet</strong><p>${canAddLessons ? 'Add a YouTube lecture or tutorial. The AI writes timestamped notes, a summary and chapters, and answers questions like “at what minute is this explained?”.' : 'When a team owner, admin or editor adds a YouTube lesson, it appears here with AI notes you can search and ask about.'}</p></div></div>`;
+      : `<div class="project-hint">${iconSvg('monitor-play')}<div><strong>No lessons yet</strong><p>${canAddLessons ? 'Add a YouTube lecture or tutorial. The AI writes timestamped notes, a summary and chapters, and answers questions like “at what minute is this explained?”.' : 'When a team owner, admin or editor adds a YouTube lesson, it appears here with AI notes you can search and ask about.'}</p></div></div>`;
   container.innerHTML = `<div class="project-view">${bar}
     <section class="project-section">
-      <div class="project-section-head"><h2>YouTube lessons</h2>${error || !canAddLessons ? '' : '<button type="button" class="project-btn primary" data-new-lesson><span class="material-symbols-outlined">add</span> Add YouTube lesson</button>'}</div>
+      <div class="project-section-head"><h2>YouTube lessons</h2>${error || !canAddLessons ? '' : `<button type="button" class="project-btn primary" data-new-lesson>${iconSvg('plus')} Add YouTube lesson</button>`}</div>
       ${body}
     </section></div>`;
 
@@ -392,7 +393,7 @@ async function renderMeetingsTab(container, { bar, project, workspaceId, role })
     const minutes = agenda.reduce((sum, item) => sum + (Number(item.minutes) || 0), 0);
     const when = meeting.status === 'ended' ? `Ended ${formatDate(meeting.ended_at)}` : meeting.status === 'live' ? `Started ${formatDate(meeting.started_at)}` : `Created ${formatDate(meeting.created_at)}`;
     return `<li><a href="#meeting/${escapeHtml(meeting.id)}">
-      <span class="material-symbols-outlined" aria-hidden="true">${meeting.status === 'ended' ? 'summarize' : 'groups_3'}</span>
+      ${iconSvg(meeting.status === 'ended' ? 'notebook-text' : 'users-round')}
       <span class="meeting-list-main"><strong>${escapeHtml(meeting.title || 'Untitled meeting')}</strong><small>${escapeHtml(when)} · ${agenda.length} item${agenda.length === 1 ? '' : 's'} · ${minutes} min${meeting.minutes_page_id ? ' · Minutes saved' : ''}</small></span>
       ${meetingStatusLabel(meeting)}
     </a></li>`;
@@ -401,10 +402,10 @@ async function renderMeetingsTab(container, { bar, project, workspaceId, role })
     ? `<div class="team-chat-error" role="alert">${escapeHtml(isMissingMeetingsTable(error) ? MEETING_SETUP_MESSAGE : `Could not load meetings: ${error.message}`)}</div>`
     : meetings.length
       ? `<ul class="meeting-list">${meetings.map(row).join('')}</ul>`
-      : `<div class="project-hint"><span class="material-symbols-outlined">groups_3</span><div><strong>No live meetings yet</strong><p>${canPlan ? 'Plan a meeting with a timed agenda, or use “Plan a meeting” on the Overview to build the agenda from blockers and deadlines.' : 'When an editor plans a meeting it appears here.'} Everyone sees the same timer and adds notes live; the minutes become tasks, decisions and a page.</p></div></div>`;
+      : `<div class="project-hint">${iconSvg('users-round')}<div><strong>No live meetings yet</strong><p>${canPlan ? 'Plan a meeting with a timed agenda, or use “Plan a meeting” on the Overview to build the agenda from blockers and deadlines.' : 'When an editor plans a meeting it appears here.'} Everyone sees the same timer and adds notes live; the minutes become tasks, decisions and a page.</p></div></div>`;
   container.innerHTML = `<div class="project-view">${bar}
     <section class="project-section">
-      <div class="project-section-head"><h2>Live meetings</h2>${error || !canPlan ? '' : '<button type="button" class="project-btn primary" data-new-meeting><span class="material-symbols-outlined">add</span> New meeting</button>'}</div>
+      <div class="project-section-head"><h2>Live meetings</h2>${error || !canPlan ? '' : `<button type="button" class="project-btn primary" data-new-meeting>${iconSvg('plus')} New meeting</button>`}</div>
       ${body}
     </section></div>`;
 

@@ -1,12 +1,13 @@
+import Icon, { PageIcon } from './Icon';
 import { useEffect, useRef } from 'react';
 import { pickAndFocus } from '../lib/focusZone.js';
 
 const IDEAS = [
-  { icon: 'groups', title: 'Team', text: 'The people you work with. Invite them from Settings → Team.' },
+  { icon: 'users', title: 'Team', text: 'The people you work with. Invite them from Settings → Team.' },
   { icon: 'folder', title: 'Project', text: 'One goal, like your graduation project, with its plan, tasks and pages.' },
-  { icon: 'diversity_3', title: 'Teams in a project', text: 'Split big work (Design, Backend…). Each team has a leader who manages its tasks.' },
-  { icon: 'task_alt', title: 'Task', text: 'One thing to do, with an owner, a due date and a progress %.' },
-  { icon: 'description', title: 'Page', text: 'Notes and documents. Type / for headings and lists, @ to mention someone.' }
+  { icon: 'users-round', title: 'Teams in a project', text: 'Split big work (Design, Backend…). Each team has a leader who manages its tasks.' },
+  { icon: 'circle-check-big', title: 'Task', text: 'One thing to do, with an owner, a due date and a progress %.' },
+  { icon: 'file-text', title: 'Page', text: 'Notes and documents. Type / for headings and lists, @ to mention someone.' }
 ];
 
 const SHORTCUTS = [
@@ -48,20 +49,20 @@ export default function HelpPanel({ open, onClose, project, onNewProject }) {
       <aside className="help-panel" role="dialog" aria-modal="true" aria-label="How Groupify works" ref={panelRef} tabIndex={-1}>
         <header className="help-head">
           <div><p className="gs-eyebrow">Help</p><h2>How Groupify works</h2></div>
-          <button type="button" className="team-icon-btn" onClick={onClose} aria-label="Close help"><span className="material-symbols-outlined">close</span></button>
+          <button type="button" className="team-icon-btn" onClick={onClose} aria-label="Close help"><Icon name="x" /></button>
         </header>
 
         <section className="help-section">
           <h3>The main ideas</h3>
           <ul className="help-ideas">
             {IDEAS.map((idea) => (
-              <li key={idea.title}><span className="material-symbols-outlined">{idea.icon}</span><div><strong>{idea.title}</strong><p>{idea.text}</p></div></li>
+              <li key={idea.title}><Icon name={idea.icon} /><div><strong>{idea.title}</strong><p>{idea.text}</p></div></li>
             ))}
           </ul>
         </section>
 
         <section className="help-section">
-          <h3>Your week in 5 steps{project ? <small> · {project.icon || '📁'} {project.title}</small> : null}</h3>
+          <h3>Your week in 5 steps{project ? <small> · <PageIcon value={project.icon} fallback="folder" /> {project.title}</small> : null}</h3>
           <ol className="help-steps">
             {steps.map((step) => (
               <li key={step.n}>
@@ -84,7 +85,7 @@ export default function HelpPanel({ open, onClose, project, onNewProject }) {
           </dl>
         </section>
 
-        <p className="help-foot"><span className="material-symbols-outlined">auto_awesome</span> Still unsure? Ask the AI “How do I…?” — it knows your projects.</p>
+        <p className="help-foot"><Icon name="sparkles" /> Still unsure? Ask the AI “How do I…?” — it knows your projects.</p>
       </aside>
     </div>
   );

@@ -1,3 +1,4 @@
+import { iconSvg } from './icons.js';
 import { loaderHtml } from './loader.js';
 import Quill from 'quill';
 import QuillCursors from 'quill-cursors';
@@ -88,17 +89,17 @@ class TableBlot extends BlockEmbed {
         ${tableHtml}
       </div>
       <button type="button" class="notion-table-add notion-table-add-col" contenteditable="false" data-table-action="add-col" aria-label="Add a column" data-tip="Click to add a new column">
-        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+        ${iconSvg('plus')}
       </button>
       <button type="button" class="notion-table-add notion-table-add-row" contenteditable="false" data-table-action="add-row" aria-label="Add a row" data-tip="Click to add a new row">
-        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+        ${iconSvg('plus')}
       </button>
       <div class="notion-table-toolbar" contenteditable="false">
         <button type="button" class="notion-table-btn" data-table-action="del-row">
-          <span class="material-symbols-outlined text-[14px]">remove</span> Row
+          ${iconSvg('minus', 'text-[14px]')} Row
         </button>
         <button type="button" class="notion-table-btn" data-table-action="del-col">
-          <span class="material-symbols-outlined text-[14px]">remove</span> Column
+          ${iconSvg('minus', 'text-[14px]')} Column
         </button>
       </div>
     `;
@@ -146,7 +147,7 @@ class CalloutBlot extends BlockEmbed {
     const content = innermostCalloutText(raw) || 'Type your callout here...';
     node.innerHTML = `
       <aside class="editor-callout">
-        <span class="editor-callout-icon" contenteditable="false">💡</span>
+        <span class="editor-callout-icon" contenteditable="false">${iconSvg('lightbulb')}</span>
         <div class="editor-callout-text" contenteditable="true">${content}</div>
       </aside>
     `;
@@ -376,18 +377,18 @@ function createSelectionToolbar(quill, container, { onAddComment }) {
     <div class="mst-group mst-block-type-group">
       <button type="button" class="mst-btn mst-dropdown-trigger" data-action="block-type" title="Turn into...">
         <span class="mst-block-label">Normal text</span>
-        <span class="material-symbols-outlined text-xs">arrow_drop_down</span>
+        ${iconSvg('chevron-down', 'text-xs')}
       </button>
       <div class="mst-menu mst-block-menu" hidden>
-        <button type="button" data-block="p"><span class="material-symbols-outlined">text_fields</span> Text</button>
+        <button type="button" data-block="p">${iconSvg('type')} Text</button>
         <button type="button" data-block="h1"><span class="mst-icon-text">H1</span> Heading 1</button>
         <button type="button" data-block="h2"><span class="mst-icon-text">H2</span> Heading 2</button>
         <button type="button" data-block="h3"><span class="mst-icon-text">H3</span> Heading 3</button>
-        <button type="button" data-block="bullet"><span class="material-symbols-outlined">format_list_bulleted</span> Bulleted list</button>
-        <button type="button" data-block="ordered"><span class="material-symbols-outlined">format_list_numbered</span> Numbered list</button>
-        <button type="button" data-block="check"><span class="material-symbols-outlined">check_box</span> To-do list</button>
-        <button type="button" data-block="blockquote"><span class="material-symbols-outlined">format_quote</span> Quote</button>
-        <button type="button" data-block="code-block"><span class="material-symbols-outlined">code</span> Code block</button>
+        <button type="button" data-block="bullet">${iconSvg('list')} Bulleted list</button>
+        <button type="button" data-block="ordered">${iconSvg('list-ordered')} Numbered list</button>
+        <button type="button" data-block="check">${iconSvg('square-check')} To-do list</button>
+        <button type="button" data-block="blockquote">${iconSvg('quote')} Quote</button>
+        <button type="button" data-block="code-block">${iconSvg('code')} Code block</button>
       </div>
     </div>
 
@@ -433,10 +434,10 @@ function createSelectionToolbar(quill, container, { onAddComment }) {
         <span class="mst-icon-strike">S</span>
       </button>
       <button type="button" class="mst-btn" data-action="code" title="Inline code">
-        <span class="material-symbols-outlined text-sm">code</span>
+        ${iconSvg('code', 'text-sm')}
       </button>
       <button type="button" class="mst-btn" data-action="clean" title="Clear formatting">
-        <span class="material-symbols-outlined text-sm">format_clear</span>
+        ${iconSvg('remove-formatting', 'text-sm')}
       </button>
     </div>
 
@@ -445,19 +446,19 @@ function createSelectionToolbar(quill, container, { onAddComment }) {
     <div class="mst-group">
       <!-- Link -->
       <button type="button" class="mst-btn" data-action="link" title="Link (Ctrl+K)">
-        <span class="material-symbols-outlined text-sm">link</span>
+        ${iconSvg('link', 'text-sm')}
       </button>
       <div class="mst-menu mst-link-popover" hidden>
         <div class="mst-link-row">
           <input type="url" class="mst-link-input" placeholder="Paste link URL (https://...)" />
           <button type="button" class="mst-link-apply modal-btn-primary">Apply</button>
-          <button type="button" class="mst-link-remove" title="Remove link"><span class="material-symbols-outlined text-sm">link_off</span></button>
+          <button type="button" class="mst-link-remove" title="Remove link">${iconSvg('unlink', 'text-sm')}</button>
         </div>
       </div>
 
       <!-- Comment -->
       <button type="button" class="mst-btn mst-btn-text" data-action="comment" title="Add comment">
-        <span class="material-symbols-outlined text-sm">chat_bubble_outline</span>
+        ${iconSvg('message-circle', 'text-sm')}
         <span>Comment</span>
       </button>
       <div class="mst-menu mst-comment-popover" hidden>
@@ -474,25 +475,25 @@ function createSelectionToolbar(quill, container, { onAddComment }) {
     <div class="mst-group">
       <!-- AI / Skills Actions -->
       <button type="button" class="mst-btn mst-btn-ai" data-action="ai-menu" title="AI Writing Actions">
-        <span class="material-symbols-outlined text-sm text-primary">auto_awesome</span>
+        ${iconSvg('sparkles', 'text-sm text-primary')}
         <span>Skills</span>
       </button>
       <div class="mst-menu mst-ai-menu" hidden>
         <div class="mst-menu-title">AI Writing Assistant</div>
-        <button type="button" data-ai="improve"><span class="material-symbols-outlined">auto_fix_high</span> Improve writing</button>
-        <button type="button" data-ai="proofread"><span class="material-symbols-outlined">spellcheck</span> Proofread &amp; fix typos</button>
-        <button type="button" data-ai="rewrite"><span class="material-symbols-outlined">refresh</span> Rewrite differently</button>
-        <button type="button" data-ai="summarize"><span class="material-symbols-outlined">summarize</span> Summarize</button>
-        <button type="button" data-ai="explain"><span class="material-symbols-outlined">help_outline</span> Explain this</button>
+        <button type="button" data-ai="improve">${iconSvg('wand-sparkles')} Improve writing</button>
+        <button type="button" data-ai="proofread">${iconSvg('spell-check')} Proofread &amp; fix typos</button>
+        <button type="button" data-ai="rewrite">${iconSvg('refresh-cw')} Rewrite differently</button>
+        <button type="button" data-ai="summarize">${iconSvg('notebook-text')} Summarize</button>
+        <button type="button" data-ai="explain">${iconSvg('circle-question-mark')} Explain this</button>
         <div class="mst-menu-divider"></div>
         <div class="mst-menu-subtitle">Translate</div>
-        <button type="button" data-ai="translate" data-lang="Arabic"><span class="material-symbols-outlined">translate</span> To Arabic</button>
-        <button type="button" data-ai="translate" data-lang="English"><span class="material-symbols-outlined">translate</span> To English</button>
+        <button type="button" data-ai="translate" data-lang="Arabic">${iconSvg('languages')} To Arabic</button>
+        <button type="button" data-ai="translate" data-lang="English">${iconSvg('languages')} To English</button>
         <div class="mst-menu-divider"></div>
         <div class="mst-menu-subtitle">Change tone</div>
-        <button type="button" data-ai="tone" data-tone="Professional"><span class="material-symbols-outlined">business_center</span> Professional</button>
-        <button type="button" data-ai="tone" data-tone="Casual"><span class="material-symbols-outlined">sentiment_satisfied</span> Casual &amp; friendly</button>
-        <button type="button" data-ai="tone" data-tone="Direct"><span class="material-symbols-outlined">bolt</span> Direct &amp; concise</button>
+        <button type="button" data-ai="tone" data-tone="Professional">${iconSvg('briefcase')} Professional</button>
+        <button type="button" data-ai="tone" data-tone="Casual">${iconSvg('face-slightly-smiling')} Casual &amp; friendly</button>
+        <button type="button" data-ai="tone" data-tone="Direct">${iconSvg('zap')} Direct &amp; concise</button>
       </div>
     </div>
   `;
@@ -868,7 +869,7 @@ function createAIOverlay(quill, container) {
     // Show loading state
     overlay.innerHTML = `
       <div class="mapc-header">
-        <span class="material-symbols-outlined text-primary">auto_awesome</span>
+        ${iconSvg('sparkles', 'text-primary')}
         <strong>AI Assistant is working...</strong>
         <button type="button" class="mapc-close">×</button>
       </div>
@@ -897,7 +898,7 @@ function createAIOverlay(quill, container) {
 
       overlay.innerHTML = `
         <div class="mapc-header">
-          <span class="material-symbols-outlined text-primary">auto_awesome</span>
+          ${iconSvg('sparkles', 'text-primary')}
           <strong>AI Proposal</strong>
           <span class="mapc-badge">${action.toUpperCase()}${language ? `: ${language}` : ''}${tone ? `: ${tone}` : ''}</span>
           <button type="button" class="mapc-close">×</button>
@@ -938,7 +939,7 @@ function createAIOverlay(quill, container) {
       if (err.name === 'AbortError') return;
       overlay.innerHTML = `
         <div class="mapc-header">
-          <span class="material-symbols-outlined text-error">error</span>
+          ${iconSvg('circle-alert', 'text-error')}
           <strong>AI Generation Error</strong>
           <button type="button" class="mapc-close">×</button>
         </div>
@@ -1088,10 +1089,10 @@ function createBlockGutterManager(quill, container, { onOpenContextMenu = () => 
   gutterHandle.hidden = true;
   gutterHandle.innerHTML = `
     <button type="button" class="notion-gutter-btn notion-gutter-add" title="Add block below" aria-label="Add block">
-      <span class="material-symbols-outlined text-[18px]">add</span>
+      ${iconSvg('plus', 'text-[18px]')}
     </button>
     <button type="button" class="notion-gutter-btn notion-gutter-drag editor-block-drag-handle" data-block-handle draggable="true" title="Drag to move · Click for block options · Alt+↑/↓ to reorder" aria-label="Move block">
-      <span class="material-symbols-outlined text-[18px]">drag_indicator</span>
+      ${iconSvg('grip-vertical', 'text-[18px]')}
     </button>
   `;
   container.appendChild(gutterHandle);

@@ -1,6 +1,7 @@
 // ============================================
 // MOTION — Home: my tasks, projects, team activity, getting started
 // ============================================
+import { iconSvg, pageIconSvg } from '../../lib/icons.js';
 import { AppState, setBreadcrumb, showToast } from '../app.js';
 import { getPages, getTasks, getWorkspaceMembers, getNotifications, getCommentCount, toggleTask, createTask, timeAgo } from '../../lib/queries.js';
 import { escapeHtml } from '../../lib/sanitize.js';
@@ -26,7 +27,7 @@ async function renderInvites(section) {
   const { data: invites } = await getMyInvitations();
   if (!section.isConnected) return;
   if (!invites?.length) { section.hidden = true; return; }
-  section.innerHTML = `<h2><span class="material-symbols-outlined" aria-hidden="true">group_add</span>You’re invited</h2>
+  section.innerHTML = `<h2>${iconSvg('user-plus')}You’re invited</h2>
     <ul>${invites.map((invite) => `<li data-invite="${escapeHtml(invite.token)}">
       <span><strong>${escapeHtml(invite.inviter_name)}</strong> invited you to join <strong>${escapeHtml(invite.workspace_name)}</strong> as ${escapeHtml(ROLE_LABEL[invite.role] || 'Member')}</span>
       <span class="home-invite-actions">
@@ -87,11 +88,11 @@ async function renderCatchUp(section, { workspaceId, me, tasks, projectById, pro
   const sinceLabel = new Date(since).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   section.innerHTML = `
     <div class="home-catchup-head">
-      <h2><span class="material-symbols-outlined" aria-hidden="true">history</span>Catch me up <small>since ${escapeHtml(sinceLabel)}</small></h2>
-      <button type="button" class="project-btn" data-caught-up><span class="material-symbols-outlined">done_all</span> Got it</button>
+      <h2>${iconSvg('rotate-ccw-clock')}Catch me up <small>since ${escapeHtml(sinceLabel)}</small></h2>
+      <button type="button" class="project-btn" data-caught-up>${iconSvg('check-check')} Got it</button>
     </div>
     <div class="home-catchup-grid">${groups.map((group) => `<div class="home-catchup-group ${group.tone ? `is-${group.tone}` : ''}">
-      <h3><span class="material-symbols-outlined" aria-hidden="true">${group.icon}</span>${escapeHtml(group.title)} <b>${group.items.length}</b></h3>
+      <h3>${iconSvg(group.icon)}${escapeHtml(group.title)} <b>${group.items.length}</b></h3>
       <ul>${group.items.slice(0, 4).map((item) => `<li><a href="${escapeHtml(item.href)}">${escapeHtml(item.text)}</a></li>`).join('')}</ul>
       ${group.items.length > 4 ? `<small>+${group.items.length - 4} more</small>` : ''}
     </div>`).join('')}</div>`;
@@ -99,7 +100,7 @@ async function renderCatchUp(section, { workspaceId, me, tasks, projectById, pro
   section.querySelector('[data-caught-up]').addEventListener('click', () => {
     try { localStorage.setItem(caughtUpKey(me, workspaceId), new Date().toISOString()); } catch { /* storage blocked */ }
     section.hidden = true;
-    showToast('You’re all caught up ✓', 'success');
+    showToast('You’re all caught up', 'success');
   });
 }
 
@@ -123,7 +124,7 @@ export async function renderDashboard(container) {
   ]);
   if (tasksResult.error || pagesResult.error) {
     const message = (tasksResult.error || pagesResult.error)?.message || 'Please try again.';
-    container.innerHTML = `<div class="error-state m-8"><span class="material-symbols-outlined">error</span><h3>Could not load your home</h3><p>${escapeHtml(message)}</p><button id="home-retry" type="button">Try again</button></div>`;
+    container.innerHTML = `<div class="error-state m-8">${iconSvg('circle-alert')}<h3>Could not load your home</h3><p>${escapeHtml(message)}</p><button id="home-retry" type="button">Try again</button></div>`;
     container.querySelector('#home-retry')?.addEventListener('click', () => renderDashboard(container));
     return;
   }
@@ -159,9 +160,9 @@ export async function renderDashboard(container) {
   const taskRow = (task) => {
     const project = projectById.get(projectIndex.get(task.page_id));
     return `<li class="home-task ${isOverdue(task) ? 'is-overdue' : ''}">
-      <button type="button" class="project-task-check" data-toggle="${escapeHtml(task.id)}" aria-label="Mark “${escapeHtml(task.title)}” as done"><span class="material-symbols-outlined">radio_button_unchecked</span></button>
+      <button type="button" class="project-task-check" data-toggle="${escapeHtml(task.id)}" aria-label="Mark “${escapeHtml(task.title)}” as done">${iconSvg('circle')}</button>
       <button type="button" class="project-task-title" data-open="${escapeHtml(task.id)}">${escapeHtml(task.title)}</button>
-      ${project ? `<a class="home-chip" href="#project/${escapeHtml(project.id)}">${escapeHtml(project.icon || '📁')} ${escapeHtml(project.title)}</a>` : '<span></span>'}
+      ${project ? `<a class="home-chip" href="#project/${escapeHtml(project.id)}">${pageIconSvg(project.icon, { fallback: 'folder' })} ${escapeHtml(project.title)}</a>` : '<span></span>'}
       <span class="project-task-meta ${isOverdue(task) ? 'is-overdue' : ''}">${task.due_date ? `${isOverdue(task) ? 'Overdue' : 'Due'} ${escapeHtml(task.due_date)}` : ''}</span>
     </li>`;
   };
@@ -169,7 +170,7 @@ export async function renderDashboard(container) {
   const projectCard = (project) => {
     const progress = projectProgress(tasksForProject(tasks, pages, project.id));
     return `<a class="home-project" href="#project/${escapeHtml(project.id)}">
-      <span class="home-project-icon">${escapeHtml(project.icon || '📁')}</span>
+      <span class="home-project-icon">${pageIconSvg(project.icon, { fallback: 'folder' })}</span>
       <strong>${escapeHtml(project.title || 'Untitled project')}</strong>
       <div class="project-progress-track"><span style="width:${progress.percent}%"></span></div>
       <small>${progress.total ? `${progress.done}/${progress.total} done · ${progress.open} open` : 'No tasks yet'} · edited ${escapeHtml(timeAgo(project.updated_at))}</small>
@@ -198,7 +199,7 @@ export async function renderDashboard(container) {
 
   const templatesHtml = Object.entries(PROJECT_TEMPLATES).map(([key, template]) => `
     <button type="button" class="home-template" data-template="${key}">
-      <span class="home-template-icon">${template.icon}</span>
+      <span class="home-template-icon">${pageIconSvg(template.icon, { fallback: 'folder' })}</span>
       <strong>${escapeHtml(template.label)}</strong>
       <p>${escapeHtml(template.description)}</p>
     </button>`).join('');
@@ -207,9 +208,9 @@ export async function renderDashboard(container) {
   const dueSoonOnly = dueSoonMine.filter((task) => !isOverdue(task));
   const listTitles = (items) => `${items.slice(0, 2).map((task) => `“${escapeHtml(task.title)}”`).join(', ')}${items.length > 2 ? ` and ${items.length - 2} more` : ''}`;
   const attentionRows = [
-    overdueMine.length && `<li class="is-bad"><span class="material-symbols-outlined">schedule</span><a href="#kanban?assignee=mine"><strong>${overdueMine.length} overdue</strong> ${listTitles(overdueMine)}</a></li>`,
-    dueSoonOnly.length && `<li class="is-warn"><span class="material-symbols-outlined">alarm</span><a href="#kanban?assignee=mine"><strong>Due ${dueSoonOnly.every((task) => task.due_date === todayStr) ? 'today' : 'soon'}</strong> ${listTitles(dueSoonOnly)}</a></li>`,
-    checkinsDue.length && `<li><span class="material-symbols-outlined">event_note</span><span><strong>Weekly check-in</strong> ${checkinsDue.map((project) => `<a href="#project/${escapeHtml(project.id)}/checkins">${escapeHtml(project.icon || '📁')} ${escapeHtml(project.title || 'Untitled project')}</a>`).join(', ')}</span></li>`
+    overdueMine.length && `<li class="is-bad">${iconSvg('clock')}<a href="#kanban?assignee=mine"><strong>${overdueMine.length} overdue</strong> ${listTitles(overdueMine)}</a></li>`,
+    dueSoonOnly.length && `<li class="is-warn">${iconSvg('alarm-clock')}<a href="#kanban?assignee=mine"><strong>Due ${dueSoonOnly.every((task) => task.due_date === todayStr) ? 'today' : 'soon'}</strong> ${listTitles(dueSoonOnly)}</a></li>`,
+    checkinsDue.length && `<li>${iconSvg('calendar-days')}<span><strong>Weekly check-in</strong> ${checkinsDue.map((project) => `<a href="#project/${escapeHtml(project.id)}/checkins">${pageIconSvg(project.icon, { fallback: 'folder' })} ${escapeHtml(project.title || 'Untitled project')}</a>`).join(', ')}</span></li>`
   ].filter(Boolean);
   const nextStep = steps.find((step) => !step.done);
   const compactChecklist = stepsDone >= 2;
@@ -219,18 +220,18 @@ export async function renderDashboard(container) {
       <header class="home-header">
         <div>
           <p class="home-eyebrow">${teamName}</p>
-          <h1>Hi ${firstName} 👋</h1>
+          <h1>Hi ${firstName}</h1>
           <p class="home-summary">${myTasks.length ? `You have ${myTasks.length} open task${myTasks.length === 1 ? '' : 's'}${projects.length ? ` across ${projects.length} project${projects.length === 1 ? '' : 's'}` : ''}.` : projects.length ? 'Nothing assigned to you right now.' : 'Groupify helps your team plan projects, split them into tasks, and finish them together.'}</p>
         </div>
         <div class="home-actions">
-          <button type="button" class="project-btn primary" data-new-project><span class="material-symbols-outlined">create_new_folder</span> New project</button>
-          <button type="button" class="project-btn" data-new-task><span class="material-symbols-outlined">add_task</span> Add task</button>
-          <button type="button" class="project-btn" data-focus-start title="Work on one thing with a timer, no distractions"><span class="material-symbols-outlined">timer</span> Focus</button>
+          <button type="button" class="project-btn primary" data-new-project>${iconSvg('folder-plus')} New project</button>
+          <button type="button" class="project-btn" data-new-task>${iconSvg('list-plus')} Add task</button>
+          <button type="button" class="project-btn" data-focus-start title="Work on one thing with a timer, no distractions">${iconSvg('timer')} Focus</button>
         </div>
       </header>
 
       ${attentionRows.length ? `<section class="home-attention" aria-label="Needs your attention">
-        <h2><span class="material-symbols-outlined" aria-hidden="true">priority_high</span>Needs your attention</h2>
+        <h2>${iconSvg('circle-alert')}Needs your attention</h2>
         <ul>${attentionRows.join('')}</ul>
       </section>` : ''}
 
@@ -254,7 +255,7 @@ export async function renderDashboard(container) {
       </section>`}
 
       ${showChecklist && compactChecklist ? `<section class="home-checklist-slim" aria-label="Getting started">
-        <span class="material-symbols-outlined" aria-hidden="true">rocket_launch</span>
+        ${iconSvg('rocket')}
         <span><strong>Get your team going</strong> · ${stepsDone} of ${steps.length} done${nextStep ? ` · Next: ${nextStep.label}` : ''}</span>
         ${nextStep ? (nextStep.action ? `<button type="button" class="project-link" data-step-action="${nextStep.action}">Do it →</button>` : nextStep.href ? `<a class="project-link" href="${nextStep.href}">Do it →</a>` : '') : ''}
         <button type="button" class="home-dismiss" data-dismiss aria-label="Hide getting started">Hide</button>
@@ -264,7 +265,7 @@ export async function renderDashboard(container) {
         <div class="home-checklist-head"><div><h2>Get your team going</h2><p>${stepsDone} of ${steps.length} done</p></div><button type="button" class="home-dismiss" data-dismiss aria-label="Hide getting started">Hide</button></div>
         <div class="project-progress-track"><span style="width:${Math.round((stepsDone / steps.length) * 100)}%"></span></div>
         <ol>${steps.map((step) => `<li class="${step.done ? 'is-done' : ''}">
-          <span class="material-symbols-outlined">${step.done ? 'check_circle' : 'radio_button_unchecked'}</span>
+          ${iconSvg(step.done ? 'circle-check' : 'circle')}
           <div><strong>${step.label}</strong><small>${step.hint}</small></div>
           ${step.done ? '' : step.action ? `<button type="button" class="project-link" data-step-action="${step.action}">Do it →</button>` : step.href ? `<a class="project-link" href="${step.href}">Do it →</a>` : ''}
         </li>`).join('')}</ol>
@@ -273,12 +274,12 @@ export async function renderDashboard(container) {
       <div class="home-grid">
         <section class="project-section">
           <div class="project-section-head"><h2>My tasks</h2><a class="project-link" href="#kanban?assignee=mine">${myTasks.length > 5 ? `See all ${myTasks.length} →` : 'See all →'}</a></div>
-          ${myTasks.length ? `<ul class="project-task-list">${myTasks.slice(0, 5).map(taskRow).join('')}</ul>` : `<div class="project-hint"><span class="material-symbols-outlined">task_alt</span><div><strong>Nothing assigned to you</strong><p>${unassigned.length ? `${unassigned.length} task${unassigned.length === 1 ? ' has' : 's have'} no owner yet — <a href="#kanban">pick one up</a>.` : 'Tasks assigned to you from any project appear here.'}</p></div></div>`}
+          ${myTasks.length ? `<ul class="project-task-list">${myTasks.slice(0, 5).map(taskRow).join('')}</ul>` : `<div class="project-hint">${iconSvg('circle-check-big')}<div><strong>Nothing assigned to you</strong><p>${unassigned.length ? `${unassigned.length} task${unassigned.length === 1 ? ' has' : 's have'} no owner yet — <a href="#kanban">pick one up</a>.` : 'Tasks assigned to you from any project appear here.'}</p></div></div>`}
         </section>
 
         <div class="project-side">
           ${projects.length ? `<section class="project-section">
-            <div class="project-section-head"><h2>Projects</h2><button type="button" class="project-btn" data-new-project><span class="material-symbols-outlined">add</span> New</button></div>
+            <div class="project-section-head"><h2>Projects</h2><button type="button" class="project-btn" data-new-project>${iconSvg('plus')} New</button></div>
             <div class="home-projects">${projects.slice(0, 6).map(projectCard).join('')}</div>
           </section>` : ''}
           <section class="project-section">
@@ -286,7 +287,7 @@ export async function renderDashboard(container) {
             ${activity.length ? `<ul class="project-feed">${activity.map((item) => {
               const info = describeNotification(item);
               return `<li><a href="${info.href ? `#${escapeHtml(info.href)}` : '#dashboard'}" data-notification="${escapeHtml(item.id)}"><strong>${escapeHtml(info.text)}</strong>${info.excerpt ? `<p>${escapeHtml(info.excerpt)}</p>` : ''}<small>${escapeHtml(timeAgo(item.created_at))}</small></a></li>`;
-            }).join('')}</ul>` : `<div class="project-hint"><span class="material-symbols-outlined">groups</span><div><strong>Quiet for now</strong><p>${members.length > 1 ? 'When teammates comment, mention you or assign you work, it shows up here.' : '<a href="#settings?section=team">Invite a teammate</a> to see their updates here.'}</p></div></div>`}
+            }).join('')}</ul>` : `<div class="project-hint">${iconSvg('users')}<div><strong>Quiet for now</strong><p>${members.length > 1 ? 'When teammates comment, mention you or assign you work, it shows up here.' : '<a href="#settings?section=team">Invite a teammate</a> to see their updates here.'}</p></div></div>`}
           </section>
         </div>
       </div>
@@ -297,7 +298,7 @@ export async function renderDashboard(container) {
   renderInvites(container.querySelector('.home-invites')).catch(() => {});
   try {
     const joined = sessionStorage.getItem('groupify.joinedTeam');
-    if (joined) { sessionStorage.removeItem('groupify.joinedTeam'); showToast(`Welcome to ${joined}! 🎉`, 'success'); }
+    if (joined) { sessionStorage.removeItem('groupify.joinedTeam'); showToast(`Welcome to ${joined}!`, 'success'); }
   } catch { /* storage blocked */ }
   container.querySelectorAll('[data-new-project]').forEach((button) => button.addEventListener('click', () => startNewProject()));
   container.querySelectorAll('[data-template]').forEach((button) => button.addEventListener('click', () => startNewProject({ template: button.dataset.template })));
@@ -319,7 +320,7 @@ export async function renderDashboard(container) {
   container.querySelectorAll('[data-toggle]').forEach((button) => button.addEventListener('click', async () => {
     const { error } = await toggleTask(button.dataset.toggle, true);
     if (error) return showToast(`Could not update task: ${error.message}`, 'error');
-    showToast('Task done ✓', 'success');
+    showToast('Task done', 'success');
     refresh();
   }));
   container.querySelectorAll('[data-open]').forEach((button) => button.addEventListener('click', () => {

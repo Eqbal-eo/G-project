@@ -2,6 +2,7 @@
 // whether long lines wrap, and shows a small toolbar on hover (language, copy, wrap).
 // Diagrams, file trees and code copied from an editor are pasted as code blocks so
 // their alignment is kept.
+import { iconSvg, setIcon } from './icons.js';
 import Quill from 'quill';
 import {
   CODE_LANGUAGES, languageLabel, searchLanguages, codeBlockValue, parseCodeBlockValue, looksLikeCodeText
@@ -126,9 +127,9 @@ export function createCodeBlockToolbar(quill, container) {
   bar.setAttribute('contenteditable', 'false');
   bar.hidden = true;
   bar.innerHTML = `
-    <button type="button" class="code-block-lang" data-code-lang aria-haspopup="listbox" aria-expanded="false"><span data-code-lang-label>Plain Text</span><span class="material-symbols-outlined" aria-hidden="true">expand_more</span></button>
-    <button type="button" class="code-block-icon" data-code-copy title="Copy code" aria-label="Copy code"><span class="material-symbols-outlined" aria-hidden="true">content_copy</span></button>
-    <button type="button" class="code-block-icon" data-code-wrap title="Wrap long lines" aria-label="Wrap long lines" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">wrap_text</span></button>
+    <button type="button" class="code-block-lang" data-code-lang aria-haspopup="listbox" aria-expanded="false"><span data-code-lang-label>Plain Text</span>${iconSvg('chevron-down')}</button>
+    <button type="button" class="code-block-icon" data-code-copy title="Copy code" aria-label="Copy code">${iconSvg('copy')}</button>
+    <button type="button" class="code-block-icon" data-code-wrap title="Wrap long lines" aria-label="Wrap long lines" aria-pressed="false">${iconSvg('text-wrap')}</button>
     <div class="code-lang-menu" role="listbox" aria-label="Code language" hidden>
       <input type="search" class="code-lang-search" placeholder="Search for a language…" aria-label="Search for a language" />
       <div class="code-lang-options"></div>
@@ -184,7 +185,7 @@ export function createCodeBlockToolbar(quill, container) {
     const chosen = current ? blockValue(current).language : 'plain';
     const found = searchLanguages(search.value);
     options.innerHTML = found.length
-      ? found.map((language) => `<button type="button" role="option" class="code-lang-option ${language.id === chosen ? 'is-chosen' : ''}" aria-selected="${language.id === chosen}" data-lang="${escapeHtml(language.id)}"><span>${escapeHtml(language.label)}</span>${language.id === chosen ? '<span class="material-symbols-outlined" aria-hidden="true">check</span>' : ''}</button>`).join('')
+      ? found.map((language) => `<button type="button" role="option" class="code-lang-option ${language.id === chosen ? 'is-chosen' : ''}" aria-selected="${language.id === chosen}" data-lang="${escapeHtml(language.id)}"><span>${escapeHtml(language.label)}</span>${language.id === chosen ? `${iconSvg('check')}` : ''}</button>`).join('')
       : '<p class="code-lang-empty">No matching language</p>';
   }
 
@@ -222,10 +223,10 @@ export function createCodeBlockToolbar(quill, container) {
     try {
       await navigator.clipboard.writeText(blockText(current));
       copyButton.classList.add('is-done');
-      copyButton.querySelector('.material-symbols-outlined').textContent = 'check';
+      setIcon(copyButton.querySelector('svg.icon'), 'check');
       window.setTimeout(() => {
         copyButton.classList.remove('is-done');
-        copyButton.querySelector('.material-symbols-outlined').textContent = 'content_copy';
+        setIcon(copyButton.querySelector('svg.icon'), 'copy');
       }, 1400);
     } catch { /* Clipboard blocked: nothing to do. */ }
   });

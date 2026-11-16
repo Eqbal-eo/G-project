@@ -1,5 +1,6 @@
 // Inline "@" mentions inside page text: people (notifies them), pages (link),
 // and dates (a date chip). Registers a Quill inline embed and a caret picker.
+import { iconSvg, pageIconSvg } from './icons.js';
 import Quill from 'quill';
 import { escapeHtml } from './sanitize.js';
 
@@ -23,8 +24,8 @@ class MentionBlot extends Embed {
     node.dataset.mentionId = String(value?.id || '');
     node.dataset.mentionLabel = String(value?.label || '');
     node.classList.add(`mention-${kind}`);
-    if (kind === 'page') node.innerHTML = `<a href="#editor/${escapeHtml(value.id)}">📄 ${escapeHtml(value.label)}</a>`;
-    else if (kind === 'date') node.textContent = `📅 ${formatDateLabel(value.id)}`;
+    if (kind === 'page') node.innerHTML = `<a href="#editor/${escapeHtml(value.id)}">${iconSvg('file-text')} ${escapeHtml(value.label)}</a>`;
+    else if (kind === 'date') node.innerHTML = `${iconSvg('calendar')} ${escapeHtml(formatDateLabel(value.id))}`;
     else node.textContent = `@${value?.label || 'someone'}`;
     return node;
   }
@@ -76,7 +77,7 @@ export function attachEditorMentions(quill, container, { getPeople, getPages, on
     menu.innerHTML = items.map((item, index) => {
       const heading = item.kind !== lastKind ? `<div class="editor-mention-group">${groups[item.kind]}</div>` : '';
       lastKind = item.kind;
-      const icon = item.kind === 'person' ? `<span class="task-owner-dot">${escapeHtml(item.label.slice(0, 1).toUpperCase())}</span>` : item.kind === 'page' ? `<span>${escapeHtml(item.icon || '📄')}</span>` : '<span>📅</span>';
+      const icon = item.kind === 'person' ? `<span class="task-owner-dot">${escapeHtml(item.label.slice(0, 1).toUpperCase())}</span>` : item.kind === 'page' ? `<span>${pageIconSvg(item.icon)}</span>` : `<span>${iconSvg('calendar')}</span>`;
       return `${heading}<button type="button" role="option" data-index="${index}" class="${index === active ? 'is-active' : ''}" aria-selected="${index === active}">${icon}<strong>${escapeHtml(item.label)}</strong>${item.hint ? `<small>${escapeHtml(item.hint)}</small>` : ''}</button>`;
     }).join('') || `<p class="editor-mention-empty">${onlyKind === 'person' ? 'No teammates to mention yet — invite people from Team in the sidebar.' : 'No matches'}</p>`;
     menu.querySelector('.is-active')?.scrollIntoView({ block: 'nearest' });

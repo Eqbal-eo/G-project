@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, setBreadcrumb, showToast } from '../legacy/app.js';
 import { supabase } from '../lib/supabase.js';
@@ -267,7 +268,7 @@ function LessonRoom({ lessonId, user }) {
 
   if (loading) return <div className="lesson-view"><p className="meeting-muted" role="status">Loading lesson…</p></div>;
   if (loadError === 'not-found' || (!lesson && !loadError)) {
-    return <div className="project-empty-state"><span className="material-symbols-outlined">videocam_off</span><h2>Lesson not found</h2><p>It may have been deleted, or it belongs to another team.</p><a href="#dashboard">Go home</a></div>;
+    return <div className="project-empty-state"><Icon name="video-off" /><h2>Lesson not found</h2><p>It may have been deleted, or it belongs to another team.</p><a href="#dashboard">Go home</a></div>;
   }
   if (!lesson) return <div className="lesson-view"><div className="team-chat-error" role="alert">{loadError}</div></div>;
 
@@ -278,7 +279,7 @@ function LessonRoom({ lessonId, user }) {
     <section className="lesson-view" aria-label="Lesson">
       <header className="meeting-header">
         <a className="meeting-back" href={`#project/${lesson.project_id}/lessons`}>
-          <span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          <Icon name="arrow-left" />
           {project?.title || 'Project'} · YouTube lessons
         </a>
         <div className="meeting-title-row">
@@ -293,17 +294,17 @@ function LessonRoom({ lessonId, user }) {
       <div className="lesson-layout">
         <div className="lesson-video">
           <Player videoId={lesson.video_id} playerRef={playerRef} onReady={handleReady} onError={handleError} />
-          {playerState.error && <p className="meeting-notice" role="status"><span className="material-symbols-outlined" aria-hidden="true">info</span>{playerState.error}</p>}
+          {playerState.error && <p className="meeting-notice" role="status"><Icon name="info" />{playerState.error}</p>}
           <div className="lesson-video-actions">
-            <a className="project-btn" href={lessonLink(lesson.video_id)} target="_blank" rel="noreferrer"><span className="material-symbols-outlined" aria-hidden="true">open_in_new</span>YouTube</a>
-            {isReady && canEdit && <button type="button" className="project-btn" disabled={saving} onClick={saveAsPage}><span className="material-symbols-outlined" aria-hidden="true">note_add</span>{saving ? 'Saving…' : 'Save as page'}</button>}
+            <a className="project-btn" href={lessonLink(lesson.video_id)} target="_blank" rel="noreferrer"><Icon name="external-link" />YouTube</a>
+            {isReady && canEdit && <button type="button" className="project-btn" disabled={saving} onClick={saveAsPage}><Icon name="file-plus" />{saving ? 'Saving…' : 'Save as page'}</button>}
             {isReady && canEdit && <button type="button" className="project-btn" disabled={Boolean(progress)} onClick={async () => {
               if (!await requestConfirmation('Analyse this lesson again? The current notes, summary and chapters will be replaced.')) return;
               const { data, error } = await updateLesson(lesson.id, { status: 'new', analyzed_seconds: 0 });
               if (error || !data) return showToast(`Could not start again: ${error?.message || 'you may not have permission'}`, 'error');
               setLesson(data);
-            }}><span className="material-symbols-outlined" aria-hidden="true">refresh</span>Re-analyse</button>}
-            {(lesson.created_by === user?.id || ['owner', 'admin'].includes(role)) && <button type="button" className="project-btn lesson-danger" onClick={remove}><span className="material-symbols-outlined" aria-hidden="true">delete</span>Delete</button>}
+            }}><Icon name="refresh-cw" />Re-analyse</button>}
+            {(lesson.created_by === user?.id || ['owner', 'admin'].includes(role)) && <button type="button" className="project-btn lesson-danger" onClick={remove}><Icon name="trash" />Delete</button>}
           </div>
         </div>
 
@@ -320,7 +321,7 @@ function LessonRoom({ lessonId, user }) {
             <div className="lesson-analyze" aria-busy={Boolean(progress)}>
               {progress ? (
                 <>
-                  <p role="status"><span className="material-symbols-outlined meeting-spin" aria-hidden="true">progress_activity</span> {progress.label}… <small>(step {Math.max(progress.step, 1)} of {progress.steps})</small></p>
+                  <p role="status"><Icon name="loader-circle" className="meeting-spin" /> {progress.label}… <small>(step {Math.max(progress.step, 1)} of {progress.steps})</small></p>
                   <div className="meeting-timer-track" aria-hidden="true"><span style={{ width: `${Math.max(percent, 4)}%` }} /></div>
                   <div className="lesson-analyze-actions">
                     <small className="meeting-muted">You can keep this tab open and watch the video meanwhile. Progress is saved after every step.</small>
@@ -341,10 +342,10 @@ function LessonRoom({ lessonId, user }) {
                       <input type="number" className="modal-input" min="1" max={LESSON_LIMITS.maxDuration / 60} value={manualMinutes} onChange={(event) => setManualMinutes(event.target.value)} />
                     </label>
                   )}
-                  {tooLong && <p className="meeting-notice"><span className="material-symbols-outlined" aria-hidden="true">info</span>Only the first {LESSON_LIMITS.maxDuration / 3600} hours will be analysed.</p>}
+                  {tooLong && <p className="meeting-notice"><Icon name="info" />Only the first {LESSON_LIMITS.maxDuration / 3600} hours will be analysed.</p>}
                   {analysisError && <div className="team-chat-error" role="alert">{analysisError}</div>}
                   <button type="button" className="project-btn primary" disabled={!duration} onClick={analyze}>
-                    <span className="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+                    <Icon name="sparkles" />
                     {resumable ? 'Continue analysis' : `Analyse lesson${duration ? ` (about ${Math.max(1, Math.round(Math.min(duration, LESSON_LIMITS.maxDuration) / 600 * 0.4))} min)` : ''}`}
                   </button>
                 </>
@@ -382,7 +383,7 @@ function LessonRoom({ lessonId, user }) {
               {tab === 'notes' && (
                 <div className="lesson-tab" role="tabpanel">
                   <label className="lesson-search">
-                    <span className="material-symbols-outlined" aria-hidden="true">search</span>
+                    <Icon name="search" />
                     <input type="search" value={search} placeholder="Search the notes…" aria-label="Search the notes" onChange={(event) => setSearch(event.target.value)} />
                   </label>
                   {visibleSegments.length ? (
@@ -421,19 +422,19 @@ function LessonRoom({ lessonId, user }) {
                     {asking && (
                       <article className="lesson-qa">
                         <p className="lesson-question" dir="auto"><strong>You</strong>{pending.question}</p>
-                        <p className="meeting-muted" role="status"><span className="material-symbols-outlined meeting-spin" aria-hidden="true">progress_activity</span> {pending.note || 'Thinking…'}</p>
+                        <p className="meeting-muted" role="status"><Icon name="loader-circle" className="meeting-spin" /> {pending.note || 'Thinking…'}</p>
                       </article>
                     )}
                     <div ref={askEnd} />
                   </div>
                   {askError && <div className="team-chat-error" role="alert">{askError}</div>}
                   {!canAsk ? (
-                    <p className="meeting-notice" role="note"><span className="material-symbols-outlined" aria-hidden="true">visibility</span>You can read the team’s questions and answers. To ask the AI yourself, a team owner or admin can make you a commenter or editor.</p>
+                    <p className="meeting-notice" role="note"><Icon name="eye" />You can read the team’s questions and answers. To ask the AI yourself, a team owner or admin can make you a commenter or editor.</p>
                   ) : (
                   <form className="meeting-composer" onSubmit={ask}>
                     <label htmlFor="lesson-question" className="sr-only">Ask about this lesson</label>
                     <input id="lesson-question" type="text" dir="auto" value={question} maxLength={LESSON_LIMITS.question} autoComplete="off" disabled={asking} placeholder="e.g. At what minute is recursion explained?" onChange={(event) => setQuestion(event.target.value)} />
-                    <button type="submit" className="project-btn primary" disabled={asking || !question.trim()} aria-label="Ask"><span className="material-symbols-outlined" aria-hidden="true">send</span></button>
+                    <button type="submit" className="project-btn primary" disabled={asking || !question.trim()} aria-label="Ask"><Icon name="send" /></button>
                   </form>
                   )}
                 </div>
@@ -447,6 +448,6 @@ function LessonRoom({ lessonId, user }) {
 }
 
 export default function LessonView({ lessonId, user }) {
-  if (!lessonId) return <div className="project-empty-state"><span className="material-symbols-outlined">videocam_off</span><h2>Lesson not found</h2><a href="#dashboard">Go home</a></div>;
+  if (!lessonId) return <div className="project-empty-state"><Icon name="video-off" /><h2>Lesson not found</h2><a href="#dashboard">Go home</a></div>;
   return <LessonRoom key={lessonId} lessonId={lessonId} user={user || AppState.user} />;
 }

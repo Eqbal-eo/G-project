@@ -1,5 +1,6 @@
 // List, Calendar and Timeline views for tasks. Each render function returns HTML;
 // interactions are wired by bindTaskView(). Board view stays in kanban.js.
+import { iconSvg } from './icons.js';
 import { escapeHtml } from './sanitize.js';
 import { renderFieldValue } from './taskFields.js';
 
@@ -91,9 +92,9 @@ export function renderCalendarView(tasks, { month = new Date() } = {}) {
   const label = first.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   return `<div class="cal">
     <div class="cal-head">
-      <button type="button" data-cal-nav="-1" aria-label="Previous month"><span class="material-symbols-outlined">chevron_left</span></button>
+      <button type="button" data-cal-nav="-1" aria-label="Previous month">${iconSvg('chevron-left')}</button>
       <strong>${escapeHtml(label)}</strong>
-      <button type="button" data-cal-nav="1" aria-label="Next month"><span class="material-symbols-outlined">chevron_right</span></button>
+      <button type="button" data-cal-nav="1" aria-label="Next month">${iconSvg('chevron-right')}</button>
       <button type="button" data-cal-nav="0" class="cal-today">Today</button>
       <span class="cal-hint">Drag a task to another day to change its due date</span>
     </div>

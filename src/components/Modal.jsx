@@ -2,6 +2,7 @@
 // MOTION — Reusable Modal Component
 // ============================================
 
+import Icon from './Icon';
 import { useEffect, useRef } from 'react';
 
 /**
@@ -59,9 +60,7 @@ export default function Modal({ isOpen, onClose, title, children, footer, size =
             onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--surface-container, #ebeeed)')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '1.25rem' }}>
-              close
-            </span>
+            <Icon name="x" style={{ fontSize: '1.25rem' }} />
           </button>
         </div>
 

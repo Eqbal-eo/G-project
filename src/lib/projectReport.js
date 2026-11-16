@@ -97,7 +97,7 @@ export function buildReportFacts({ project, tasks, teams = [], members = [], com
   const solvedBlockers = [...latestByPerson.values()].filter((checkin) => checkin.blockers && checkin.blockers.trim() && checkin.blocker_resolved_at).length;
   const checkinBlockers = [...latestByPerson.values()].filter((checkin) => checkin.blockers && checkin.blockers.trim() && !checkin.blocker_resolved_at)
     .map((checkin) => ({ name: checkin.user?.name || nameOf(checkin.user_id), text: checkin.blockers.trim().slice(0, 300) }));
-  const moods = [3, 2, 1].map((value) => ({ emoji: MOODS[value].emoji, count: [...latestByPerson.values()].filter((checkin) => checkin.mood === value).length })).filter((mood) => mood.count);
+  const moods = [3, 2, 1].map((value) => ({ label: MOODS[value].label.toLowerCase(), count: [...latestByPerson.values()].filter((checkin) => checkin.mood === value).length })).filter((mood) => mood.count);
 
   return {
     project: project.title || 'Untitled project',
@@ -137,7 +137,7 @@ function factsAsText(facts) {
     'OVERDUE:', list(facts.overdue, (t) => `- ${t.title}: ${t.lateDays} days late, owner ${t.owner}`),
     'NO OWNER:', list(facts.unassigned, (t) => `- ${t.title}`),
     'DUE IN THE NEXT 7 DAYS:', list(facts.upcoming, (t) => `- ${t.title}: due ${t.due}, owner ${t.owner}`),
-    `CHECK-INS: ${facts.checkins.people} people checked in${facts.checkins.moods.length ? ` · mood ${facts.checkins.moods.map((m) => `${m.emoji}${m.count}`).join(' ')}` : ''}${facts.checkins.solved ? ` · ${facts.checkins.solved} blocker(s) already solved` : ''}`,
+    `CHECK-INS: ${facts.checkins.people} people checked in${facts.checkins.moods.length ? ` · mood ${facts.checkins.moods.map((m) => `${m.count} ${m.label}`).join(', ')}` : ''}${facts.checkins.solved ? ` · ${facts.checkins.solved} blocker(s) already solved` : ''}`,
     'OPEN BLOCKERS REPORTED IN CHECK-INS (solved ones are not listed):', list(facts.checkins.blockers, (b) => `- ${b.name}: ${b.text}`),
     'DECISIONS MADE THIS PERIOD:', list(facts.decisions || [], (d) => `- ${d.title}`),
     'CONTRIBUTIONS THIS PERIOD:', list(facts.contributions, (p) => `- ${p.name}: finished ${p.finished}, comments ${p.comments}, open tasks ${p.open}`)
@@ -167,49 +167,48 @@ export function renderReportHtml(facts, { summaryMarkdown = '', author = '' } = 
     ? markdownToHtml(summaryMarkdown)
     : '<h3>Summary</h3><p><em>The AI summary isn’t available right now. All numbers below are complete.</em></p>');
 
-  parts.push('<h2>📈 At a glance</h2>');
+  parts.push('<h2>At a glance</h2>');
   parts.push(`<p><strong>Overall progress:</strong> ${e(bar(facts.overall))}</p>`);
   parts.push(`<ul><li><strong>${facts.totals.done}/${facts.totals.tasks}</strong> tasks done</li><li><strong>${facts.totals.doneInPeriod}</strong> finished in this period · <strong>${facts.totals.createdInPeriod}</strong> new</li><li><strong>${facts.totals.overdue}</strong> overdue · <strong>${facts.totals.unassigned}</strong> without an owner</li></ul>`);
 
   if (facts.milestones) {
     const { health, list } = facts.milestones;
-    const badge = { on_track: '🟢', at_risk: '🟠', behind: '🔴', done: '🏁', none: '' }[health.status] || '';
-    parts.push('<h2>🚩 Milestones</h2>');
-    parts.push(`<p><strong>${badge} ${e(health.label)}</strong> — ${e(health.detail)}</p>`);
-    parts.push(items(list, (m) => `${m.done ? '✅' : m.late ? '⚠️' : '⏳'} ${e(m.title)} — ${e(shortDate(m.due))}${m.late ? ' (late)' : ''}`, ''));
+    parts.push('<h2>Milestones</h2>');
+    parts.push(`<p><strong>${e(health.label)}</strong> — ${e(health.detail)}</p>`);
+    parts.push(items(list, (m) => `<strong>${m.done ? 'Done' : m.late ? 'Late' : 'Upcoming'}:</strong> ${e(m.title)} — ${e(shortDate(m.due))}${m.late ? ' (late)' : ''}`, ''));
   }
 
   if (facts.teams.length) {
-    parts.push('<h2>👥 Teams</h2>');
-    parts.push(items(facts.teams, (t) => `<strong>${e(t.name)}</strong> — ${e(bar(t.percent))} · ${t.done}/${t.total} done${t.overdue ? ` · ⚠️ ${t.overdue} overdue` : ''} · led by ${e(t.leader)}`, ''));
+    parts.push('<h2>Teams</h2>');
+    parts.push(items(facts.teams, (t) => `<strong>${e(t.name)}</strong> — ${e(bar(t.percent))} · ${t.done}/${t.total} done${t.overdue ? ` · ${t.overdue} overdue` : ''} · led by ${e(t.leader)}`, ''));
   }
 
-  parts.push('<h2>✅ Finished this period</h2>');
+  parts.push('<h2>Finished this period</h2>');
   parts.push(items(facts.done, (t) => `${e(t.title)} — <strong>${e(t.owner)}</strong>${t.team ? ` (${e(t.team)})` : ''}${t.completedAt ? ` · ${e(shortDate(t.completedAt))}` : ''}`, 'Nothing was finished in this period.'));
 
   if (facts.decisions?.length) {
-    parts.push('<h2>⚖️ Decisions made</h2>');
+    parts.push('<h2>Decisions made</h2>');
     parts.push(items(facts.decisions, (d) => `<strong>${e(d.title)}</strong>${d.details ? ` — ${e(d.details)}` : ''} <em>(${e(d.by)})</em>`, ''));
   }
 
-  parts.push('<h2>🔄 In progress</h2>');
+  parts.push('<h2>In progress</h2>');
   parts.push(items(facts.inProgress.slice(0, 15), (t) => `${e(t.title)} — ${e(t.owner)} · ${t.progress}%${t.due ? ` · due ${e(shortDate(t.due))}` : ''}`, 'No tasks are marked in progress.'));
 
-  parts.push('<h2>⚠️ Needs attention</h2>');
+  parts.push('<h2>Needs attention</h2>');
   const attention = [
-    ...facts.checkins.blockers.map((b) => `<strong>🚧 Blocker (${e(b.name)}):</strong> ${e(b.text)}`),
+    ...facts.checkins.blockers.map((b) => `<strong>Blocker (${e(b.name)}):</strong> ${e(b.text)}`),
     ...facts.overdue.map((t) => `<strong>Overdue ${t.lateDays} day${t.lateDays === 1 ? '' : 's'}:</strong> ${e(t.title)} — ${e(t.owner)}`),
     ...facts.unassigned.slice(0, 10).map((t) => `<strong>No owner:</strong> ${e(t.title)}`)
   ];
-  parts.push(attention.length ? `<ul>${attention.map((line) => `<li>${line}</li>`).join('')}</ul>` : '<p><em>Nothing overdue and every open task has an owner. 🎉</em></p>');
+  parts.push(attention.length ? `<ul>${attention.map((line) => `<li>${line}</li>`).join('')}</ul>` : '<p><em>Nothing overdue and every open task has an owner.</em></p>');
 
-  parts.push('<h2>➡️ Coming up (next 7 days)</h2>');
+  parts.push('<h2>Coming up (next 7 days)</h2>');
   parts.push(items(facts.upcoming, (t) => `${e(t.title)} — ${e(t.owner)} · due ${e(shortDate(t.due))}`, 'Nothing is due in the next 7 days.'));
 
   if (facts.checkins.people) {
-    parts.push(`<p><strong>Weekly check-ins:</strong> ${facts.checkins.people} ${facts.checkins.people === 1 ? 'person' : 'people'} checked in${facts.checkins.moods.length ? ` · mood ${facts.checkins.moods.map((m) => `${m.emoji} ${m.count}`).join(' · ')}` : ''}${facts.checkins.solved ? ` · ✓ ${facts.checkins.solved} blocker${facts.checkins.solved === 1 ? '' : 's'} solved` : ''}.</p>`);
+    parts.push(`<p><strong>Weekly check-ins:</strong> ${facts.checkins.people} ${facts.checkins.people === 1 ? 'person' : 'people'} checked in${facts.checkins.moods.length ? ` · mood ${facts.checkins.moods.map((m) => `${m.count} ${m.label}`).join(', ')}` : ''}${facts.checkins.solved ? ` · ${facts.checkins.solved} blocker${facts.checkins.solved === 1 ? '' : 's'} solved` : ''}.</p>`);
   }
-  parts.push('<h2>🙌 Contributions this period</h2>');
+  parts.push('<h2>Contributions this period</h2>');
   parts.push(items(facts.contributions, (p) => `<strong>${e(p.name)}</strong> — ${p.finished} task${p.finished === 1 ? '' : 's'} finished · ${p.comments} comment${p.comments === 1 ? '' : 's'} · ${p.open} open`, 'No activity recorded in this period.'));
   return parts.join('');
 }
@@ -242,6 +241,6 @@ export async function generateProjectReport({ workspaceId, project, tasks, teams
   const title = `Progress report · ${shortDate(facts.to)}`;
   const { data: page, error } = await createPage(workspaceId, title, 'note', { html }, project.id);
   if (error) throw error;
-  await updatePage(page.id, { icon: '📊' });
+  await updatePage(page.id, { icon: 'chart-column' });
   return { page, facts, aiError };
 }

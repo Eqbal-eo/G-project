@@ -11,7 +11,7 @@ export function todayKey(date = new Date()) {
 export function deadlineHealth({ milestones = [], progress = 0, projectStart, today = todayKey() }) {
   const open = milestones.filter((milestone) => !milestone.done_at);
   if (!milestones.length) return { status: 'none', label: 'No milestones yet', detail: 'Add key dates to see if you’re on track.' };
-  if (!open.length) return { status: 'done', label: 'All milestones done', detail: 'Every key date has been reached. 🎉' };
+  if (!open.length) return { status: 'done', label: 'All milestones done', detail: 'Every key date has been reached.' };
   const next = open[0];
   const finalDate = milestones[milestones.length - 1].due_date;
   const overdue = open.filter((milestone) => milestone.due_date < today);
@@ -64,16 +64,16 @@ export function catchUpItems({ tasks = [], updates = {}, me, since, today = toda
   const groups = [];
   const add = (kind, icon, title, items, tone = '') => { if (items.length) groups.push({ kind, icon, title, items, tone }); };
 
-  add('live', 'radio_button_checked', 'A meeting is live now',
+  add('live', 'circle-dot', 'A meeting is live now',
     (updates.meetings || []).filter((meeting) => meeting.status === 'live')
       .map((meeting) => ({ text: `Join: ${meeting.title}${where(meeting.project_id)}`, href: `#meeting/${meeting.id}` })), 'bad');
-  add('assigned', 'assignment_ind', 'New tasks for you',
+  add('assigned', 'user-check', 'New tasks for you',
     tasks.filter((task) => task.assignee_id === me && isOpen(task) && after(task.created_at) && task.created_by && task.created_by !== me)
       .map((task) => ({ text: `${task.title}${task.due_date ? ` · due ${task.due_date}` : ''}`, href: taskHref(task) })), 'warn');
-  add('blockers', 'block', 'Teammates are blocked',
+  add('blockers', 'ban', 'Teammates are blocked',
     (updates.blockers || []).filter((row) => row.user_id !== me)
       .map((row) => ({ text: `${row.user?.name || row.user?.email?.split('@')[0] || 'A teammate'}: ${row.blockers}${where(row.project_id)}`, href: `#project/${row.project_id}/checkins` })), 'bad');
-  add('polls', 'how_to_vote', 'Polls waiting for your vote',
+  add('polls', 'vote', 'Polls waiting for your vote',
     (updates.polls || []).filter((poll) => !(poll.votes || []).some((entry) => entry.user_id === me))
       .map((poll) => ({ text: `${poll.question}${where(poll.project_id)}`, href: `#project/${poll.project_id}/decisions` })));
   const soon = todayKey(new Date(new Date(`${today}T00:00`).getTime() + 14 * DAY));
@@ -83,13 +83,13 @@ export function catchUpItems({ tasks = [], updates = {}, me, since, today = toda
   add('decisions', 'gavel', 'Decisions made',
     (updates.decisions || []).filter((decision) => decision.created_by !== me)
       .map((decision) => ({ text: `${decision.title}${where(decision.project_id)}`, href: `#project/${decision.project_id}/decisions` })));
-  add('meetings', 'summarize', 'Meetings that ended',
+  add('meetings', 'notebook-text', 'Meetings that ended',
     (updates.meetings || []).filter((meeting) => meeting.status === 'ended' && after(meeting.ended_at))
       .map((meeting) => {
         const count = Array.isArray(meeting.decisions) ? meeting.decisions.length : 0;
         return { text: `${meeting.title}${count ? ` · ${count} decision${count === 1 ? '' : 's'}` : ''}${where(meeting.project_id)}`, href: `#meeting/${meeting.id}` };
       }));
-  add('finished', 'task_alt', 'Finished by teammates',
+  add('finished', 'circle-check-big', 'Finished by teammates',
     tasks.filter((task) => !isOpen(task) && after(task.completed_at) && (task.completed_by || task.assignee_id) !== me)
       .sort((a, b) => String(b.completed_at).localeCompare(String(a.completed_at)))
       .map((task) => ({ text: `${task.title}${where(projectOf(task))}`, href: taskHref(task) })), 'good');
@@ -141,10 +141,10 @@ export function formatBytes(bytes = 0) {
 // Icon for a file in the Library.
 export function fileIcon(name = '') {
   const ext = extensionOf(name);
-  if (ext === 'pdf') return 'picture_as_pdf';
+  if (ext === 'pdf') return 'file-type';
   if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) return 'image';
-  if (['xls', 'xlsx', 'csv'].includes(ext)) return 'table_chart';
-  if (['ppt', 'pptx'].includes(ext)) return 'slideshow';
-  if (ext === 'zip') return 'folder_zip';
-  return 'description';
+  if (['xls', 'xlsx', 'csv'].includes(ext)) return 'file-spreadsheet';
+  if (['ppt', 'pptx'].includes(ext)) return 'presentation';
+  if (ext === 'zip') return 'file-archive';
+  return 'file-text';
 }

@@ -1,3 +1,5 @@
+import Icon from './Icon';
+import { hasIcon } from '../lib/icons.js';
 import { useState, useEffect, useRef } from 'react';
 import katex from 'katex';
 import {
@@ -202,7 +204,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
 
     let targetChatId = options.chatId || currentChat?.id;
     if (!targetChatId) {
-      const chatTitle = fileToUpload ? `📄 ${fileToUpload.name}` : 'New chat';
+      const chatTitle = fileToUpload ? fileToUpload.name : 'New chat';
       const newChat = createNewAIChat(chatTitle);
       targetChatId = newChat.id;
       onSelectChat?.(newChat.id);
@@ -257,22 +259,26 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
   // Pre-configured quick action prompts for attached files
   const fileQuickActions = [
     {
-      title: '📑 Comprehensive Summary',
+      icon: 'file-text',
+      title: 'Comprehensive Summary',
       desc: 'Summary of core concepts and key findings',
       prompt: 'Please provide a comprehensive and detailed summary of this document, extracting the most important concepts, key definitions, and notable conclusions in an organized format.'
     },
     {
-      title: '🎯 Exam & Quiz Questions',
+      icon: 'target',
+      title: 'Exam & Quiz Questions',
       desc: 'MCQ, True/False, and conceptual questions with answers',
       prompt: 'Generate a comprehensive exam quiz based on this document: include multiple choice questions (MCQ) with 4 choices, True/False questions with justifications, and short-answer questions, providing the answer key and explanations at the end.'
     },
     {
-      title: '💡 Core Concepts Explained',
+      icon: 'lightbulb',
+      title: 'Core Concepts Explained',
       desc: 'Simplified explanations of key definitions and principles',
       prompt: 'Explain the core concepts, terminologies, and definitions in this document in an educational, easy-to-understand manner with illustrative examples.'
     },
     {
-      title: '❓ Quick Revision Q&A',
+      icon: 'circle-question-mark',
+      title: 'Quick Revision Q&A',
       desc: '10 focused questions and answers for fast review',
       prompt: 'Extract the top 10 high-yield questions and answers (Q&A) for rapid exam preparation based on the content of this document.'
     }
@@ -307,11 +313,11 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
   ].map((item) => ({ ...item, action: item.action || (() => handleSendMessage(item.prompt)) }));
 
   function getFileIcon(type, icon) {
-    if (icon) return icon;
-    if (type === 'pdf') return 'picture_as_pdf';
-    if (type === 'pptx') return 'slideshow';
-    if (type === 'docx') return 'article';
-    return 'description';
+    if (icon && hasIcon(icon)) return icon;
+    if (type === 'pdf') return 'file-type';
+    if (type === 'pptx') return 'presentation';
+    if (type === 'docx') return 'newspaper';
+    return 'file-text';
   }
 
   function getFileColor(type) {
@@ -327,7 +333,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
       <div className="flex items-center justify-between px-6 py-3 border-b border-outline-variant/15 bg-surface-container-lowest">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
-            <span className="material-symbols-outlined text-base">auto_awesome</span>
+            <Icon name="sparkles" className="text-base" />
           </div>
           <div>
             <h2 className="text-sm font-bold text-on-surface flex items-center gap-2">
@@ -349,7 +355,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
             onClick={handleStartNewChat}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-on-primary hover:opacity-90 transition-opacity shadow-sm"
           >
-            <span className="material-symbols-outlined text-sm">add</span>
+            <Icon name="plus" className="text-sm" />
             New chat
           </button>
         </div>
@@ -360,7 +366,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
         {(!currentChat?.messages || currentChat.messages.length === 0) ? (
           <div className="max-w-2xl mx-auto py-12 text-center">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 shadow-inner">
-              <span className="material-symbols-outlined text-3xl">auto_awesome</span>
+              <Icon name="sparkles" className="text-3xl" />
             </div>
             <h3 className="text-xl font-bold text-on-surface mb-2">What can I do for your team?</h3>
             <p className="text-sm text-on-surface-variant mb-8 max-w-md mx-auto">
@@ -377,7 +383,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
                 >
                   <p className="text-xs font-semibold text-primary mb-1 flex items-center justify-between">
                     {item.title}
-                    <span className="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 transition-opacity">arrow_forward</span>
+                    <Icon name="arrow-right" className="text-sm opacity-0 group-hover:opacity-100 transition-opacity" />
                   </p>
                   <p className="text-xs text-on-surface-variant line-clamp-2">{item.prompt}</p>
                 </button>
@@ -393,7 +399,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
               >
                 {msg.sender === 'ai' && (
                   <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5 border border-primary/20">
-                    <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                    <Icon name="sparkles" className="text-sm" />
                   </div>
                 )}
 
@@ -408,9 +414,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
                     <div>
                       {msg.fileName && (
                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/25 text-xs font-medium mb-2 border border-white/10 shadow-xs">
-                          <span className="material-symbols-outlined text-sm">
-                            {getFileIcon(msg.fileType, msg.fileIcon)}
-                          </span>
+                          <Icon name={getFileIcon(msg.fileType, msg.fileIcon)} className="text-sm" />
                           <span className="font-semibold">{msg.fileName}</span>
                           {msg.fileTypeLabel && (
                             <span className="text-[10px] opacity-80 border-l border-white/20 pl-1.5 ml-0.5">
@@ -429,7 +433,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
                           <span>Based on</span>
                           {msg.sources.map((source, index) => (
                             <a key={index} href={source.href}>
-                              <span className="material-symbols-outlined">{source.kind === 'P' ? 'folder' : source.kind === 'G' ? 'description' : 'task_alt'}</span>
+                              <Icon name={source.kind === 'P' ? 'folder' : source.kind === 'G' ? 'file-text' : 'circle-check-big'} />
                               {source.title}
                             </a>
                           ))}
@@ -444,7 +448,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
                             navigator.clipboard.writeText(msg.text);
                           }}
                         >
-                          <span className="material-symbols-outlined text-xs">content_copy</span>
+                          <Icon name="copy" className="text-xs" />
                           Copy
                         </button>
                       </div>
@@ -463,7 +467,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
             {isGenerating && (
               <div className="flex gap-3.5 justify-start">
                 <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-sm animate-spin">refresh</span>
+                  <Icon name="refresh-cw" className="text-sm animate-spin" />
                 </div>
                 <div className="rounded-2xl px-4 py-3 bg-surface-container-lowest border border-outline-variant/15 rounded-bl-sm text-sm text-on-surface-variant flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-primary animate-bounce"></span>
@@ -486,7 +490,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
           {fileError && (
             <div className="flex items-center justify-between p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-base">error</span>
+                <Icon name="circle-alert" className="text-base" />
                 <span>{fileError}</span>
               </div>
               <button
@@ -494,7 +498,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
                 onClick={() => setFileError('')}
                 className="hover:opacity-75"
               >
-                <span className="material-symbols-outlined text-xs">close</span>
+                <Icon name="x" className="text-xs" />
               </button>
             </div>
           )}
@@ -505,9 +509,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${getFileColor(attachedFile.fileType)}`}>
-                    <span className="material-symbols-outlined text-lg">
-                      {getFileIcon(attachedFile.fileType, attachedFile.icon)}
-                    </span>
+                    <Icon name={getFileIcon(attachedFile.fileType, attachedFile.icon)} className="text-lg" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-on-surface truncate">
@@ -535,14 +537,14 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
                   className="text-on-surface-variant hover:text-red-500 p-1 rounded-md hover:bg-surface-container-highest transition-colors"
                   title="Remove attached file"
                 >
-                  <span className="material-symbols-outlined text-base">close</span>
+                  <Icon name="x" className="text-base" />
                 </button>
               </div>
 
               {/* Quick Actions for this file */}
               <div className="pt-2 border-t border-outline-variant/15">
                 <p className="text-[11px] font-semibold text-on-surface-variant mb-1.5 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-xs text-primary">tips_and_updates</span>
+                  <Icon name="lightbulb" className="text-xs text-primary" />
                   Quick actions for this file (click to send):
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
@@ -556,7 +558,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
                       title={qa.desc}
                     >
                       <div className="font-semibold text-on-surface text-[11px] group-hover:text-primary transition-colors">
-                        {qa.title}
+                        <Icon name={qa.icon} className="quick-action-icon" /> {qa.title}
                       </div>
                       <div className="text-[9px] text-on-surface-variant truncate">
                         {qa.desc}
@@ -601,7 +603,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
               className="w-9 h-9 rounded-lg border border-outline-variant/20 text-on-surface-variant hover:text-primary hover:bg-surface-container-high flex items-center justify-center flex-shrink-0 transition-colors disabled:opacity-50"
               title="Attach PDF, PowerPoint presentation, or document to analyze"
             >
-              <span className="material-symbols-outlined text-lg">attach_file</span>
+              <Icon name="paperclip" className="text-lg" />
             </button>
 
             <textarea
@@ -629,7 +631,7 @@ export default function AIChatView({ activeChatId, onSelectChat, user }) {
               className="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center disabled:opacity-40 hover:opacity-90 transition-opacity flex-shrink-0"
               aria-label="Send message"
             >
-              <span className="material-symbols-outlined text-base">arrow_upward</span>
+              <Icon name="arrow-up" className="text-base" />
             </button>
           </form>
 

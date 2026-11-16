@@ -2,6 +2,7 @@
 // GROUPIFY — Project › Team › Teams & workload
 // Teams with a leader, members, progress and their own tasks.
 // ============================================
+import { iconSvg } from '../../lib/icons.js';
 import { AppState, showToast } from '../app.js';
 import { createTask, toggleTask } from '../../lib/queries.js';
 import { escapeHtml } from '../../lib/sanitize.js';
@@ -52,7 +53,7 @@ export function renderTeamsTab(section, ctx) {
   const memberById = new Map(members.map((member) => [member.user_id, member]));
 
   if (unavailable) {
-    section.innerHTML = `<div class="project-hint"><span class="material-symbols-outlined">construction</span><div><strong>Teams aren’t set up yet</strong><p>Run <code>sql/project-teams.sql</code> in Supabase to turn on teams, leaders and progress.</p></div></div>`;
+    section.innerHTML = `<div class="project-hint">${iconSvg('construction')}<div><strong>Teams aren’t set up yet</strong><p>Run <code>sql/project-teams.sql</code> in Supabase to turn on teams, leaders and progress.</p></div></div>`;
     return;
   }
 
@@ -64,7 +65,7 @@ export function renderTeamsTab(section, ctx) {
     const canToggle = !team || canManageTeam(team, role, me) || mine;
     return `
       <li class="team-task ${done ? 'is-done' : ''} ${isOverdue(task) ? 'is-overdue' : ''}">
-        <button type="button" class="team-task-check" data-toggle="${escapeHtml(task.id)}" ${canToggle ? '' : 'disabled'} aria-label="${done ? 'Mark as not done' : 'Mark as done'}: ${escapeHtml(task.title)}"><span class="material-symbols-outlined">${done ? 'check_circle' : 'radio_button_unchecked'}</span></button>
+        <button type="button" class="team-task-check" data-toggle="${escapeHtml(task.id)}" ${canToggle ? '' : 'disabled'} aria-label="${done ? 'Mark as not done' : 'Mark as done'}: ${escapeHtml(task.title)}">${iconSvg(done ? 'circle-check' : 'circle')}</button>
         <button type="button" class="team-task-title" data-open="${escapeHtml(task.id)}">${escapeHtml(task.title)}</button>
         <span class="team-task-owner">${task.assignee ? face(task.assignee, 20) : '<em>No owner</em>'}</span>
         <span class="team-task-due ${isOverdue(task) ? 'is-overdue' : ''}">${task.due_date ? escapeHtml(new Date(`${task.due_date}T00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })) : ''}</span>
@@ -88,9 +89,9 @@ export function renderTeamsTab(section, ctx) {
             <p>${team.leader ? `${face(team.leader, 18)} <span>Led by <strong>${escapeHtml(personName(team.leader))}</strong>${team.leader_id === me ? ' (you)' : ''}</span>` : '<span class="team-no-leader">No leader yet</span>'}</p>
           </div>
           ${manage ? `<div class="team-card-actions">
-            <button type="button" class="team-icon-btn" data-edit-team="${escapeHtml(team.id)}" title="Edit team" aria-label="Edit ${escapeHtml(team.name)}"><span class="material-symbols-outlined">edit</span></button>
-            <button type="button" class="team-icon-btn is-danger" data-delete-team="${escapeHtml(team.id)}" title="Delete team" aria-label="Delete ${escapeHtml(team.name)}"><span class="material-symbols-outlined">delete</span></button>
-          </div>` : `<span class="team-lock" title="Only the leader edits this team’s tasks"><span class="material-symbols-outlined">lock</span></span>`}
+            <button type="button" class="team-icon-btn" data-edit-team="${escapeHtml(team.id)}" title="Edit team" aria-label="Edit ${escapeHtml(team.name)}">${iconSvg('pencil')}</button>
+            <button type="button" class="team-icon-btn is-danger" data-delete-team="${escapeHtml(team.id)}" title="Delete team" aria-label="Delete ${escapeHtml(team.name)}">${iconSvg('trash')}</button>
+          </div>` : `<span class="team-lock" title="Only the leader edits this team’s tasks">${iconSvg('lock')}</span>`}
         </header>
         <div class="team-progress">
           <div class="team-progress-track"><span style="width:${stats.percent}%"></span></div>
@@ -106,22 +107,22 @@ export function renderTeamsTab(section, ctx) {
           ${done.length ? `<li class="team-done-toggle"><details><summary>${done.length} done</summary><ul>${done.map((task) => taskRow(task, team)).join('')}</ul></details></li>` : ''}
           ${!stats.total ? `<li class="team-empty">${manage ? 'No tasks yet. Add the first one for this team.' : 'No tasks yet.'}</li>` : ''}
         </ul>
-        ${manage ? `<button type="button" class="team-add-task" data-add-task="${escapeHtml(team.id)}"><span class="material-symbols-outlined">add</span> Add task</button>` : ''}
+        ${manage ? `<button type="button" class="team-add-task" data-add-task="${escapeHtml(team.id)}">${iconSvg('plus')} Add task</button>` : ''}
       </article>`;
   };
 
   section.innerHTML = `
     <div class="project-section-head">
       <div><h2>Teams</h2><p class="team-intro">Split the project into teams. Each leader manages their team’s tasks; members update their own progress.</p></div>
-      ${canCreateTeams(role) ? '<button type="button" class="project-btn primary" data-new-team><span class="material-symbols-outlined">group_add</span> New team</button>' : ''}
+      ${canCreateTeams(role) ? `<button type="button" class="project-btn primary" data-new-team>${iconSvg('user-plus')} New team</button>` : ''}
     </div>
     ${teams.length ? `<div class="team-grid">${teams.map(teamCard).join('')}</div>` : `
       <div class="team-empty-state">
-        <span class="material-symbols-outlined">groups</span>
+        ${iconSvg('users')}
         <h3>No teams in this project yet</h3>
         <p>Teams help bigger groups split the work, for example <strong>Design</strong>, <strong>Backend</strong> and <strong>Testing</strong>, each with its own leader and progress bar.</p>
-        ${canCreateTeams(role) ? '<button type="button" class="project-btn primary" data-new-team><span class="material-symbols-outlined">group_add</span> Create the first team</button>' : '<p><em>Ask a team owner or editor to create teams.</em></p>'}
-        <p class="team-ai-tip"><span class="material-symbols-outlined">auto_awesome</span> Tip: ask the AI “Create teams for this project with a leader for each”.</p>
+        ${canCreateTeams(role) ? `<button type="button" class="project-btn primary" data-new-team>${iconSvg('user-plus')} Create the first team</button>` : '<p><em>Ask a team owner or editor to create teams.</em></p>'}
+        <p class="team-ai-tip">${iconSvg('sparkles')} Tip: ask the AI “Create teams for this project with a leader for each”.</p>
       </div>`}
     ${teams.length && noTeamTasks.length ? `<details class="team-unassigned"><summary>${noTeamTasks.length} task${noTeamTasks.length === 1 ? '' : 's'} not in a team</summary><ul class="team-task-list">${sortTasksForFocus(noTeamTasks).map((task) => taskRow(task, null)).join('')}</ul></details>` : ''}`;
 

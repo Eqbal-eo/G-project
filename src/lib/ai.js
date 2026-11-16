@@ -15,7 +15,7 @@ function localAssist(text, action) {
       .split(/(?<=[.!?])\s+|\s*\n\s*|\s*[•-]\s*/)
       .map((item) => item.trim())
       .filter((item) => /\b(todo|task|action|follow up|need to|should|must|assign)\b/i.test(item));
-    return candidates.length ? candidates.map((item) => `☐ ${item}`).join('\n') : 'No action items were detected.';
+    return candidates.length ? candidates.map((item) => `- ${item}`).join('\n') : 'No action items were detected.';
   }
 
   if (action === 'improve') {

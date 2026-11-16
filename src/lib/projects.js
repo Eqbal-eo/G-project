@@ -69,14 +69,14 @@ export const PROJECT_TEMPLATES = {
   blank: {
     label: 'Blank project',
     description: 'Just a plan page. Add tasks and pages as you go.',
-    icon: '📁',
+    icon: 'folder',
     html: '<h2>Goal</h2><p>What does “done” look like for this project?</p><h2>Plan</h2><p>Write the plan here. Turn any step into a task from the Tasks tab.</p>',
     tasks: []
   },
   team: {
     label: 'Team project',
     description: 'Goal, milestones, roles and five starter tasks to assign.',
-    icon: '🚀',
+    icon: 'rocket',
     html: [
       '<h2>Goal</h2><p>Describe the outcome in one or two sentences.</p>',
       '<h2>Milestones</h2><ul><li>Kick-off and roles agreed</li><li>First draft ready for review</li><li>Final version delivered</li></ul>',
@@ -94,7 +94,7 @@ export const PROJECT_TEMPLATES = {
   study: {
     label: 'Study / course project',
     description: 'Deadlines, reading list, and tasks for a course or graduation project.',
-    icon: '🎓',
+    icon: 'graduation-cap',
     html: [
       '<h2>Assignment</h2><p>Paste the brief or requirements here.</p>',
       '<h2>Deadlines</h2><ul><li>Proposal: </li><li>Progress review: </li><li>Final submission: </li></ul>',

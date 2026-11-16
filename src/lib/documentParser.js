@@ -77,7 +77,7 @@ async function parsePptxFile(file) {
     size: file.size,
     fileType: 'pptx',
     fileTypeLabel: 'PowerPoint Presentation',
-    icon: 'slideshow',
+    icon: 'presentation',
     mimeType: 'text/plain',
     content: fullText,
     stats: {
@@ -120,7 +120,7 @@ async function parseDocxFile(file) {
     size: file.size,
     fileType: 'docx',
     fileTypeLabel: 'Word Document',
-    icon: 'article',
+    icon: 'newspaper',
     mimeType: 'text/plain',
     content: fullText,
     stats: {
@@ -158,7 +158,7 @@ export async function parseAttachedDocument(file) {
       size: file.size,
       fileType: 'pdf',
       fileTypeLabel: 'PDF Document',
-      icon: 'picture_as_pdf',
+      icon: 'file-type',
       mimeType: 'text/plain',
       content
     };
@@ -182,17 +182,17 @@ export async function parseAttachedDocument(file) {
   // 5. Text / Code / Markdown / CSV files
   const textContent = await readFileAsText(file);
   let fileTypeLabel = 'Text Document';
-  let icon = 'description';
+  let icon = 'file-text';
 
   if (fileName.endsWith('.md')) {
     fileTypeLabel = 'Markdown Document';
-    icon = 'menu_book';
+    icon = 'book-open';
   } else if (fileName.endsWith('.csv')) {
     fileTypeLabel = 'CSV Spreadsheet';
-    icon = 'table_chart';
+    icon = 'table-2';
   } else if (fileName.endsWith('.json')) {
     fileTypeLabel = 'JSON Data';
-    icon = 'data_object';
+    icon = 'braces';
   } else if (/\.(js|jsx|ts|tsx|py|sql|html|css)$/.test(fileName)) {
     fileTypeLabel = 'Source Code';
     icon = 'code';

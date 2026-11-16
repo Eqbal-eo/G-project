@@ -4,9 +4,9 @@ import { supabase } from './supabase.js';
 import { cachedRead, invalidateQueryCache } from './queries.js';
 
 export const MOODS = {
-  3: { emoji: '😀', label: 'Going well' },
-  2: { emoji: '😐', label: 'Okay' },
-  1: { emoji: '😫', label: 'Struggling' }
+  3: { icon: 'face-slightly-smiling', label: 'Going well' },
+  2: { icon: 'face-neutral', label: 'Okay' },
+  1: { icon: 'face-slightly-frowning', label: 'Struggling' }
 };
 
 const pad = (value) => String(value).padStart(2, '0');

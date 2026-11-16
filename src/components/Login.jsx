@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useEffect, useMemo, useState } from 'react';
 import GroupifyLogo from './GroupifyLogo.jsx';
 
@@ -16,7 +17,7 @@ function PasswordInput({ className = '', ...props }) {
         title={visible ? 'Hide password' : 'Show password'}
         disabled={props.disabled}
       >
-        <span className="material-symbols-outlined" aria-hidden="true">{visible ? 'visibility_off' : 'visibility'}</span>
+        <Icon name={visible ? 'eye-off' : 'eye'} />
       </button>
     </div>
   );
@@ -130,7 +131,7 @@ export default function Login({ isBootstrapping }) {
 
   return (
     <div className="auth-page min-h-screen flex flex-col items-center justify-center p-6">
-      <a href="#welcome" className="auth-back"><span className="material-symbols-outlined" aria-hidden="true">arrow_back</span>Groupify home</a>
+      <a href="#welcome" className="auth-back"><Icon name="arrow-left" />Groupify home</a>
       <main className="w-full max-w-[420px] space-y-8">
         <header className="text-center space-y-4">
           <div className="flex justify-center"><GroupifyLogo height={34} color="#F5F7F8" /></div>

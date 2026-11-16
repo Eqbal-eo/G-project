@@ -1,15 +1,15 @@
 // Turns a notification row into a short sentence and a destination.
 
 const ICONS = {
-  mention: 'alternate_email',
-  comment_added: 'comment',
+  mention: 'at-sign',
+  comment_added: 'message-square-text',
   comment_reply: 'reply',
-  task_comment: 'forum',
-  task_assigned: 'assignment_ind',
-  page_updated: 'edit_note',
-  task_due: 'alarm',
-  checkin_due: 'event_note',
-  workspace_invite: 'group_add'
+  task_comment: 'messages-square',
+  task_assigned: 'user-check',
+  page_updated: 'notebook-pen',
+  task_due: 'alarm-clock',
+  checkin_due: 'calendar-days',
+  workspace_invite: 'user-plus'
 };
 
 function quoted(value, fallback) {
@@ -71,7 +71,7 @@ export function describeNotification(notification) {
   return {
     text,
     excerpt: payload.excerpt ? String(payload.excerpt) : '',
-    icon: ICONS[notification?.type] || (String(notification?.type || '').includes('member') ? 'group' : 'notifications'),
+    icon: ICONS[notification?.type] || (String(notification?.type || '').includes('member') ? 'users' : 'bell'),
     href
   };
 }

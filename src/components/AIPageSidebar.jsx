@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import { useState, useEffect, useRef } from 'react';
 import katex from 'katex';
 import NotionAIFace from './NotionAIFace.jsx';
@@ -341,7 +342,7 @@ export default function AIPageSidebar({
             title="Switch or view chats"
           >
             <span className="truncate max-w-[130px]">{currentChat?.title || 'New AI chat'}</span>
-            <span className="material-symbols-outlined text-[16px]">expand_more</span>
+            <Icon name="chevron-down" className="text-[16px]" />
           </button>
 
           {/* Chat History Dropdown */}
@@ -354,7 +355,7 @@ export default function AIPageSidebar({
                   onClick={handleStartNewChat}
                   className="text-primary hover:underline text-[11px] flex items-center gap-0.5"
                 >
-                  <span className="material-symbols-outlined text-xs">add</span> New
+                  <Icon name="plus" className="text-xs" /> New
                 </button>
               </div>
               {chats.map((c) => (
@@ -387,7 +388,7 @@ export default function AIPageSidebar({
             title="Start new chat (+)"
             aria-label="New chat"
           >
-            <span className="material-symbols-outlined text-[17px]">add</span>
+            <Icon name="plus" className="text-[17px]" />
           </button>
 
           <button
@@ -399,7 +400,7 @@ export default function AIPageSidebar({
             title={includePageContext ? 'Active page context linked' : 'Link active page context'}
             aria-label="Toggle page context"
           >
-            <span className="material-symbols-outlined text-[17px]">dock_to_left</span>
+            <Icon name="panel-left" className="text-[17px]" />
           </button>
 
           <div className="relative">
@@ -410,7 +411,7 @@ export default function AIPageSidebar({
               title="More actions"
               aria-label="More options"
             >
-              <span className="material-symbols-outlined text-[17px]">more_horiz</span>
+              <Icon name="ellipsis" className="text-[17px]" />
             </button>
 
             {showMoreMenu && (
@@ -420,7 +421,7 @@ export default function AIPageSidebar({
                   onClick={handleDeleteCurrentChat}
                   className="w-full text-left px-2 py-1.5 rounded-lg text-xs text-red-500 hover:bg-red-500/10 flex items-center gap-2 transition-colors"
                 >
-                  <span className="material-symbols-outlined text-sm">delete</span>
+                  <Icon name="trash" className="text-sm" />
                   Delete Chat
                 </button>
               </div>
@@ -434,7 +435,7 @@ export default function AIPageSidebar({
             title="Collapse sidebar"
             aria-label="Close sidebar"
           >
-            <span className="material-symbols-outlined text-[18px]">keyboard_double_arrow_right</span>
+            <Icon name="chevrons-right" className="text-[18px]" />
           </button>
         </div>
       </header>
@@ -457,9 +458,7 @@ export default function AIPageSidebar({
                 disabled={isGenerating}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-outline-variant/25 bg-surface hover:bg-surface-container-high text-xs font-medium text-on-surface transition-all group shadow-2xs"
               >
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">
-                  notes
-                </span>
+                <Icon name="notepad-text" className="text-[18px] text-on-surface-variant group-hover:text-primary transition-colors" />
                 <span>Summarize this page</span>
               </button>
 
@@ -469,9 +468,7 @@ export default function AIPageSidebar({
                 disabled={isGenerating}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-outline-variant/25 bg-surface hover:bg-surface-container-high text-xs font-medium text-on-surface transition-all group shadow-2xs"
               >
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">
-                  translate
-                </span>
+                <Icon name="languages" className="text-[18px] text-on-surface-variant group-hover:text-primary transition-colors" />
                 <span>Translate this page</span>
               </button>
 
@@ -481,9 +478,7 @@ export default function AIPageSidebar({
                 disabled={isGenerating}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-outline-variant/25 bg-surface hover:bg-surface-container-high text-xs font-medium text-on-surface transition-all group shadow-2xs"
               >
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">
-                  manage_search
-                </span>
+                <Icon name="file-search" className="text-[18px] text-on-surface-variant group-hover:text-primary transition-colors" />
                 <span>Analyze for insights</span>
               </button>
 
@@ -493,9 +488,7 @@ export default function AIPageSidebar({
                 disabled={isGenerating}
                 className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border border-outline-variant/25 bg-surface hover:bg-surface-container-high text-xs font-medium text-on-surface transition-all group shadow-2xs"
               >
-                <span className="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">
-                  check_circle
-                </span>
+                <Icon name="circle-check" className="text-[18px] text-on-surface-variant group-hover:text-primary transition-colors" />
                 <span>Create a task tracker</span>
               </button>
             </div>
@@ -511,7 +504,7 @@ export default function AIPageSidebar({
                     <div className="max-w-[88%] bg-primary text-on-primary rounded-2xl rounded-tr-xs px-3.5 py-2 text-xs leading-relaxed shadow-2xs">
                       {msg.fileName && (
                         <div className="flex items-center gap-1.5 mb-1 text-[11px] font-semibold opacity-90 pb-1 border-b border-white/20">
-                          <span className="material-symbols-outlined text-xs">attach_file</span>
+                          <Icon name="paperclip" className="text-xs" />
                           <span className="truncate">{msg.fileName}</span>
                         </div>
                       )}
@@ -551,7 +544,7 @@ export default function AIPageSidebar({
                           className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-semibold transition-colors"
                           title="Replace entire active page with this AI content"
                         >
-                          <span className="material-symbols-outlined text-xs">sync</span>
+                          <Icon name="refresh-cw" className="text-xs" />
                           Replace page
                         </button>
 
@@ -561,7 +554,7 @@ export default function AIPageSidebar({
                           className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-[11px] font-medium transition-colors"
                           title="Insert this content at the end of the page"
                         >
-                          <span className="material-symbols-outlined text-xs">add</span>
+                          <Icon name="plus" className="text-xs" />
                           Insert into page
                         </button>
 
@@ -574,7 +567,7 @@ export default function AIPageSidebar({
                           className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-surface-container-high text-on-surface-variant text-[11px] transition-colors ml-auto"
                           title="Copy text"
                         >
-                          <span className="material-symbols-outlined text-xs">content_copy</span>
+                          <Icon name="copy" className="text-xs" />
                         </button>
                       </div>
                       )}
@@ -605,7 +598,7 @@ export default function AIPageSidebar({
         {includePageContext && activeEditor && (
           <div className="flex items-center justify-between text-[11px] text-on-surface-variant/75 mb-2 px-1">
             <span className="flex items-center gap-1 truncate max-w-[280px]">
-              <span className="material-symbols-outlined text-xs text-primary">description</span>
+              <Icon name="file-text" className="text-xs text-primary" />
               Active page: <strong className="text-on-surface truncate">{pageTitle}</strong>
             </span>
             <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded font-medium shrink-0">
@@ -618,7 +611,7 @@ export default function AIPageSidebar({
         {attachedFile && (
           <div className="flex items-center justify-between p-2 mb-2 rounded-lg bg-surface-container-high text-xs">
             <span className="flex items-center gap-1.5 truncate">
-              <span className="material-symbols-outlined text-sm text-primary">attach_file</span>
+              <Icon name="paperclip" className="text-sm text-primary" />
               <span className="truncate font-medium">{attachedFile.name}</span>
             </span>
             <button
@@ -627,7 +620,7 @@ export default function AIPageSidebar({
               className="hover:text-red-500"
               title="Remove file"
             >
-              <span className="material-symbols-outlined text-xs">close</span>
+              <Icon name="x" className="text-xs" />
             </button>
           </div>
         )}
@@ -672,7 +665,7 @@ export default function AIPageSidebar({
                 className="w-6 h-6 rounded-md hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors disabled:opacity-40"
                 title="Attach document or PDF"
               >
-                <span className="material-symbols-outlined text-[16px]">add</span>
+                <Icon name="plus" className="text-[16px]" />
               </button>
 
               <span
@@ -681,7 +674,7 @@ export default function AIPageSidebar({
                   ? 'Your prompt goes from this Mac to Cloudflare Workers AI. The API token stays on this Mac.'
                   : 'Selected notes and requests are sent through Supabase to Cloudflare Workers AI'}
               >
-                <span className="material-symbols-outlined text-[15px]">security</span>
+                <Icon name="shield" className="text-[15px]" />
               </span>
             </div>
 
@@ -697,7 +690,7 @@ export default function AIPageSidebar({
                 className="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center disabled:opacity-40 hover:opacity-90 transition-opacity"
                 aria-label="Send message"
               >
-                <span className="material-symbols-outlined text-[15px]">arrow_upward</span>
+                <Icon name="arrow-up" className="text-[15px]" />
               </button>
             </div>
           </div>

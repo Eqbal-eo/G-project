@@ -1,4 +1,5 @@
 // Page tools: public share links, version history, and team templates.
+import { iconSvg } from './icons.js';
 import { supabase } from './supabase.js';
 import { AppState, showToast } from '../legacy/app.js';
 import { escapeHtml, sanitizeHtml } from './sanitize.js';
@@ -37,10 +38,10 @@ export async function openShareDialog(page) {
     title: 'Share page',
     body: `
       <div class="share-block">
-        <div class="share-row"><span class="material-symbols-outlined">group</span><div><strong>Your team</strong><small>Everyone on ${escapeHtml(AppState.workspace?.name || 'the team')} can open and edit this page.</small></div><button type="button" class="project-btn" data-copy="${escapeHtml(teamUrl)}">Copy link</button></div>
+        <div class="share-row">${iconSvg('users')}<div><strong>Your team</strong><small>Everyone on ${escapeHtml(AppState.workspace?.name || 'the team')} can open and edit this page.</small></div><button type="button" class="project-btn" data-copy="${escapeHtml(teamUrl)}">Copy link</button></div>
       </div>
       <div class="share-block">
-        <div class="share-row"><span class="material-symbols-outlined">public</span><div><strong>Anyone with the link</strong><small>Read-only. People don’t need an account. Turn it off any time.</small></div><label class="share-switch"><input type="checkbox" data-public /><span></span></label></div>
+        <div class="share-row">${iconSvg('globe')}<div><strong>Anyone with the link</strong><small>Read-only. People don’t need an account. Turn it off any time.</small></div><label class="share-switch"><input type="checkbox" data-public /><span></span></label></div>
         <div class="share-public" hidden><input class="modal-input" readonly data-public-url /><button type="button" class="project-btn primary" data-copy-public>Copy</button></div>
         <p class="share-status" role="status"></p>
       </div>`
@@ -163,7 +164,7 @@ export async function saveAsTemplate(page, { isProject = false, tasks = [] } = {
     workspace_id: page.workspace_id,
     kind: isProject ? 'project' : 'page',
     title: values.title,
-    icon: page.icon || (isProject ? '📁' : '📄'),
+    icon: page.icon || (isProject ? 'folder' : 'file-text'),
     html: page.content?.html || '',
     tasks: isProject ? tasks.map((task) => ({ title: task.title, priority: task.priority || 'medium' })).slice(0, 50) : [],
     created_by: AppState.user?.id

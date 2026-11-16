@@ -110,6 +110,6 @@ test('library uploads: allowed types, size limit and safe names', async () => {
   assert.equal(formatBytes(512), '512 B');
   assert.equal(formatBytes(2048), '2 KB');
   assert.equal(formatBytes(1.5 * 1024 * 1024), '1.5 MB');
-  assert.equal(fileIcon('a.xlsx'), 'table_chart');
+  assert.equal(fileIcon('a.xlsx'), 'file-spreadsheet');
   assert.equal(fileIcon('a.png'), 'image');
 });

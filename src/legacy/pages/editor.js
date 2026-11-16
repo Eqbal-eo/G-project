@@ -1,3 +1,4 @@
+import { iconSvg, pageIconSvg, pageIconName, PAGE_ICON_CHOICES } from '../../lib/icons.js';
 import { requestInput, requestConfirmation, requestChoice } from "../../lib/dialogs.js";
 import { requestNewTask } from "../../lib/taskDetails.js";
 // ============================================
@@ -97,7 +98,7 @@ export async function renderEditor(container, route) {
   if (!page) {
     container.innerHTML = `
       <div class="empty-state" style="min-height:70vh;">
-        <span class="material-symbols-outlined">edit_document</span>
+        ${iconSvg('file-pen')}
         <h3>No pages to edit</h3>
         <p>Create a new page from the sidebar to start writing.</p>
       </div>
@@ -141,7 +142,7 @@ export async function renderEditor(container, route) {
       : `
           <div class="mb-4 opacity-0 hover:opacity-60 transition-opacity">
             <button id="editor-add-cover" class="text-xs text-on-surface-variant flex items-center gap-1" type="button">
-              <span class="material-symbols-outlined text-sm">add_photo_alternate</span>
+              ${iconSvg('image-plus', 'text-sm')}
               Add cover
             </button>
           </div>
@@ -149,48 +150,48 @@ export async function renderEditor(container, route) {
     }
 
         <div class="mb-10 group relative">
-          <button id="editor-change-icon" type="button" class="page-icon-btn" title="Change icon" aria-label="Change page icon">${escapeComment(page.icon || '📄')}</button>
+          <button id="editor-change-icon" type="button" class="page-icon-btn" title="Change icon" aria-label="Change page icon">${pageIconSvg(page.icon)}</button>
           <h1 id="editor-title" class="text-4xl font-extrabold tracking-tight text-on-surface mb-2 outline-none focus:ring-0" contenteditable="true">${safeTitle
     }</h1>
           <div class="flex gap-4 text-sm text-on-surface-variant/60">
             <span class="flex items-center gap-1">
-              <span class="material-symbols-outlined text-[14px]">history</span>
+              ${iconSvg('rotate-ccw-clock', 'text-[14px]')}
               Edited ${timeAgo(page.updated_at)}
             </span>
             <span id="editor-live-badge" class="editor-live-badge" hidden aria-live="polite"></span>
             <span id="editor-save-status" class="flex items-center gap-1 text-primary" aria-live="polite">
-              <span class="material-symbols-outlined text-[14px]">${draft ? 'cloud_off' : 'cloud_done'}</span>
+              ${iconSvg(draft ? 'cloud-off' : 'cloud-check', 'text-[14px]')}
               ${draft ? 'Local draft recovered' : 'Saved'}
             </span>
           </div>
           <div class="page-actions" role="toolbar" aria-label="Page actions">
-            <button type="button" id="page-share-btn"><span class="material-symbols-outlined">ios_share</span>Share</button>
-            <button type="button" id="page-history-btn"><span class="material-symbols-outlined">history</span>History</button>
+            <button type="button" id="page-share-btn">${iconSvg('share')}Share</button>
+            <button type="button" id="page-history-btn">${iconSvg('rotate-ccw-clock')}History</button>
             <div class="page-menu-wrap">
-              <button type="button" id="page-ai-btn" aria-haspopup="menu" aria-expanded="false"><span class="material-symbols-outlined">auto_awesome</span>Ask AI</button>
+              <button type="button" id="page-ai-btn" aria-haspopup="menu" aria-expanded="false">${iconSvg('sparkles')}Ask AI</button>
               <div class="page-menu" role="menu" hidden data-menu="ai">
-                <button type="button" role="menuitem" data-page-ai="summarize"><span class="material-symbols-outlined">summarize</span>Summarize this page</button>
-                <button type="button" role="menuitem" data-page-ai="tasks"><span class="material-symbols-outlined">add_task</span>Turn this page into tasks</button>
-                <button type="button" role="menuitem" data-page-ai="meeting"><span class="material-symbols-outlined">groups_3</span>Meeting notes → decisions &amp; tasks</button>
-                <button type="button" role="menuitem" data-page-ai="status"><span class="material-symbols-outlined">campaign</span>Write a status update</button>
-                <button type="button" role="menuitem" data-page-ai="improve"><span class="material-symbols-outlined">edit_note</span>Suggest improvements</button>
-                <button type="button" role="menuitem" data-page-ai="ask"><span class="material-symbols-outlined">chat</span>Ask a question about it…</button>
+                <button type="button" role="menuitem" data-page-ai="summarize">${iconSvg('notebook-text')}Summarize this page</button>
+                <button type="button" role="menuitem" data-page-ai="tasks">${iconSvg('list-plus')}Turn this page into tasks</button>
+                <button type="button" role="menuitem" data-page-ai="meeting">${iconSvg('users-round')}Meeting notes → decisions &amp; tasks</button>
+                <button type="button" role="menuitem" data-page-ai="status">${iconSvg('megaphone')}Write a status update</button>
+                <button type="button" role="menuitem" data-page-ai="improve">${iconSvg('notebook-pen')}Suggest improvements</button>
+                <button type="button" role="menuitem" data-page-ai="ask">${iconSvg('message-square')}Ask a question about it…</button>
               </div>
             </div>
             <div class="page-menu-wrap">
-              <button type="button" id="page-more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="More page actions"><span class="material-symbols-outlined">more_horiz</span></button>
+              <button type="button" id="page-more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="More page actions">${iconSvg('ellipsis')}</button>
               <div class="page-menu" role="menu" hidden data-menu="more">
-                <button type="button" role="menuitem" id="editor-favorite-page"><span class="material-symbols-outlined">${page.is_favorite ? 'star' : 'star_outline'}</span>${page.is_favorite ? 'Favorited' : 'Favorite'}</button>
-                <button type="button" role="menuitem" id="editor-copy-link"><span class="material-symbols-outlined">link</span>Copy link</button>
-                <button type="button" role="menuitem" id="editor-duplicate-page"><span class="material-symbols-outlined">content_copy</span>Duplicate</button>
-                <button type="button" role="menuitem" id="editor-move-page"><span class="material-symbols-outlined">drive_file_move</span>Move to…</button>
-                <button type="button" role="menuitem" id="page-save-template"><span class="material-symbols-outlined">bookmark_add</span>Save as team template</button>
+                <button type="button" role="menuitem" id="editor-favorite-page">${iconSvg('star', page.is_favorite ? 'icon-filled' : '')}${page.is_favorite ? 'Favorited' : 'Favorite'}</button>
+                <button type="button" role="menuitem" id="editor-copy-link">${iconSvg('link')}Copy link</button>
+                <button type="button" role="menuitem" id="editor-duplicate-page">${iconSvg('copy')}Duplicate</button>
+                <button type="button" role="menuitem" id="editor-move-page">${iconSvg('folder-input')}Move to…</button>
+                <button type="button" role="menuitem" id="page-save-template">${iconSvg('bookmark-plus')}Save as team template</button>
                 <hr />
-                <button type="button" role="menuitem" id="editor-export-markdown"><span class="material-symbols-outlined">download</span>Export as Markdown</button>
-                <button type="button" role="menuitem" id="editor-import-markdown"><span class="material-symbols-outlined">upload</span>Import Markdown</button>
+                <button type="button" role="menuitem" id="editor-export-markdown">${iconSvg('download')}Export as Markdown</button>
+                <button type="button" role="menuitem" id="editor-import-markdown">${iconSvg('upload')}Import Markdown</button>
                 <hr />
-                <button type="button" role="menuitem" id="editor-archive-page"><span class="material-symbols-outlined">archive</span>Archive</button>
-                <button type="button" role="menuitem" id="editor-delete-page" class="is-danger"><span class="material-symbols-outlined">delete</span>Delete</button>
+                <button type="button" role="menuitem" id="editor-archive-page">${iconSvg('archive')}Archive</button>
+                <button type="button" role="menuitem" id="editor-delete-page" class="is-danger">${iconSvg('trash')}Delete</button>
               </div>
             </div>
             <input type="file" id="editor-import-input" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden />
@@ -203,7 +204,7 @@ export async function renderEditor(container, route) {
 
         <div class="editor-writing-tools flex items-center justify-between py-2 border-t border-outline-variant/30 mt-8">
           <button id="editor-add-block" class="editor-add-block-button text-xs text-on-surface-variant hover:text-primary flex items-center gap-1.5" type="button">
-            <span class="material-symbols-outlined text-sm">add</span>
+            ${iconSvg('plus', 'text-sm')}
             <span>Add block</span>
             <kbd class="px-1.5 py-0.5 text-[10px] bg-surface-container-high rounded border border-outline-variant">/</kbd>
           </button>
@@ -212,16 +213,16 @@ export async function renderEditor(container, route) {
 
         <section class="editor-related" aria-label="Tasks and links">
           <div class="editor-related-head">
-            <h2><span class="material-symbols-outlined">task_alt</span> Tasks on this page <small>${(linkedTasks || []).length}</small></h2>
+            <h2>${iconSvg('circle-check-big')} Tasks on this page <small>${(linkedTasks || []).length}</small></h2>
             <div class="editor-related-actions">
-              <button id="editor-add-task" type="button"><span class="material-symbols-outlined">add_task</span> Add task</button>
-              <button id="editor-link-page" type="button"><span class="material-symbols-outlined">link</span> Link a page</button>
+              <button id="editor-add-task" type="button">${iconSvg('list-plus')} Add task</button>
+              <button id="editor-link-page" type="button">${iconSvg('link')} Link a page</button>
             </div>
           </div>
           ${(linkedTasks || []).length ? `<ul class="editor-related-list">${linkedTasks.map((task) => `
             <li>
               <button type="button" class="editor-linked-task-toggle" data-task-id="${escapeComment(task.id)}" data-completed="${task.status === 'done' || task.completed ? 'true' : 'false'}" aria-label="${task.status === 'done' || task.completed ? 'Mark as not done' : 'Mark as done'}: ${escapeComment(task.title)}">
-                <span class="material-symbols-outlined">${task.status === 'done' || task.completed ? 'check_circle' : 'radio_button_unchecked'}</span>
+                ${iconSvg(task.status === 'done' || task.completed ? 'circle-check' : 'circle')}
               </button>
               <a href="#kanban?task=${encodeURIComponent(task.id)}" class="${task.status === 'done' || task.completed ? 'is-done' : ''}">${escapeComment(task.title)}</a>
               ${task.assignee?.name ? `<span class="editor-related-meta">${escapeComment(task.assignee.name)}</span>` : ''}
@@ -229,7 +230,7 @@ export async function renderEditor(container, route) {
             </li>`).join('')}</ul>` : '<p class="editor-related-empty">No tasks yet. Add one to assign work to a teammate from this page.</p>'}
           ${backlinks.length ? `
             <h3 class="editor-related-subhead">Linked from</h3>
-            <ul class="editor-related-list">${backlinks.map((candidate) => `<li><span>${escapeComment(candidate.icon || '📄')}</span><a href="#editor/${escapeComment(candidate.id)}">${escapeComment(candidate.title || 'Untitled')}</a></li>`).join('')}</ul>` : ''}
+            <ul class="editor-related-list">${backlinks.map((candidate) => `<li>${pageIconSvg(candidate.icon)}<a href="#editor/${escapeComment(candidate.id)}">${escapeComment(candidate.title || 'Untitled')}</a></li>`).join('')}</ul>` : ''}
         </section>
       </div>
       <aside id="editor-comments" class="editor-comments-panel" aria-label="Page discussion">
@@ -238,7 +239,7 @@ export async function renderEditor(container, route) {
             <h2>Discussion</h2>
             <p>Ask questions, give feedback, and @mention teammates.</p>
           </div>
-          <span class="material-symbols-outlined" aria-hidden="true">forum</span>
+          ${iconSvg('messages-square')}
         </div>
         <div class="editor-comments-list"><p class="editor-comments-empty">Loading comments…</p></div>
       </aside>
@@ -277,13 +278,13 @@ export async function renderEditor(container, route) {
       },
       onAskAI: (text) => triggerAIPanel(`Improve or rewrite this block, or turn it into a better structure:\n"${text}"`),
       extraCommands: [
-        { id: 'mention', label: 'Mention a person', icon: 'alternate_email', desc: 'Notify a teammate', keywords: 'at person user notify', run: ({ quill, index }) => { mentions.showOnly('person'); quill.insertText(index, '@', 'user'); quill.setSelection(index + 1, 0, 'silent'); } },
-        { id: 'date', label: 'Date', icon: 'event', desc: 'Insert a date like Tomorrow', keywords: 'today tomorrow day when reminder', run: ({ quill, index }) => { mentions.showOnly('date'); quill.insertText(index, '@', 'user'); quill.setSelection(index + 1, 0, 'silent'); } },
+        { id: 'mention', label: 'Mention a person', icon: 'at-sign', desc: 'Notify a teammate', keywords: 'at person user notify', run: ({ quill, index }) => { mentions.showOnly('person'); quill.insertText(index, '@', 'user'); quill.setSelection(index + 1, 0, 'silent'); } },
+        { id: 'date', label: 'Date', icon: 'calendar', desc: 'Insert a date like Tomorrow', keywords: 'today tomorrow day when reminder', run: ({ quill, index }) => { mentions.showOnly('date'); quill.insertText(index, '@', 'user'); quill.setSelection(index + 1, 0, 'silent'); } },
         { id: 'page-link', label: 'Link to page', icon: 'link', desc: 'Link another page or project', keywords: 'page reference', run: () => insertBlock('page-link') },
-        { id: 'subpage', label: 'Sub-page', icon: 'note_add', desc: 'Create a page inside this one', keywords: 'page child nested new', run: () => insertBlock('page') },
-        { id: 'web-link', label: 'Web link', icon: 'public', desc: 'Paste a URL', keywords: 'url website http', run: () => insertBlock('link') },
-        { id: 'task', label: 'Task', icon: 'add_task', desc: 'Create a task linked to this page', keywords: 'todo assign kanban', run: () => container.querySelector('#editor-add-task')?.click() },
-        { id: 'ai', label: 'Ask AI to write', icon: 'auto_awesome', desc: 'Draft content with AI', keywords: 'ai generate write draft', run: () => triggerAIPanel() }
+        { id: 'subpage', label: 'Sub-page', icon: 'file-plus', desc: 'Create a page inside this one', keywords: 'page child nested new', run: () => insertBlock('page') },
+        { id: 'web-link', label: 'Web link', icon: 'globe', desc: 'Paste a URL', keywords: 'url website http', run: () => insertBlock('link') },
+        { id: 'task', label: 'Task', icon: 'list-plus', desc: 'Create a task linked to this page', keywords: 'todo assign kanban', run: () => container.querySelector('#editor-add-task')?.click() },
+        { id: 'ai', label: 'Ask AI to write', icon: 'sparkles', desc: 'Draft content with AI', keywords: 'ai generate write draft', run: () => triggerAIPanel() }
       ]
     });
     container.__notionEditor = notionEditor;
@@ -293,7 +294,7 @@ export async function renderEditor(container, route) {
         .filter((member) => member.user_id !== AppState.user?.id)
         .map((member) => ({ id: member.user_id, label: memberLabel(member), hint: member.user?.email || '' })),
       getPages: () => (workspacePages || []).filter((candidate) => candidate.id !== page.id && !candidate.archived_at)
-        .map((candidate) => ({ id: candidate.id, label: candidate.title || 'Untitled', icon: candidate.page_type === 'project' ? '📁' : candidate.icon || '📄' })),
+        .map((candidate) => ({ id: candidate.id, label: candidate.title || 'Untitled', icon: pageIconName(candidate.icon, candidate.page_type === 'project' ? 'folder' : 'file-text') })),
       onPeopleMentioned: async (userIds) => {
         const { error: mentionError } = await supabase.rpc('notify_page_mentions', { target_page: page.id, user_ids: userIds });
         if (!mentionError) showToast('They’ll get a notification', 'success');
@@ -342,7 +343,7 @@ export async function renderEditor(container, route) {
   function debouncedSave() {
     clearTimeout(saveTimeout);
     const status = container.querySelector('#editor-save-status');
-    if (status) status.innerHTML = '<span class="material-symbols-outlined text-[14px]">cloud_upload</span>Saving…';
+    if (status) status.innerHTML = `${iconSvg('cloud-upload', 'text-[14px]')}Saving…`;
     writeLocalDraft(page.id, { title: titleEl?.textContent || 'Untitled', html: editorHtml() });
     saveTimeout = setTimeout(saveNow, 2000);
   }
@@ -447,13 +448,17 @@ export async function renderEditor(container, route) {
 
   container.querySelector('#editor-change-icon')?.addEventListener('click', async (event) => {
     const button = event.currentTarget;
-    const icon = await requestInput('Enter an emoji for this page:', page.icon || '📄');
-    if (icon === null || !icon.trim()) return;
-    const nextIcon = icon.trim().slice(0, 4);
+    const choice = await requestChoice({
+      title: 'Choose an icon for this page',
+      placeholder: 'Search icons…',
+      items: PAGE_ICON_CHOICES.map((name) => ({ id: name, label: name.replace(/-/g, ' '), icon: name }))
+    });
+    if (!choice) return;
+    const nextIcon = choice.id;
     const { error: iconError } = await updatePage(page.id, { icon: nextIcon });
     if (iconError) return showToast(`Could not update icon: ${iconError.message}`, 'error');
     page.icon = nextIcon;
-    button.textContent = nextIcon;
+    button.innerHTML = pageIconSvg(nextIcon);
     showToast('Page icon updated', 'success');
   });
 
@@ -498,7 +503,7 @@ export async function renderEditor(container, route) {
     code: '<pre class="ql-syntax">// Code here</pre>',
     divider: '<hr class="motion-divider" />',
     table: '<table class="editor-simple-table"><thead><tr><th>Header 1</th><th>Header 2</th><th>Header 3</th></tr></thead><tbody><tr><td>Data 1</td><td>Data 2</td><td>Data 3</td></tr><tr><td>Data 4</td><td>Data 5</td><td>Data 6</td></tr></tbody></table>',
-    callout: '<aside class="editor-callout"><span class="editor-callout-icon">💡</span><div class="editor-callout-text">Highlight note or callout</div></aside>',
+    callout: `<aside class="editor-callout"><span class="editor-callout-icon">${iconSvg('lightbulb')}</span><div class="editor-callout-text">Highlight note or callout</div></aside>`,
     toggle: '<details class="editor-toggle" open><summary>Toggle header</summary><div class="editor-toggle-content"><p>Toggle details</p></div></details>'
   };
 
@@ -536,7 +541,7 @@ export async function renderEditor(container, route) {
       if (!title?.trim()) return;
       const { data: child, error } = await createPage(AppState.workspace.id, title.trim(), 'note', {}, page.id);
       if (error) return showToast(`Could not create page: ${error.message}`, 'error');
-      if (child?.id) insertAtEditor(`<a class="editor-page-link" href="#editor/${escapeComment(child.id)}" data-page-link="${escapeComment(child.id)}">📄 ${escapeComment(child.title || title.trim())}</a>`);
+      if (child?.id) insertAtEditor(`<a class="editor-page-link" href="#editor/${escapeComment(child.id)}" data-page-link="${escapeComment(child.id)}">${escapeComment(child.title || title.trim())}</a>`);
       return;
     }
     clearTimeout(saveTimeout);
@@ -642,7 +647,7 @@ export async function renderEditor(container, route) {
   contextMenu.setAttribute('role', 'menu');
   contextMenu.setAttribute('aria-label', 'Block actions');
   contextMenu.hidden = true;
-  contextMenu.innerHTML = '<button type="button" role="menuitem" data-context-ai><span class="material-symbols-outlined" style="color:var(--primary)" aria-hidden="true">auto_awesome</span>Edit with AI</button><button type="button" role="menuitem" data-context-edit><span class="material-symbols-outlined" aria-hidden="true">edit</span>Edit</button><button type="button" role="menuitem" data-context-delete><span class="material-symbols-outlined" aria-hidden="true">delete</span>Delete</button>';
+  contextMenu.innerHTML = `<button type="button" role="menuitem" data-context-ai>${iconSvg('sparkles', '', 'style="color:var(--primary)"')}Edit with AI</button><button type="button" role="menuitem" data-context-edit>${iconSvg('pencil')}Edit</button><button type="button" role="menuitem" data-context-delete>${iconSvg('trash')}Delete</button>`;
   container.append(contextMenu);
   let contextBlock = null;
   let contextEvents;
@@ -786,7 +791,7 @@ export async function renderEditor(container, route) {
     const { error: favoriteError } = await togglePageFavorite(page.id, nextFavorite);
     if (favoriteError) return showToast(`Could not update favorite: ${favoriteError.message}`, 'error');
     page.is_favorite = nextFavorite;
-    button.innerHTML = `<span class="material-symbols-outlined text-sm">${nextFavorite ? 'star' : 'star_outline'}</span>${nextFavorite ? 'Favorited' : 'Favorite'}`;
+    button.innerHTML = `${iconSvg('star', nextFavorite ? 'text-sm icon-filled' : 'text-sm')}${nextFavorite ? 'Favorited' : 'Favorite'}`;
     showToast(nextFavorite ? 'Added to favorites' : 'Removed from favorites', 'success');
   });
 
@@ -856,7 +861,7 @@ export async function renderEditor(container, route) {
     );
     if (duplicateError) return showToast(`Could not duplicate page: ${duplicateError.message}`, 'error');
     if (duplicate?.id) {
-      await updatePage(duplicate.id, { icon: page.icon || '📄', cover_url: page.cover_url || null });
+      await updatePage(duplicate.id, { icon: page.icon || 'file-text', cover_url: page.cover_url || null });
       const { data: pageTasks } = await getTasks({ pageId: page.id });
       for (const task of pageTasks || []) {
         await createTask(task.title || 'Untitled task', {
@@ -885,7 +890,7 @@ export async function renderEditor(container, route) {
     const choice = await requestChoice({
       title: `Move “${page.title || 'Untitled'}” to…`,
       placeholder: 'Search pages and projects…',
-      items: [{ id: '', label: 'Top level (no parent)', icon: '⬆️' }, ...candidates.map((candidate) => ({ id: candidate.id, label: candidate.title || 'Untitled', icon: candidate.page_type === 'project' ? '📁' : candidate.icon || '📄', hint: candidate.page_type === 'project' ? 'Project' : '' }))]
+      items: [{ id: '', label: 'Top level (no parent)', icon: 'arrow-up' }, ...candidates.map((candidate) => ({ id: candidate.id, label: candidate.title || 'Untitled', icon: pageIconName(candidate.icon, candidate.page_type === 'project' ? 'folder' : 'file-text'), hint: candidate.page_type === 'project' ? 'Project' : '' }))]
     });
     if (!choice) return;
     const parent = choice.id ? candidates.find((candidate) => candidate.id === choice.id) : null;
@@ -1027,11 +1032,11 @@ export async function renderEditor(container, route) {
     const shownRoots = rootComments.filter((comment) => filter === 'all' || (filter === 'open' ? !isResolvedThread(comment) : isResolvedThread(comment)));
     const filterBar = rootComments.length ? `<div class="comment-filter" role="tablist" aria-label="Show threads">
         ${[['open', `Open ${openCount}`], ['resolved', `Resolved ${resolvedCount}`], ['all', 'All']].map(([value, label]) => `<button type="button" role="tab" data-comment-filter="${value}" aria-selected="${filter === value}" class="${filter === value ? 'is-active' : ''}">${label}</button>`).join('')}
-        ${openCount > 1 ? '<button type="button" class="comment-next" data-comment-next title="Jump to the next open thread"><span class="material-symbols-outlined">south</span>Next open</button>' : ''}
+        ${openCount > 1 ? `<button type="button" class="comment-next" data-comment-next title="Jump to the next open thread">${iconSvg('arrow-down')}Next open</button>` : ''}
       </div>` : '';
     const emptyText = !comments.length
       ? 'No comments yet. Start a conversation — select text in the page to comment on it, or write below.'
-      : filter === 'open' ? 'No open threads. Everything is resolved 🎉' : 'Nothing here.';
+      : filter === 'open' ? 'No open threads. Everything is resolved.' : 'Nothing here.';
 
     list.innerHTML = `
       ${filterBar}
@@ -1041,7 +1046,7 @@ export async function renderEditor(container, route) {
         <div class="editor-comment-form-row">
           <small>Ctrl/⌘ + Enter to post</small>
           <button type="submit" class="modal-btn-primary">
-            <span class="material-symbols-outlined text-sm">send</span>
+            ${iconSvg('send', 'text-sm')}
             Comment
           </button>
         </div>
@@ -1284,7 +1289,7 @@ async function pickPage(candidates) {
   const choice = await requestChoice({
     title: 'Link to a page',
     placeholder: 'Search pages…',
-    items: candidates.map((candidate) => ({ id: candidate.id, label: candidate.title || 'Untitled', icon: candidate.icon || '📄', hint: candidate.updated_at ? `Edited ${timeAgo(candidate.updated_at)}` : '' }))
+    items: candidates.map((candidate) => ({ id: candidate.id, label: candidate.title || 'Untitled', icon: pageIconName(candidate.icon), hint: candidate.updated_at ? `Edited ${timeAgo(candidate.updated_at)}` : '' }))
   });
   return choice ? candidates.find((candidate) => candidate.id === choice.id) : null;
 }
@@ -1300,7 +1305,7 @@ function renderComment(comment, currentUserId, depth = 0, members = []) {
         <span class="editor-comment-avatar">${escapeComment(author.slice(0, 1).toUpperCase())}</span>
         <strong>${escapeComment(author)}</strong>
         <time>${timeAgo(comment.created_at)}</time>
-        ${isResolved ? '<span class="text-[11px] text-primary font-semibold">✓ Resolved</span>' : ''}
+        ${isResolved ? `<span class="text-[11px] text-primary font-semibold">${iconSvg('check')} Resolved</span>` : ''}
         <span class="editor-comment-actions">
           <button type="button" data-comment-resolve="${comment.id}" title="${isResolved ? 'Reopen comment' : 'Resolve comment'}">${isResolved ? 'Reopen' : 'Resolve'}</button>
           <button type="button" data-comment-reply="${comment.id}">Reply</button>

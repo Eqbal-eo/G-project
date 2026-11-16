@@ -32,8 +32,8 @@ export async function startNewProject({ template = 'team' } = {}) {
         type: 'select',
         value: template,
         options: [
-          ...Object.entries(PROJECT_TEMPLATES).map(([value, item]) => ({ value, label: `${item.icon}  ${item.label} — ${item.description}` })),
-          ...teamTemplates.map((item) => ({ value: `team:${item.id}`, label: `★  ${item.title} — team template (${item.tasks?.length || 0} tasks)` }))
+          ...Object.entries(PROJECT_TEMPLATES).map(([value, item]) => ({ value, label: `${item.label} — ${item.description}` })),
+          ...teamTemplates.map((item) => ({ value: `team:${item.id}`, label: `${item.title} — team template (${item.tasks?.length || 0} tasks)` }))
         ]
       }
     ]
@@ -41,7 +41,7 @@ export async function startNewProject({ template = 'team' } = {}) {
   if (!values?.title) return null;
   const team = teamTemplates.find((item) => `team:${item.id}` === values.template);
   const chosen = team
-    ? { icon: team.icon || '📁', html: team.html || '', tasks: Array.isArray(team.tasks) ? team.tasks : [] }
+    ? { icon: team.icon || 'folder', html: team.html || '', tasks: Array.isArray(team.tasks) ? team.tasks : [] }
     : PROJECT_TEMPLATES[values.template] || PROJECT_TEMPLATES.blank;
 
   const { data: project, error } = await createPage(workspaceId, values.title, PROJECT_TYPE, { html: chosen.html }, null);
